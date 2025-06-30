@@ -20,21 +20,36 @@ This is a Next.js 15 application using the App Router for managing church petiti
 - **Authentication**: Supabase Auth with server-side session management
 - **Data Layer**: Server Actions in `/src/lib/actions/petitions.ts`
 
-### Key Directories
+### Route Organization
 
-- `/src/app/`: Next.js App Router pages and layouts
-- `/src/components/`: Reusable UI components (uses shadcn/ui)
-- `/src/lib/`: Utilities, types, and server actions
-- `/src/lib/supabase/`: Supabase client configurations (browser, server, middleware)
-- `/supabase/migrations/`: Database schema migrations
+**Two-tier layout system:**
+- **Root layout** (`/src/app/layout.tsx`): No sidebar, minimal layout for public pages
+- **Main app layout** (`/src/app/(main)/layout.tsx`): Includes sidebar for authenticated app pages
+
+**Route structure:**
+- `/` - Marketing landing page (no sidebar)
+- `/login`, `/signup` - Auth pages (no sidebar)
+- `/(main)/dashboard` - Main dashboard with stats and quick actions
+- `/(main)/petitions` - List all user petitions (index page)
+- `/(main)/petitions/create` - Create new petition form
+- `/(main)/petitions/[id]` - View individual petition details
+- `/(main)/settings` - App settings
 
 ### Authentication Flow
 
-The app uses Supabase Auth with middleware protection:
-- Middleware in `middleware.ts` handles session refresh
-- Server client in `/src/lib/supabase/server.ts` for server-side operations
-- Browser client in `/src/lib/supabase/client.ts` for client-side operations
-- All data access enforced through Row Level Security (RLS) policies
+Supabase Auth with middleware protection pattern:
+- Public pages: `/`, `/login`, `/signup` accessible without auth
+- All `(main)` routes protected by middleware in `middleware.ts`
+- Server client (`/src/lib/supabase/server.ts`) for server-side operations (async function)
+- Browser client (`/src/lib/supabase/client.ts`) for client-side operations
+- Middleware handles session refresh and redirects unauthenticated users to `/login`
+
+### Next.js 15 Compatibility Notes
+
+**Important patterns for this codebase:**
+- Server client is async: `const supabase = await createClient()`
+- Route params are promises: `const { id } = await params`
+- Cookies API is async: `const cookieStore = await cookies()`
 
 ### Database Schema
 
@@ -42,28 +57,43 @@ Two main tables with RLS policies:
 - `petitions`: Main petition records with generated liturgical content
 - `petition_contexts`: Associated context data (arrays stored as JSONB)
 
-Both tables enforce user isolation through `user_id` foreign keys.
+User isolation enforced through `user_id` foreign keys and RLS policies.
 
 ### Petition Generation Logic
 
 Core business logic in `/src/lib/actions/petitions.ts`:
 - Takes liturgical context (sacraments, deaths, sick members, special requests)
 - Generates formatted petition text based on traditional Catholic liturgy
-- Supports multiple languages (English, Spanish)
+- Supports multiple languages (English, Spanish, French, Latin)
 - Auto-formats with proper liturgical structure and pauses
 
 ### Component Architecture
 
 - Uses shadcn/ui component library with Radix UI primitives
-- Sidebar navigation with `AppSidebar` component
+- Sidebar navigation with `AppSidebar` component shows main app navigation
+- `MainHeader` component with sidebar toggle and breadcrumb navigation
+- Marketing page has its own navigation header with auth buttons
 - Form handling with react-hook-form and Zod validation
-- Uses server components where possible for better performance
+- Server components used where possible for better performance
+
+### Navigation Components
+
+- **MainHeader**: Includes sidebar toggle button and breadcrumb system with default "Dashboard" breadcrumb
+- **AppSidebar**: Clickable header with Church icon linking to dashboard, plus navigation menu for all main routes
+- **Breadcrumb**: Flexible breadcrumb component following shadcn/ui patterns for page navigation context
 
 ### Environment Setup
 
-Requires Supabase project with environment variables:
+Requires Supabase project with environment variables in `.env.local`:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `ANTHROPIC_API_KEY` (for future AI features)
 
 Database must be initialized with the migration in `/supabase/migrations/001_initial_schema.sql`.
+
+### Key Implementation Details
+
+- Email confirmation is disabled in Supabase for immediate user access
+- Signup flow automatically signs users in after account creation
+- Dashboard page includes auth check with redirect to `/login` if needed
+- All petition data operations use server actions for security
