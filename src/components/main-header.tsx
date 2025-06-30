@@ -20,7 +20,7 @@ export function MainHeader({
 }: MainHeaderProps) {
   // If no breadcrumbs provided, show default Dashboard breadcrumb
   const displayBreadcrumbs = breadcrumbs.length > 0 ? breadcrumbs : [
-    { label: "Dashboard", href: "/dashboard" }
+    { label: "Dashboard" }
   ];
 
   return (

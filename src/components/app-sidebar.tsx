@@ -9,26 +9,26 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
+  SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { 
-  Calendar,
   FileText,
   Home,
   Plus,
   Settings,
-  User
+  Church
 } from "lucide-react"
 import Link from "next/link"
 
 const items = [
   {
     title: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: Home,
   },
   {
     title: "Create Petition",
-    url: "/create",
+    url: "/petitions/create",
     icon: Plus,
   },
   {
@@ -36,18 +36,27 @@ const items = [
     url: "/petitions",
     icon: FileText,
   },
-  {
-    title: "Calendar",
-    url: "/calendar",
-    icon: Calendar,
-  },
 ]
 
 export function AppSidebar() {
   return (
     <Sidebar>
-      <SidebarHeader className="border-b px-6 py-4">
-        <h2 className="text-lg font-semibold">Petitions</h2>
+      <SidebarHeader className="border-b">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <Link href="/dashboard">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                  <Church className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">Petitions</span>
+                  <span className="truncate text-xs">Church Management</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -70,14 +79,6 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t p-4">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/profile">
-                <User />
-                <span>Profile</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/settings">
