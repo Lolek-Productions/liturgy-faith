@@ -1,0 +1,85 @@
+import { getPetitions } from '@/lib/actions/petitions'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { formatDistanceToNow } from 'date-fns'
+import { FileText, Plus, Calendar, Eye } from 'lucide-react'
+
+export default async function PetitionsPage() {
+  const petitions = await getPetitions()
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">My Petitions</h1>
+          <p className="text-muted-foreground">
+            Manage your created petitions
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/create">
+            <Plus className="h-4 w-4 mr-2" />
+            Create New
+          </Link>
+        </Button>
+      </div>
+
+      {petitions.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No petitions yet</h3>
+            <p className="text-muted-foreground mb-4">
+              Get started by creating your first petition
+            </p>
+            <Button asChild>
+              <Link href="/create">Create Petition</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {petitions.map((petition) => (
+            <Card key={petition.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg">{petition.title}</CardTitle>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(petition.date).toLocaleDateString()}
+                      </div>
+                      <div>
+                        Language: {petition.language}
+                      </div>
+                      <div>
+                        Created {formatDistanceToNow(new Date(petition.created_at), { addSuffix: true })}
+                      </div>
+                    </div>
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/petitions/${petition.id}`}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              {petition.generated_content && (
+                <CardContent>
+                  <div className="bg-muted p-4 rounded-md">
+                    <p className="text-sm whitespace-pre-line line-clamp-3">
+                      {petition.generated_content.slice(0, 200)}...
+                    </p>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
