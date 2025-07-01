@@ -53,6 +53,11 @@ export async function getMinisters(): Promise<Minister[]> {
     .order('name', { ascending: true })
 
   if (error) {
+    // If table doesn't exist yet, return empty array
+    if (error.message?.includes('relation "public.ministers" does not exist')) {
+      console.warn('Ministers table not yet created. Please run database migrations.')
+      return []
+    }
     throw new Error('Failed to fetch ministers')
   }
 

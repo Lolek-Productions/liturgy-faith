@@ -53,6 +53,11 @@ export async function getLiturgyPlans(): Promise<LiturgyPlan[]> {
     .order('date', { ascending: false })
 
   if (error) {
+    // If table doesn't exist yet, return empty array
+    if (error.message?.includes('relation "public.liturgy_plans" does not exist')) {
+      console.warn('Liturgy plans table not yet created. Please run database migrations.')
+      return []
+    }
     throw new Error('Failed to fetch liturgy plans')
   }
 

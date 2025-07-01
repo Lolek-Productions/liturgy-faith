@@ -55,6 +55,11 @@ export async function getCalendarEntries(): Promise<LiturgicalCalendarEntry[]> {
     .order('date', { ascending: true })
 
   if (error) {
+    // If table doesn't exist yet, return empty array
+    if (error.message?.includes('relation "public.liturgical_calendar" does not exist')) {
+      console.warn('Calendar table not yet created. Please run database migrations.')
+      return []
+    }
     throw new Error('Failed to fetch calendar entries')
   }
 
@@ -159,6 +164,11 @@ export async function getUpcomingEvents(limit = 10): Promise<LiturgicalCalendarE
     .limit(limit)
 
   if (error) {
+    // If table doesn't exist yet, return empty array
+    if (error.message?.includes('relation "public.liturgical_calendar" does not exist')) {
+      console.warn('Calendar table not yet created. Please run database migrations.')
+      return []
+    }
     throw new Error('Failed to fetch upcoming events')
   }
 
