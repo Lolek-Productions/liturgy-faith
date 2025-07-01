@@ -12,7 +12,8 @@ import {
   Menu,
   Calendar,
   Music,
-  ClipboardList
+  ClipboardList,
+  Printer
 } from "lucide-react"
 
 export default function Home() {
@@ -235,6 +236,75 @@ export default function Home() {
               </ul>
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      {/* Print Feature Highlight */}
+      <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-2xl p-8 border-2 border-primary/20">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-primary text-primary-foreground rounded-xl">
+                  <Printer className="h-7 w-7" />
+                </div>
+                <h3 className="text-2xl font-bold">Professional Print Layouts</h3>
+              </div>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Create beautiful, print-ready documents for your liturgical celebrations. 
+                Our specialized print layouts ensure professional typography and proper liturgical formatting.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span>Individual readings with pericopes</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span>Complete reading collections</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span>Petitions with liturgical responses</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  <span>Combined readings and petitions</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border">
+                <div className="text-center space-y-3">
+                  <div className="text-sm text-muted-foreground font-medium">Print Options</div>
+                  <div className="space-y-2">
+                    <div className="bg-muted/50 rounded-lg p-3 text-left">
+                      <div className="font-medium text-sm">Readings Only</div>
+                      <div className="text-xs text-muted-foreground">Clean liturgical format</div>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-3 text-left">
+                      <div className="font-medium text-sm">Petitions Only</div>
+                      <div className="text-xs text-muted-foreground">With responses included</div>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-3 text-left">
+                      <div className="font-medium text-sm">Combined Service</div>
+                      <div className="text-xs text-muted-foreground">Complete celebration</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <Button asChild variant="outline" size="sm" className="w-full">
+                  <Link href="/signup">
+                    <Printer className="h-4 w-4 mr-2" />
+                    Try Print Features
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
