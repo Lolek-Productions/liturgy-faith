@@ -75,6 +75,29 @@ export async function getPetitions(): Promise<Petition[]> {
   return data || []
 }
 
+export async function getPetition(id: string): Promise<Petition | null> {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data, error } = await supabase
+    .from('petitions')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (error || !data) {
+    return null
+  }
+
+  return data
+}
+
 export async function getSavedContexts(): Promise<Array<{id: string, name: string, community_info: string}>> {
   const supabase = await createClient()
   

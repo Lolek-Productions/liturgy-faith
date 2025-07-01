@@ -92,10 +92,27 @@ export default function ReadingsPrintoutPage() {
   }
 
   const handlePrint = () => {
-    setShowPreview(true)
-    setTimeout(() => {
-      window.print()
-    }, 500)
+    // Build URL parameters for print layout
+    const params = new URLSearchParams()
+    
+    if (selectedCollection) {
+      params.set('collection', selectedCollection)
+    } else if (selectedReadings.length > 0) {
+      params.set('readings', selectedReadings.join(','))
+    }
+    
+    if (printMode === 'readings-and-petitions' && selectedPetition) {
+      params.set('petition', selectedPetition)
+      params.set('includePetitions', 'true')
+    }
+    
+    params.set('title', 'Liturgical Readings')
+    
+    // Open print layout in new window
+    const printUrl = printMode === 'readings-and-petitions' 
+      ? `/print/combined?${params.toString()}`
+      : `/print/readings-print?${params.toString()}`
+    window.open(printUrl, '_blank')
   }
 
   const handleDownload = () => {

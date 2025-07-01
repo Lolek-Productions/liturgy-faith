@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Edit, Calendar } from 'lucide-react'
+import { Edit, Calendar, Printer } from 'lucide-react'
 import { CopyButton } from '@/components/copy-button'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { Petition, PetitionContext } from '@/lib/types'
@@ -22,6 +22,13 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
   const [petitionId, setPetitionId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const { setBreadcrumbs } = useBreadcrumbs()
+
+  const handlePrint = () => {
+    if (petitionId) {
+      const printUrl = `/print/petitions-print?id=${petitionId}&title=Petitions`
+      window.open(printUrl, '_blank')
+    }
+  }
 
   useEffect(() => {
     const loadPetition = async () => {
@@ -116,6 +123,14 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Petitions
                 </Link>
+              </Button>
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={handlePrint}
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Print Petitions
               </Button>
               <CopyButton 
                 content={petition.generated_content || ''} 
