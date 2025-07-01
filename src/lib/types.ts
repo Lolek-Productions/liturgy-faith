@@ -5,6 +5,7 @@ export interface Petition {
   date: string
   language: string
   generated_content?: string
+  petition_text?: string // Alias for generated_content for compatibility
   created_at: string
   updated_at: string
 }
@@ -23,6 +24,17 @@ export interface CreatePetitionData {
   date: string
   language: string
   community_info: string
+}
+
+export interface PetitionSettings {
+  id: string
+  user_id: string
+  daily_mass: string
+  sunday_mass: string
+  wedding: string
+  funeral: string
+  created_at: string
+  updated_at: string
 }
 
 export interface Minister {

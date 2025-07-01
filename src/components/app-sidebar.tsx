@@ -29,7 +29,8 @@ import {
   ClipboardList,
   Calendar,
   Settings,
-  Library
+  Library,
+  Printer
 } from "lucide-react"
 import Link from "next/link"
 import { UserProfile } from "@/components/user-profile"
@@ -88,6 +89,11 @@ const readingsItems = [
     url: "/readings/library",
     icon: BookOpen,
   },
+  {
+    title: "Readings Printout",
+    url: "/readings/printout",
+    icon: Printer,
+  },
 ]
 
 const settingsItems = [
@@ -95,6 +101,11 @@ const settingsItems = [
     title: "Petition Definitions",
     url: "/definitions",
     icon: BookOpen,
+  },
+  {
+    title: "Petition Settings",
+    url: "/settings/petitions",
+    icon: FileText,
   },
   {
     title: "Settings",
