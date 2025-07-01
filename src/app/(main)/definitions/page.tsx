@@ -8,6 +8,7 @@ import { FormField } from '@/components/ui/form-field'
 import { Info, Save, RotateCcw } from 'lucide-react'
 import { savePromptTemplate, getPromptTemplate } from '@/lib/actions/definitions'
 import { getDefaultPromptTemplate } from '@/lib/template-utils'
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 const TEMPLATE_VARIABLES = [
   { name: '{{TITLE}}', description: 'The title of the petition set' },
@@ -21,6 +22,14 @@ export default function DefinitionsPage() {
   const [initialLoading, setInitialLoading] = useState(true)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Petition Definitions" }
+    ])
+  }, [setBreadcrumbs])
 
   useEffect(() => {
     // Load saved template from server

@@ -1,29 +1,62 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import type { LiturgicalCalendarEntry } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { ArrowLeft, Edit } from "lucide-react"
 import { getCalendarEntry } from "@/lib/actions/calendar"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { useRouter } from 'next/navigation'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function CalendarDetailPage({ params }: PageProps) {
-  const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function CalendarDetailPage({ params }: PageProps) {
+  const [entry, setEntry] = useState<LiturgicalCalendarEntry | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [entryId, setEntryId] = useState<string>('')
+  const { setBreadcrumbs } = useBreadcrumbs()
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadEntry = async () => {
+      try {
+        const { id } = await params
+        setEntryId(id)
+        const entryData = await getCalendarEntry(id)
+        
+        if (!entryData) {
+          router.push('/calendar')
+          return
+        }
+
+        setEntry(entryData)
+        setBreadcrumbs([
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Liturgical Calendar", href: "/calendar" },
+          { label: entryData.title }
+        ])
+      } catch (error) {
+        console.error('Failed to load calendar entry:', error)
+        router.push('/calendar')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadEntry()
+  }, [params, setBreadcrumbs, router])
+
+  if (loading) {
+    return <div className="space-y-6">Loading...</div>
   }
-  
-  const entry = await getCalendarEntry(id)
-  
+
   if (!entry) {
-    redirect('/calendar')
+    return null
   }
 
   const getRankBadge = (rank?: string) => {
@@ -71,7 +104,7 @@ export default async function CalendarDetailPage({ params }: PageProps) {
           </div>
         </div>
         <Button asChild>
-          <Link href={`/calendar/${entry.id}/edit`}>
+          <Link href={`/calendar/${entryId}/edit`}>
             <Edit className="h-4 w-4 mr-2" />
             Edit Event
           </Link>

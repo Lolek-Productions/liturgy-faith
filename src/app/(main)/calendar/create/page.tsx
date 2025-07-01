@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,10 +12,20 @@ import Link from "next/link"
 import { ArrowLeft, Save, Plus, X } from "lucide-react"
 import { createCalendarEntry } from "@/lib/actions/calendar"
 import { useRouter } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 export default function CreateCalendarPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Liturgical Calendar", href: "/calendar" },
+      { label: "Create Event" }
+    ])
+  }, [setBreadcrumbs])
   const [formData, setFormData] = useState({
     title: "",
     date: "",

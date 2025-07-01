@@ -1,29 +1,62 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import type { Minister } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { ArrowLeft, Edit, Mail, Phone, User } from "lucide-react"
 import { getMinister } from "@/lib/actions/ministers"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { useRouter } from 'next/navigation'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function MinisterDetailPage({ params }: PageProps) {
-  const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function MinisterDetailPage({ params }: PageProps) {
+  const [minister, setMinister] = useState<Minister | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [ministerId, setMinisterId] = useState<string>('')
+  const { setBreadcrumbs } = useBreadcrumbs()
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadMinister = async () => {
+      try {
+        const { id } = await params
+        setMinisterId(id)
+        const ministerData = await getMinister(id)
+        
+        if (!ministerData) {
+          router.push('/ministers')
+          return
+        }
+
+        setMinister(ministerData)
+        setBreadcrumbs([
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Ministers Directory", href: "/ministers" },
+          { label: ministerData.name }
+        ])
+      } catch (error) {
+        console.error('Failed to load minister:', error)
+        router.push('/ministers')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadMinister()
+  }, [params, setBreadcrumbs, router])
+
+  if (loading) {
+    return <div className="space-y-6">Loading...</div>
   }
-  
-  const minister = await getMinister(id)
-  
+
   if (!minister) {
-    redirect('/ministers')
+    return null
   }
 
   return (
@@ -42,7 +75,7 @@ export default async function MinisterDetailPage({ params }: PageProps) {
           </div>
         </div>
         <Button asChild>
-          <Link href={`/ministers/${minister.id}/edit`}>
+          <Link href={`/ministers/${ministerId}/edit`}>
             <Edit className="h-4 w-4 mr-2" />
             Edit Minister
           </Link>
@@ -126,7 +159,7 @@ export default async function MinisterDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent className="space-y-3">
               <Button asChild className="w-full justify-start">
-                <Link href={`/ministers/${minister.id}/edit`}>
+                <Link href={`/ministers/${ministerId}/edit`}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Information
                 </Link>

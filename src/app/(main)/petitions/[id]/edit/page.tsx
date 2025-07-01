@@ -11,6 +11,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getPetitionWithContext, updatePetition } from '@/lib/actions/petitions'
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 interface EditPetitionPageProps {
   params: Promise<{ id: string }>
@@ -26,6 +27,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   const [loadingData, setLoadingData] = useState(true)
   const [error, setError] = useState('')
   const router = useRouter()
+  const { setBreadcrumbs } = useBreadcrumbs()
 
   useEffect(() => {
     const loadPetition = async () => {
@@ -40,6 +42,14 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
           setDate(petition.date)
           setLanguage(petition.language)
           setCommunityInfo(context.community_info)
+          
+          // Set breadcrumbs with petition title
+          setBreadcrumbs([
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Petitions", href: "/petitions" },
+            { label: petition.title, href: `/petitions/${resolvedParams.id}` },
+            { label: "Edit" }
+          ])
         }
       } catch {
         setError('Failed to load petition')
@@ -49,7 +59,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
     }
 
     loadPetition()
-  }, [params])
+  }, [params, setBreadcrumbs])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

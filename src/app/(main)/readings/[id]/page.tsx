@@ -1,29 +1,62 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { ArrowLeft, Edit, Plus, BookOpen, Copy, GripVertical } from "lucide-react"
 import { getReadingCollectionWithItems } from "@/lib/actions/readings"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { useRouter } from 'next/navigation'
+import type { ReadingCollectionWithItems } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function ReadingCollectionDetailPage({ params }: PageProps) {
-  const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function ReadingCollectionDetailPage({ params }: PageProps) {
+  const [collection, setCollection] = useState<ReadingCollectionWithItems | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [collectionId, setCollectionId] = useState<string>('')
+  const { setBreadcrumbs } = useBreadcrumbs()
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadCollection = async () => {
+      try {
+        const { id } = await params
+        setCollectionId(id)
+        const collectionData = await getReadingCollectionWithItems(id)
+        
+        if (!collectionData) {
+          router.push('/readings')
+          return
+        }
+
+        setCollection(collectionData)
+        setBreadcrumbs([
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Reading Collections", href: "/readings" },
+          { label: collectionData.name }
+        ])
+      } catch (error) {
+        console.error('Failed to load reading collection:', error)
+        router.push('/readings')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadCollection()
+  }, [params, setBreadcrumbs, router])
+
+  if (loading) {
+    return <div className="space-y-6">Loading...</div>
   }
-  
-  const collection = await getReadingCollectionWithItems(id)
-  
+
   if (!collection) {
-    redirect('/readings')
+    return null
   }
 
   const getOccasionColor = (occasion: string) => {
@@ -74,13 +107,13 @@ export default async function ReadingCollectionDetailPage({ params }: PageProps)
           {!collection.is_template && (
             <>
               <Button variant="outline" asChild>
-                <Link href={`/readings/${collection.id}/add-reading`}>
+                <Link href={`/readings/${collectionId}/add-reading`}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Reading
                 </Link>
               </Button>
               <Button asChild>
-                <Link href={`/readings/${collection.id}/edit`}>
+                <Link href={`/readings/${collectionId}/edit`}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Collection
                 </Link>
@@ -89,7 +122,7 @@ export default async function ReadingCollectionDetailPage({ params }: PageProps)
           )}
           {collection.is_template && (
             <Button asChild>
-              <Link href={`/readings/${collection.id}/copy`}>
+              <Link href={`/readings/${collectionId}/copy`}>
                 <Copy className="h-4 w-4 mr-2" />
                 Copy to My Collections
               </Link>
@@ -205,7 +238,7 @@ export default async function ReadingCollectionDetailPage({ params }: PageProps)
               {!collection.is_template && (
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button asChild>
-                    <Link href={`/readings/${collection.id}/add-reading`}>
+                    <Link href={`/readings/${collectionId}/add-reading`}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add Reading from Library
                     </Link>

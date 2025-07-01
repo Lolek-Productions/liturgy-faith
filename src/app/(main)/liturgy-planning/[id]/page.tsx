@@ -1,28 +1,61 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import type { LiturgyPlan } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowLeft, Edit } from "lucide-react"
 import { getLiturgyPlan } from "@/lib/actions/liturgy-planning"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { useRouter } from 'next/navigation'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function LiturgyPlanDetailPage({ params }: PageProps) {
-  const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function LiturgyPlanDetailPage({ params }: PageProps) {
+  const [plan, setPlan] = useState<LiturgyPlan | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [planId, setPlanId] = useState<string>('')
+  const { setBreadcrumbs } = useBreadcrumbs()
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadPlan = async () => {
+      try {
+        const { id } = await params
+        setPlanId(id)
+        const planData = await getLiturgyPlan(id)
+        
+        if (!planData) {
+          router.push('/liturgy-planning')
+          return
+        }
+
+        setPlan(planData)
+        setBreadcrumbs([
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Liturgy Planning", href: "/liturgy-planning" },
+          { label: planData.title }
+        ])
+      } catch (error) {
+        console.error('Failed to load plan:', error)
+        router.push('/liturgy-planning')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadPlan()
+  }, [params, setBreadcrumbs, router])
+
+  if (loading) {
+    return <div className="space-y-6">Loading...</div>
   }
-  
-  const plan = await getLiturgyPlan(id)
-  
+
   if (!plan) {
-    redirect('/liturgy-planning')
+    return null
   }
 
   return (
@@ -43,7 +76,7 @@ export default async function LiturgyPlanDetailPage({ params }: PageProps) {
           </div>
         </div>
         <Button asChild>
-          <Link href={`/liturgy-planning/${plan.id}/edit`}>
+          <Link href={`/liturgy-planning/${planId}/edit`}>
             <Edit className="h-4 w-4 mr-2" />
             Edit Plan
           </Link>

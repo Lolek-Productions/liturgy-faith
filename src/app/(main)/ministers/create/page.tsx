@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,10 +11,20 @@ import Link from "next/link"
 import { ArrowLeft, Save } from "lucide-react"
 import { createMinister } from "@/lib/actions/ministers"
 import { useRouter } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 export default function CreateMinisterPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Ministers Directory", href: "/ministers" },
+      { label: "Add Minister" }
+    ])
+  }, [setBreadcrumbs])
   const [formData, setFormData] = useState({
     name: "",
     email: "",

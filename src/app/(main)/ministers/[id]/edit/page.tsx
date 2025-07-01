@@ -11,6 +11,7 @@ import Link from "next/link"
 import { ArrowLeft, Save } from "lucide-react"
 import { getMinister, updateMinister } from "@/lib/actions/ministers"
 import { useRouter, useParams } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 export default function EditMinisterPage() {
   const router = useRouter()
@@ -26,6 +27,7 @@ export default function EditMinisterPage() {
     notes: "",
     is_active: true
   })
+  const { setBreadcrumbs } = useBreadcrumbs()
 
   useEffect(() => {
     const loadMinister = async () => {
@@ -40,6 +42,14 @@ export default function EditMinisterPage() {
             notes: minister.notes || "",
             is_active: minister.is_active
           })
+          
+          // Set breadcrumbs with minister name
+          setBreadcrumbs([
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Ministers Directory", href: "/ministers" },
+            { label: minister.name, href: `/ministers/${id}` },
+            { label: "Edit" }
+          ])
         } else {
           router.push("/ministers")
         }
@@ -51,7 +61,7 @@ export default function EditMinisterPage() {
     }
 
     loadMinister()
-  }, [id, router])
+  }, [id, router, setBreadcrumbs])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

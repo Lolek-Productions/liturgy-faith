@@ -1,12 +1,45 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { getPetitions } from '@/lib/actions/petitions'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { FileText, Plus, Calendar, Eye } from 'lucide-react'
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { Petition } from '@/lib/types'
 
-export default async function PetitionsPage() {
-  const petitions = await getPetitions()
+export default function PetitionsPage() {
+  const [petitions, setPetitions] = useState<Petition[]>([])
+  const [loading, setLoading] = useState(true)
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Petitions" }
+    ])
+  }, [setBreadcrumbs])
+
+  useEffect(() => {
+    const loadPetitions = async () => {
+      try {
+        const data = await getPetitions()
+        setPetitions(data)
+      } catch (error) {
+        console.error('Failed to load petitions:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadPetitions()
+  }, [])
+
+  if (loading) {
+    return <div className="space-y-6">Loading...</div>
+  }
 
   return (
     <div className="space-y-6">

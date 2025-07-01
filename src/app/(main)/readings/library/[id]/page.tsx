@@ -1,29 +1,62 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import type { IndividualReading } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { ArrowLeft, Edit, Copy, BookOpen } from "lucide-react"
 import { getIndividualReading } from "@/lib/actions/readings"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { useRouter } from 'next/navigation'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function IndividualReadingDetailPage({ params }: PageProps) {
-  const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function IndividualReadingDetailPage({ params }: PageProps) {
+  const [reading, setReading] = useState<IndividualReading | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [readingId, setReadingId] = useState<string>('')
+  const { setBreadcrumbs } = useBreadcrumbs()
+  const router = useRouter()
+
+  useEffect(() => {
+    const loadReading = async () => {
+      try {
+        const { id } = await params
+        setReadingId(id)
+        const readingData = await getIndividualReading(id)
+        
+        if (!readingData) {
+          router.push('/readings/library')
+          return
+        }
+
+        setReading(readingData)
+        setBreadcrumbs([
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Individual Readings", href: "/readings/library" },
+          { label: readingData.title }
+        ])
+      } catch (error) {
+        console.error('Failed to load reading:', error)
+        router.push('/readings/library')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadReading()
+  }, [params, setBreadcrumbs, router])
+
+  if (loading) {
+    return <div className="space-y-6">Loading...</div>
   }
-  
-  const reading = await getIndividualReading(id)
-  
+
   if (!reading) {
-    redirect('/readings/library')
+    return null
   }
 
   const getReadingTypeColor = (category: string) => {
@@ -51,7 +84,7 @@ export default async function IndividualReadingDetailPage({ params }: PageProps)
         </div>
         {!reading.is_template && (
           <Button asChild>
-            <Link href={`/readings/library/${reading.id}/edit`}>
+            <Link href={`/readings/library/${readingId}/edit`}>
               <Edit className="h-4 w-4 mr-2" />
               Edit Reading
             </Link>
@@ -166,7 +199,7 @@ export default async function IndividualReadingDetailPage({ params }: PageProps)
             <CardContent className="space-y-3">
               {!reading.is_template && (
                 <Button asChild className="w-full justify-start">
-                  <Link href={`/readings/library/${reading.id}/edit`}>
+                  <Link href={`/readings/library/${readingId}/edit`}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Reading
                   </Link>

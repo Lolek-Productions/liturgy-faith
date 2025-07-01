@@ -1,21 +1,45 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import type { ReadingCollection } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Plus, Library, Edit, Eye, Calendar } from "lucide-react"
 import { getReadingCollections } from "@/lib/actions/readings"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
-export default async function ReadingCollectionsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function ReadingCollectionsPage() {
+  const [collections, setCollections] = useState<ReadingCollection[]>([])
+  const [loading, setLoading] = useState(true)
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Reading Collections" }
+    ])
+  }, [setBreadcrumbs])
+
+  useEffect(() => {
+    const loadCollections = async () => {
+      try {
+        const data = await getReadingCollections()
+        setCollections(data)
+      } catch (error) {
+        console.error('Failed to load reading collections:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadCollections()
+  }, [])
+
+  if (loading) {
+    return <div className="space-y-8">Loading...</div>
   }
-  
-  const collections = await getReadingCollections()
 
   const getOccasionColor = (occasion: string) => {
     switch (occasion.toLowerCase()) {

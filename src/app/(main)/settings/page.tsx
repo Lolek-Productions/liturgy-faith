@@ -1,7 +1,19 @@
+'use client'
+
+import { useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Settings } from 'lucide-react'
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 export default function SettingsPage() {
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Settings" }
+    ])
+  }, [setBreadcrumbs])
   return (
     <div className="space-y-6">
       <div>

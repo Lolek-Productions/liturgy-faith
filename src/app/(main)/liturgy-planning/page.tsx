@@ -1,21 +1,45 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import type { LiturgyPlan } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Plus, ClipboardList, Calendar, Edit } from "lucide-react"
 import { getLiturgyPlans } from "@/lib/actions/liturgy-planning"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
-export default async function LiturgyPlanningPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function LiturgyPlanningPage() {
+  const [liturgyPlans, setLiturgyPlans] = useState<LiturgyPlan[]>([])
+  const [loading, setLoading] = useState(true)
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Liturgy Planning" }
+    ])
+  }, [setBreadcrumbs])
+
+  useEffect(() => {
+    const loadLiturgyPlans = async () => {
+      try {
+        const plans = await getLiturgyPlans()
+        setLiturgyPlans(plans)
+      } catch (error) {
+        console.error('Failed to load liturgy plans:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadLiturgyPlans()
+  }, [])
+
+  if (loading) {
+    return <div className="space-y-8">Loading...</div>
   }
-  
-  const liturgyPlans = await getLiturgyPlans()
 
   const getLiturgyTypeColor = (type: string) => {
     switch (type.toLowerCase()) {

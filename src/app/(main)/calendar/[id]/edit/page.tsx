@@ -12,6 +12,7 @@ import Link from "next/link"
 import { ArrowLeft, Save, Plus, X } from "lucide-react"
 import { getCalendarEntry, updateCalendarEntry } from "@/lib/actions/calendar"
 import { useRouter, useParams } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 export default function EditCalendarPage() {
   const router = useRouter()
@@ -30,6 +31,7 @@ export default function EditCalendarPage() {
   })
   const [readings, setReadings] = useState<string[]>([''])
   const [prayers, setPrayers] = useState<string[]>([''])
+  const { setBreadcrumbs } = useBreadcrumbs()
 
   useEffect(() => {
     const loadEntry = async () => {
@@ -47,6 +49,14 @@ export default function EditCalendarPage() {
           })
           setReadings((entry.readings as string[]) || [''])
           setPrayers((entry.special_prayers as string[]) || [''])
+          
+          // Set breadcrumbs with entry title
+          setBreadcrumbs([
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Liturgical Calendar", href: "/calendar" },
+            { label: entry.title, href: `/calendar/${id}` },
+            { label: "Edit" }
+          ])
         } else {
           router.push("/calendar")
         }
@@ -58,7 +68,7 @@ export default function EditCalendarPage() {
     }
 
     loadEntry()
-  }, [id, router])
+  }, [id, router, setBreadcrumbs])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

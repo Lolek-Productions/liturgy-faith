@@ -1,21 +1,45 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import type { LiturgicalCalendarEntry } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Plus, Calendar as CalendarIcon, Edit } from "lucide-react"
 import { getCalendarEntries } from "@/lib/actions/calendar"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
-export default async function CalendarPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function CalendarPage() {
+  const [calendarEntries, setCalendarEntries] = useState<LiturgicalCalendarEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Liturgical Calendar" }
+    ])
+  }, [setBreadcrumbs])
+
+  useEffect(() => {
+    const loadCalendarEntries = async () => {
+      try {
+        const entries = await getCalendarEntries()
+        setCalendarEntries(entries)
+      } catch (error) {
+        console.error('Failed to load calendar entries:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadCalendarEntries()
+  }, [])
+
+  if (loading) {
+    return <div className="space-y-8">Loading...</div>
   }
-  
-  const calendarEntries = await getCalendarEntries()
   
   // Group entries by month for better organization
   const entriesByMonth = calendarEntries.reduce((acc, entry) => {

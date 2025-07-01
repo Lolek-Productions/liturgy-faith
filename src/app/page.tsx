@@ -36,9 +36,6 @@ export default function Home() {
               <Link href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
                 How it Works
               </Link>
-              <Link href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-                Pricing
-              </Link>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -344,7 +341,7 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <div id="pricing" className="bg-muted/50 rounded-2xl p-12 text-center space-y-6">
+      <div className="bg-muted/50 rounded-2xl p-12 text-center space-y-6">
         <div className="space-y-4">
           <h2 className="text-3xl font-bold">Ready to Transform Your Liturgical Management?</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

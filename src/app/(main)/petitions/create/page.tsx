@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FormField } from '@/components/ui/form-field'
 import { createPetition, getSavedContexts } from '@/lib/actions/petitions'
 import { useRouter } from 'next/navigation'
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 export default function CreatePetitionPage() {
   const [title, setTitle] = useState('')
@@ -27,6 +28,15 @@ export default function CreatePetitionPage() {
   const [loadingContexts, setLoadingContexts] = useState(true)
   const [error, setError] = useState('')
   const router = useRouter()
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Petitions", href: "/petitions" },
+      { label: "Create Petition" }
+    ])
+  }, [setBreadcrumbs])
 
   useEffect(() => {
     const loadSavedContexts = async () => {

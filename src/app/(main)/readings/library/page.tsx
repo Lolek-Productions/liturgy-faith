@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -5,18 +8,38 @@ import Link from "next/link"
 import { Plus, BookOpen, Edit, Filter } from "lucide-react"
 import { getIndividualReadings } from "@/lib/actions/readings"
 import type { IndividualReading } from "@/lib/types"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
-export default async function ReadingLibraryPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function ReadingLibraryPage() {
+  const [readings, setReadings] = useState<IndividualReading[]>([])
+  const [loading, setLoading] = useState(true)
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Individual Readings" }
+    ])
+  }, [setBreadcrumbs])
+
+  useEffect(() => {
+    const loadReadings = async () => {
+      try {
+        const data = await getIndividualReadings()
+        setReadings(data)
+      } catch (error) {
+        console.error('Failed to load readings:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadReadings()
+  }, [])
+
+  if (loading) {
+    return <div className="space-y-8">Loading...</div>
   }
-  
-  const readings = await getIndividualReadings()
 
   const getReadingTypeColor = (category: string) => {
     if (category.includes('-1') || category.includes('first')) return 'bg-blue-100 text-blue-800'

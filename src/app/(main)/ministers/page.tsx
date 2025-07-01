@@ -1,21 +1,45 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import type { Minister } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Plus, UserCheck, Mail, Phone, Edit } from "lucide-react"
 import { getMinisters } from "@/lib/actions/ministers"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
-export default async function MinistersPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
+export default function MinistersPage() {
+  const [ministers, setMinisters] = useState<Minister[]>([])
+  const [loading, setLoading] = useState(true)
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Ministers Directory" }
+    ])
+  }, [setBreadcrumbs])
+
+  useEffect(() => {
+    const loadMinisters = async () => {
+      try {
+        const data = await getMinisters()
+        setMinisters(data)
+      } catch (error) {
+        console.error('Failed to load ministers:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadMinisters()
+  }, [])
+
+  if (loading) {
+    return <div className="space-y-8">Loading...</div>
   }
-  
-  const ministers = await getMinisters()
 
   return (
     <div className="space-y-8">

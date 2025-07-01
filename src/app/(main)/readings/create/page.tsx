@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,7 @@ import Link from "next/link"
 import { ArrowLeft, Save } from "lucide-react"
 import { createReadingCollection } from "@/lib/actions/readings"
 import { useRouter } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 export default function CreateReadingCollectionPage() {
   const router = useRouter()
@@ -20,6 +21,15 @@ export default function CreateReadingCollectionPage() {
     description: "",
     occasion_type: "wedding"
   })
+  const { setBreadcrumbs } = useBreadcrumbs()
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Reading Collections", href: "/readings" },
+      { label: "Create Collection" }
+    ])
+  }, [setBreadcrumbs])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

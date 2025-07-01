@@ -11,6 +11,7 @@ import Link from "next/link"
 import { ArrowLeft, Save, Plus, X } from "lucide-react"
 import { getLiturgyPlan, updateLiturgyPlan } from "@/lib/actions/liturgy-planning"
 import { useRouter, useParams } from "next/navigation"
+import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
 export default function EditLiturgyPlanPage() {
   const router = useRouter()
@@ -27,6 +28,7 @@ export default function EditLiturgyPlanPage() {
   })
   const [prayers, setPrayers] = useState<string[]>([''])
   const [readings, setReadings] = useState<string[]>([''])
+  const { setBreadcrumbs } = useBreadcrumbs()
 
   useEffect(() => {
     const loadPlan = async () => {
@@ -42,6 +44,14 @@ export default function EditLiturgyPlanPage() {
           })
           setPrayers((plan.prayers as string[]) || [''])
           setReadings((plan.readings as string[]) || [''])
+          
+          // Set breadcrumbs with plan title
+          setBreadcrumbs([
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Liturgy Planning", href: "/liturgy-planning" },
+            { label: plan.title, href: `/liturgy-planning/${id}` },
+            { label: "Edit" }
+          ])
         } else {
           router.push("/liturgy-planning")
         }
@@ -53,7 +63,7 @@ export default function EditLiturgyPlanPage() {
     }
 
     loadPlan()
-  }, [id, router])
+  }, [id, router, setBreadcrumbs])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
