@@ -1,51 +1,58 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, X } from 'lucide-react'
-import { createPetition } from '@/lib/actions/petitions'
+import { FormField } from '@/components/ui/form-field'
+import { createPetition, getSavedContexts } from '@/lib/actions/petitions'
 import { useRouter } from 'next/navigation'
 
 export default function CreatePetitionPage() {
   const [title, setTitle] = useState('')
-  const [date, setDate] = useState('')
+  const [date, setDate] = useState(() => {
+    // Get the next Sunday
+    const today = new Date()
+    const daysUntilSunday = (7 - today.getDay()) % 7
+    const nextSunday = new Date(today)
+    nextSunday.setDate(today.getDate() + (daysUntilSunday === 0 ? 7 : daysUntilSunday))
+    return nextSunday.toISOString().split('T')[0]
+  })
   const [language, setLanguage] = useState('english')
-  const [sacramentsReceived, setSacramentsReceived] = useState<string[]>([''])
-  const [deathsThisWeek, setDeathsThisWeek] = useState<string[]>([''])
-  const [sickMembers, setSickMembers] = useState<string[]>([''])
-  const [specialPetitions, setSpecialPetitions] = useState<string[]>([''])
+  const [communityInfo, setCommunityInfo] = useState('')
+  const [selectedContext, setSelectedContext] = useState('')
+  const [savedContexts, setSavedContexts] = useState<Array<{id: string, name: string, community_info: string}>>([])
   const [loading, setLoading] = useState(false)
+  const [loadingContexts, setLoadingContexts] = useState(true)
   const [error, setError] = useState('')
   const router = useRouter()
 
-  const addField = (
-    setter: React.Dispatch<React.SetStateAction<string[]>>,
-    fields: string[]
-  ) => {
-    setter([...fields, ''])
-  }
+  useEffect(() => {
+    const loadSavedContexts = async () => {
+      try {
+        const contexts = await getSavedContexts()
+        setSavedContexts(contexts)
+      } catch (err) {
+        console.error('Failed to load saved contexts:', err)
+      } finally {
+        setLoadingContexts(false)
+      }
+    }
 
-  const removeField = (
-    setter: React.Dispatch<React.SetStateAction<string[]>>,
-    fields: string[],
-    index: number
-  ) => {
-    setter(fields.filter((_, i) => i !== index))
-  }
+    loadSavedContexts()
+  }, [])
 
-  const updateField = (
-    setter: React.Dispatch<React.SetStateAction<string[]>>,
-    fields: string[],
-    index: number,
-    value: string
-  ) => {
-    const updated = [...fields]
-    updated[index] = value
-    setter(updated)
+  const handleContextSelect = (contextId: string) => {
+    setSelectedContext(contextId)
+    if (contextId === 'new') {
+      setCommunityInfo('')
+    } else {
+      const context = savedContexts.find(c => c.id === contextId)
+      if (context) {
+        setCommunityInfo(context.community_info)
+      }
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,14 +65,11 @@ export default function CreatePetitionPage() {
         title,
         date,
         language,
-        sacraments_received: sacramentsReceived.filter(s => s.trim() !== ''),
-        deaths_this_week: deathsThisWeek.filter(d => d.trim() !== ''),
-        sick_members: sickMembers.filter(s => s.trim() !== ''),
-        special_petitions: specialPetitions.filter(p => p.trim() !== ''),
+        community_info: communityInfo.trim(),
       }
 
-      await createPetition(petitionData)
-      router.push('/petitions')
+      const petition = await createPetition(petitionData)
+      router.push(`/petitions/${petition.id}`)
     } catch {
       setError('Failed to create petition. Please try again.')
     } finally {
@@ -73,126 +77,109 @@ export default function CreatePetitionPage() {
     }
   }
 
-  const renderFieldList = (
-    fields: string[],
-    setter: React.Dispatch<React.SetStateAction<string[]>>,
-    label: string,
-    placeholder: string
-  ) => (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      {fields.map((field, index) => (
-        <div key={index} className="flex gap-2">
-          <Input
-            value={field}
-            onChange={(e) => updateField(setter, fields, index, e.target.value)}
-            placeholder={placeholder}
-          />
-          {fields.length > 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => removeField(setter, fields, index)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      ))}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => addField(setter, fields)}
-        className="mt-2"
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        Add {label.toLowerCase()}
-      </Button>
-    </div>
-  )
-
   return (
     <div className="max-w-2xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>Create New Petition</CardTitle>
+          <CardTitle>Create New Petitions</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Petitions - June 28/29, 2025"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
-              </div>
+              <FormField
+                id="title"
+                label="Title"
+                description='A descriptive name for this set of petitions (e.g., "Sunday Mass - December 15, 2024")'
+                value={title}
+                onChange={setTitle}
+                placeholder="Enter title for these petitions"
+                required
+              />
+              <FormField
+                id="date"
+                label="Date"
+                description="The date when these petitions will be used during Mass"
+                inputType="date"
+                value={date}
+                onChange={setDate}
+                required
+              />
             </div>
 
-            <div>
-              <Label htmlFor="language">Language</Label>
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="english">English</SelectItem>
-                  <SelectItem value="spanish">Spanish</SelectItem>
-                  <SelectItem value="french">French</SelectItem>
-                  <SelectItem value="latin">Latin</SelectItem>
-                </SelectContent>
-              </Select>
+            <FormField
+              id="language"
+              label="Language"
+              description="The language in which the petitions should be generated"
+              type="select"
+              value={language}
+              onChange={setLanguage}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">English</SelectItem>
+                <SelectItem value="spanish">Spanish</SelectItem>
+                <SelectItem value="french">French</SelectItem>
+                <SelectItem value="latin">Latin</SelectItem>
+              </SelectContent>
+            </FormField>
+
+            <div className="space-y-3">
+              <Label htmlFor="contextSelect" className="text-lg">Community Information</Label>
+              <p className="text-xs text-muted-foreground">Information about your community this week that will be used to generate specific petitions</p>
+              
+              {!loadingContexts && savedContexts.length > 0 && (
+                <div>
+                  <Label htmlFor="contextSelect" className="text-lg">Use Previous Context</Label>
+                  <p className="text-xs text-muted-foreground mb-1">Optionally select a previously saved community context to reuse</p>
+                  <Select value={selectedContext} onValueChange={handleContextSelect}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a previous context or create new" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="new">Create New Context</SelectItem>
+                      {savedContexts.map((context) => (
+                        <SelectItem key={context.id} value={context.id}>
+                          {context.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className="bg-muted p-4 rounded-md text-sm">
+                <p className="font-medium mb-2">Please provide information about your community this week:</p>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li>• Who died this week? (include names if appropriate)</li>
+                  <li>• Who received sacraments this week? (baptisms, confirmations, marriages, etc.)</li>
+                  <li>• Who is sick and needs prayers?</li>
+                  <li>• Any special petitions or prayer requests?</li>
+                  <li>• Other community needs or celebrations?</li>
+                </ul>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Include any relevant details. This information will be used to generate appropriate liturgical petitions.
+                </p>
+              </div>
+              <FormField
+                id="communityInfo"
+                label=""
+                type="textarea"
+                value={communityInfo}
+                onChange={setCommunityInfo}
+                placeholder="Enter your community information here..."
+                rows={12}
+                resize={true}
+              />
             </div>
-
-            {renderFieldList(
-              sacramentsReceived,
-              setSacramentsReceived,
-              'Sacraments Received This Week',
-              'Name of person who received sacrament'
-            )}
-
-            {renderFieldList(
-              deathsThisWeek,
-              setDeathsThisWeek,
-              'Deaths This Week',
-              'Name of deceased person'
-            )}
-
-            {renderFieldList(
-              sickMembers,
-              setSickMembers,
-              'Sick Members',
-              'Name of sick person'
-            )}
-
-            {renderFieldList(
-              specialPetitions,
-              setSpecialPetitions,
-              'Special Petitions',
-              'Special prayer request'
-            )}
 
             {error && (
               <div className="text-red-500 text-sm">{error}</div>
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Petition'}
+              {loading ? 'Creating...' : 'Create Petitions'}
             </Button>
           </form>
         </CardContent>

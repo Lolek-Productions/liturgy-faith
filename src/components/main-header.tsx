@@ -1,23 +1,20 @@
+"use client"
+
 import React from "react";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-
-type BreadcrumbItem = {
-  label: string;
-  href?: string;
-  active?: boolean;
-};
+import { useBreadcrumbs } from "@/components/breadcrumb-context";
 
 interface MainHeaderProps {
-  breadcrumbs?: BreadcrumbItem[];
   showSidebarTrigger?: boolean;
 }
 
 export function MainHeader({ 
-  breadcrumbs = [],
   showSidebarTrigger = true
 }: MainHeaderProps) {
+  const { breadcrumbs } = useBreadcrumbs();
+  
   // If no breadcrumbs provided, show default Dashboard breadcrumb
   const displayBreadcrumbs = breadcrumbs.length > 0 ? breadcrumbs : [
     { label: "Dashboard" }

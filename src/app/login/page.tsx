@@ -3,9 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
+import { FormField } from '@/components/ui/form-field'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -30,39 +29,41 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      router.push('/')
+      router.push('/dashboard')
     }
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center space-x-2 text-2xl font-bold text-primary hover:opacity-80">
+            <span>← Back to Home</span>
+          </Link>
+        </div>
+        <Card className="w-full">
         <CardHeader>
-          <CardTitle>Login to Petitions</CardTitle>
+          <CardTitle>Login to Liturgy.Faith</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+            <FormField
+              id="email"
+              label="Email"
+              inputType="email"
+              value={email}
+              onChange={setEmail}
+              required
+            />
+            <FormField
+              id="password"
+              label="Password"
+              inputType="password"
+              value={password}
+              onChange={setPassword}
+              required
+            />
             {error && (
               <div className="text-red-500 text-sm">{error}</div>
             )}
@@ -70,14 +71,15 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Login'}
             </Button>
             <p className="text-center text-sm">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/signup" className="text-blue-500 hover:underline">
                 Sign up
               </Link>
             </p>
           </form>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -3,9 +3,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { CreatePetitionData, Petition, PetitionContext } from '@/lib/types'
 import { redirect } from 'next/navigation'
+import { getPromptTemplate } from '@/lib/actions/definitions'
+import { replaceTemplateVariables, getTemplateVariables } from '@/lib/template-utils'
 
 export async function createPetition(data: CreatePetitionData) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -13,7 +15,7 @@ export async function createPetition(data: CreatePetitionData) {
     redirect('/login')
   }
 
-  const generatedContent = generatePetitionContent(data)
+  const generatedContent = await generatePetitionContent(data)
 
   const { data: petition, error: petitionError } = await supabase
     .from('petitions')
@@ -33,16 +35,14 @@ export async function createPetition(data: CreatePetitionData) {
     throw new Error('Failed to create petition')
   }
 
+
   const { error: contextError } = await supabase
     .from('petition_contexts')
     .insert([
       {
         petition_id: petition.id,
         user_id: user.id,
-        sacraments_received: data.sacraments_received,
-        deaths_this_week: data.deaths_this_week,
-        sick_members: data.sick_members,
-        special_petitions: data.special_petitions,
+        community_info: data.community_info,
       },
     ])
 
@@ -54,7 +54,7 @@ export async function createPetition(data: CreatePetitionData) {
 }
 
 export async function getPetitions(): Promise<Petition[]> {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -75,8 +75,42 @@ export async function getPetitions(): Promise<Petition[]> {
   return data || []
 }
 
+export async function getSavedContexts(): Promise<Array<{id: string, name: string, community_info: string}>> {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data, error } = await supabase
+    .from('petition_contexts')
+    .select(`
+      id,
+      community_info,
+      petitions!inner(title, date)
+    `)
+    .eq('user_id', user.id)
+    .neq('community_info', '')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    throw new Error('Failed to fetch saved contexts')
+  }
+
+  return (data || []).map(item => {
+    const typedItem = item as unknown as { id: string; community_info: string; petitions: { title: string; date: string } }
+    return {
+      id: typedItem.id,
+      name: `${typedItem.petitions.title} - ${new Date(typedItem.petitions.date).toLocaleDateString()}`,
+      community_info: typedItem.community_info
+    }
+  })
+}
+
 export async function getPetitionWithContext(id: string): Promise<{ petition: Petition; context: PetitionContext } | null> {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -109,70 +143,92 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
   return { petition, context }
 }
 
-function generatePetitionContent(data: CreatePetitionData): string {
-  const { title, sacraments_received, deaths_this_week, sick_members, special_petitions, language } = data
+export async function updatePetition(id: string, data: CreatePetitionData) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
 
-  let content = `${title}\n\n`
+  const generatedContent = await generatePetitionContent(data)
 
-  const prayers = {
-    english: {
-      bishops: "For all bishops, the successors of the Apostles, may the Holy Spirit protect and guide them, let us pray to the Lord.",
-      government: "For government leaders, may God give them wisdom to work for justice and to protect the lives of the innocent, let us pray to the Lord.",
-      nonbelievers: "For those who do not know Christ, may the Holy Spirit bring them to recognize his love and goodness, let us pray to the Lord.",
-      community: "For this community gathered here, may Christ grant us strength to proclaim him boldly, let us pray to the Lord.",
-      sickPrefix: "For all those who are praying for healing, especially",
-      sickSuffix: "may they receive God's strength and grace, let us pray to the Lord.",
-      deadPrefix: "For all who have died, especially",
-      deadSuffix: "may they rejoice with the angels and saints in the presence of God the Father, let us pray to the Lord.",
-      intentions: "For the intentions that we hold in the silence of our hearts (PAUSE 2-3 seconds), and for those written in our book of intentions, let us pray to the Lord.",
-    },
-    spanish: {
-      bishops: "Por todos los obispos, sucesores de los Apóstoles, que el Espíritu Santo los proteja y los guíe, roguemos al Señor.",
-      government: "Por los líderes del gobierno, que Dios les dé sabiduría para trabajar por la justicia y proteger las vidas de los inocentes, roguemos al Señor.",
-      nonbelievers: "Por aquellos que no conocen a Cristo, que el Espíritu Santo los lleve a reconocer su amor y bondad, roguemos al Señor.",
-      community: "Por esta comunidad aquí reunida, que Cristo nos conceda fuerza para proclamarlo con valentía, roguemos al Señor.",
-      sickPrefix: "Por todos los que están pidiendo sanación, especialmente",
-      sickSuffix: "que reciban la fuerza y gracia de Dios, roguemos al Señor.",
-      deadPrefix: "Por todos los que han muerto, especialmente",
-      deadSuffix: "que se regocijen con los ángeles y santos en la presencia de Dios Padre, roguemos al Señor.",
-      intentions: "Por las intenciones que guardamos en el silencio de nuestros corazones (PAUSA 2-3 segundos), y por las escritas en nuestro libro de intenciones, roguemos al Señor.",
+  const { data: petition, error: petitionError } = await supabase
+    .from('petitions')
+    .update({
+      title: data.title,
+      date: data.date,
+      language: data.language,
+      generated_content: generatedContent,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .select()
+    .single()
+
+  if (petitionError) {
+    throw new Error('Failed to update petition')
+  }
+
+  const { error: contextError } = await supabase
+    .from('petition_contexts')
+    .update({
+      community_info: data.community_info,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('petition_id', id)
+    .eq('user_id', user.id)
+
+  if (contextError) {
+    throw new Error('Failed to update petition context')
+  }
+
+  return petition
+}
+
+async function generatePetitionContent(data: CreatePetitionData): Promise<string> {
+  // Get the user's custom prompt template
+  const template = await getPromptTemplate()
+  
+  // Replace template variables with actual values
+  const variables = getTemplateVariables(data)
+  const prompt = replaceTemplateVariables(template, variables)
+  
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY!,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1000,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      })
+    })
+
+    if (!response.ok) {
+      console.warn('Claude API Error:', response.status, response.statusText, '- Using fallback template')
+      // Fall through to fallback template instead of throwing
+    } else {
+      const result = await response.json()
+      return result.content[0].text
     }
+  } catch (error) {
+    console.warn('Error generating petitions:', error instanceof Error ? error.message : 'Unknown error', '- Using fallback template')
+    // Fall through to fallback template instead of throwing
   }
 
-  const selectedPrayers = prayers[language as keyof typeof prayers] || prayers.english
-
-  content += selectedPrayers.bishops + "\n"
-  content += selectedPrayers.government + "\n"
-  content += selectedPrayers.nonbelievers + "\n"
-  content += selectedPrayers.community + "\n"
-
-  if (sick_members.length > 0) {
-    const sickList = sick_members.join(", ")
-    content += `${selectedPrayers.sickPrefix} ${sickList}, ${selectedPrayers.sickSuffix}\n`
-  }
-
-  if (deaths_this_week.length > 0) {
-    const deadList = deaths_this_week.join(", ")
-    content += `${selectedPrayers.deadPrefix} ${deadList}, ${selectedPrayers.deadSuffix}\n`
-  }
-
-  if (special_petitions.length > 0) {
-    special_petitions.forEach(petition => {
-      if (petition.trim()) {
-        content += `${petition}, let us pray to the Lord.\n`
-      }
-    })
-  }
-
-  if (sacraments_received.length > 0) {
-    sacraments_received.forEach(person => {
-      if (person.trim()) {
-        content += `For ${person}, who received the sacraments this week, may they grow in faith and grace, let us pray to the Lord.\n`
-      }
-    })
-  }
-
-  content += selectedPrayers.intentions + "\n"
-
-  return content
+  // Fallback template when API fails
+  return `${data.title}\n\nFor all bishops, the successors of the Apostles, may the Holy Spirit protect and guide them, let us pray to the Lord.\n\nFor government leaders, may God give them wisdom to work for justice and to protect the lives of the innocent, let us pray to the Lord.\n\nFor those who do not know Christ, may the Holy Spirit bring them to recognize his love and goodness, let us pray to the Lord.\n\nFor this community gathered here, may Christ grant us strength to proclaim him boldly, let us pray to the Lord.\n\nFor the intentions that we hold in the silence of our hearts (PAUSE 2-3 seconds), and for those written in our book of intentions, let us pray to the Lord.`
 }

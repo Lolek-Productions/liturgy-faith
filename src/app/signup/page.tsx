@@ -3,9 +3,8 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
+import { FormField } from '@/components/ui/form-field'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -24,48 +23,81 @@ export default function SignupPage() {
     setMessage('')
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    
+    try {
+      // First try to sign up
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      })
 
-    if (error) {
-      setError(error.message)
-    } else {
-      setMessage('Check your email for the confirmation link!')
+      if (signUpError) {
+        setError(signUpError.message)
+        return
+      }
+
+      // If email confirmation is disabled, user should be automatically signed in
+      if (signUpData.session) {
+        setMessage('Account created successfully! Redirecting to dashboard...')
+        // Wait a bit longer to ensure session is fully established
+        setTimeout(() => {
+          router.replace('/dashboard')
+        }, 2000)
+      } else {
+        // Try to sign in manually (fallback)
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        
+        if (signInError) {
+          setError('Account created but failed to sign in. Please try logging in manually.')
+          setTimeout(() => router.push('/login'), 2000)
+        } else {
+          setMessage('Account created successfully! Redirecting to dashboard...')
+          // Wait longer to ensure session is established in cookies
+          setTimeout(() => {
+            window.location.href = '/dashboard'
+          }, 2000)
+        }
+      }
+    } catch {
+      setError('An unexpected error occurred. Please try again.')
     }
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center space-x-2 text-2xl font-bold text-primary hover:opacity-80">
+            <span>← Back to Home</span>
+          </Link>
+        </div>
+        <Card className="w-full">
         <CardHeader>
-          <CardTitle>Sign up for Petitions</CardTitle>
+          <CardTitle>Sign up for Liturgy.Faith</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
+            <FormField
+              id="email"
+              label="Email"
+              inputType="email"
+              value={email}
+              onChange={setEmail}
+              required
+            />
+            <FormField
+              id="password"
+              label="Password"
+              description="Must be at least 6 characters"
+              inputType="password"
+              value={password}
+              onChange={setPassword}
+              required
+            />
             {error && (
               <div className="text-red-500 text-sm">{error}</div>
             )}
@@ -83,7 +115,8 @@ export default function SignupPage() {
             </p>
           </form>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

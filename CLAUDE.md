@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is a Next.js 15 application using the App Router for managing church petitions with Supabase backend.
+This is a Next.js 15 application using the App Router for liturgical tools including church petitions with Supabase backend.
 
 ### Core Structure
 

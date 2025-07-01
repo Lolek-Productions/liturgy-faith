@@ -1,8 +1,11 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Plus, FileText, TrendingUp, Clock } from "lucide-react"
+import { Plus, FileText, TrendingUp, UserCheck, ClipboardList, Calendar as CalendarIcon } from "lucide-react"
 import { getPetitions } from "@/lib/actions/petitions"
+import { getMinisters } from "@/lib/actions/ministers"
+import { getLiturgyPlans } from "@/lib/actions/liturgy-planning"
+import { getUpcomingEvents } from "@/lib/actions/calendar"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
@@ -15,19 +18,25 @@ export default async function DashboardPage() {
   }
   
   const recentPetitions = await getPetitions()
+  const ministers = await getMinisters()
+  const liturgyPlans = await getLiturgyPlans()
+  const upcomingEvents = await getUpcomingEvents(5)
+  
   const recentPetitionsCount = recentPetitions.slice(0, 3)
+  const activeMinisters = ministers.filter(m => m.is_active)
+  const recentLiturgyPlans = liturgyPlans.slice(0, 3)
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back! Here&apos;s an overview of your petition management.
+          Welcome back! Here&apos;s an overview of your liturgical management platform.
         </p>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Petitions</CardTitle>
@@ -63,20 +72,33 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Time</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Active Ministers</CardTitle>
+            <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3 min</div>
+            <div className="text-2xl font-bold">{activeMinisters.length}</div>
             <p className="text-xs text-muted-foreground">
-              Per petition created
+              Ready to serve
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Liturgy Plans</CardTitle>
+            <ClipboardList className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{liturgyPlans.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Total celebrations planned
             </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -84,17 +106,29 @@ export default async function DashboardPage() {
               Quick Actions
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Button asChild className="w-full justify-start">
+          <CardContent className="space-y-3">
+            <Button asChild className="w-full justify-start" size="sm">
               <Link href="/petitions/create">
                 <Plus className="h-4 w-4 mr-2" />
-                Create New Petition
+                Create Petition
               </Link>
             </Button>
-            <Button asChild variant="outline" className="w-full justify-start">
-              <Link href="/petitions">
-                <FileText className="h-4 w-4 mr-2" />
-                View All Petitions
+            <Button asChild variant="outline" className="w-full justify-start" size="sm">
+              <Link href="/liturgy-planning/create">
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Plan Liturgy
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full justify-start" size="sm">
+              <Link href="/ministers/create">
+                <UserCheck className="h-4 w-4 mr-2" />
+                Add Minister
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full justify-start" size="sm">
+              <Link href="/calendar/create">
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Add Event
               </Link>
             </Button>
           </CardContent>
@@ -102,86 +136,161 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Petitions</CardTitle>
+            <CardTitle>Upcoming Events</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentPetitionsCount.length > 0 ? (
-              <div className="space-y-4">
-                {recentPetitionsCount.map((petition) => (
-                  <div key={petition.id} className="flex items-center justify-between p-3 border rounded-lg">
+            {upcomingEvents.length > 0 ? (
+              <div className="space-y-3">
+                {upcomingEvents.map((event) => (
+                  <div key={event.id} className="flex items-center justify-between p-2 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">{petition.title}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(petition.date).toLocaleDateString()}
+                      <h4 className="font-medium text-sm line-clamp-1">{event.title}</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(event.date).toLocaleDateString()}
                       </p>
                     </div>
                     <Button asChild variant="ghost" size="sm">
-                      <Link href={`/petitions/${petition.id}`}>
+                      <Link href={`/calendar/${event.id}`}>
                         View
                       </Link>
                     </Button>
                   </div>
                 ))}
-                {recentPetitions.length > 3 && (
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/petitions">
-                      View All {recentPetitions.length} Petitions
-                    </Link>
-                  </Button>
-                )}
+                <Button asChild variant="outline" className="w-full" size="sm">
+                  <Link href="/calendar">
+                    View Full Calendar
+                  </Link>
+                </Button>
               </div>
             ) : (
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No petitions yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Create your first petition to get started.
+              <div className="text-center py-4">
+                <CalendarIcon className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground mb-3">
+                  No upcoming events
                 </p>
-                <Button asChild>
-                  <Link href="/petitions/create">
+                <Button asChild size="sm">
+                  <Link href="/calendar/create">
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Your First Petition
+                    Add Event
                   </Link>
                 </Button>
               </div>
             )}
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentPetitionsCount.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Recent Petitions</h4>
+                  <div className="space-y-2">
+                    {recentPetitionsCount.map((petition) => (
+                      <div key={petition.id} className="flex items-center justify-between p-2 border rounded">
+                        <div>
+                          <p className="font-medium text-sm line-clamp-1">{petition.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(petition.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/petitions/${petition.id}`}>
+                            View
+                          </Link>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {recentLiturgyPlans.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Recent Liturgy Plans</h4>
+                  <div className="space-y-2">
+                    {recentLiturgyPlans.map((plan) => (
+                      <div key={plan.id} className="flex items-center justify-between p-2 border rounded">
+                        <div>
+                          <p className="font-medium text-sm line-clamp-1">{plan.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(plan.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Button asChild variant="ghost" size="sm">
+                          <Link href={`/liturgy-planning/${plan.id}`}>
+                            View
+                          </Link>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {recentPetitionsCount.length === 0 && recentLiturgyPlans.length === 0 && (
+                <div className="text-center py-6">
+                  <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground mb-3">
+                    No recent activity
+                  </p>
+                  <Button asChild size="sm">
+                    <Link href="/petitions/create">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Get Started
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Tips Section */}
+      {/* Platform Overview */}
       <Card>
         <CardHeader>
-          <CardTitle>Getting Started Tips</CardTitle>
+          <CardTitle>Platform Features</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-2">
-              <h4 className="font-medium">📝 Creating Petitions</h4>
+              <h4 className="font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Smart Petitions
+              </h4>
               <p className="text-sm text-muted-foreground">
-                Use the guided form to input community context. The system will generate 
-                properly formatted liturgical petitions following traditional Catholic prayers.
+                Generate liturgical petitions with AI assistance following traditional Catholic formats.
               </p>
             </div>
             <div className="space-y-2">
-              <h4 className="font-medium">🌍 Multiple Languages</h4>
+              <h4 className="font-medium flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Liturgy Planning
+              </h4>
               <p className="text-sm text-muted-foreground">
-                Generate petitions in English, Spanish, French, or Latin while maintaining 
-                authentic liturgical traditions and proper formatting.
+                Plan complete celebrations with prayers, prefaces, readings, and special instructions.
               </p>
             </div>
             <div className="space-y-2">
-              <h4 className="font-medium">📋 Managing Petitions</h4>
+              <h4 className="font-medium flex items-center gap-2">
+                <UserCheck className="h-4 w-4" />
+                Ministers Directory
+              </h4>
               <p className="text-sm text-muted-foreground">
-                View all your petitions, copy content with one click, and organize them 
-                by date for easy reference during services.
+                Manage contact information and availability for all ministers and volunteers.
               </p>
             </div>
             <div className="space-y-2">
-              <h4 className="font-medium">🔒 Privacy & Security</h4>
+              <h4 className="font-medium flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                Liturgical Calendar
+              </h4>
               <p className="text-sm text-muted-foreground">
-                Your data is protected with enterprise-grade security. Only you can access 
-                your petitions and community information.
+                Track feast days, special celebrations, and liturgical seasons throughout the year.
               </p>
             </div>
           </div>

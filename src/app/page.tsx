@@ -5,16 +5,14 @@ import Link from "next/link"
 import { 
   Plus, 
   FileText, 
-  Globe, 
-  Shield, 
-  Clock, 
-  Users, 
-  Copy,
   Sparkles,
   Church,
   Heart,
   BookOpen,
-  Menu
+  Menu,
+  Calendar,
+  Music,
+  ClipboardList
 } from "lucide-react"
 
 export default function Home() {
@@ -27,7 +25,7 @@ export default function Home() {
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2">
                 <Church className="h-8 w-8 text-primary" />
-                <span className="text-xl font-bold">Petitions</span>
+                <span className="text-xl font-bold">Liturgy.Faith</span>
               </Link>
             </div>
             
@@ -69,24 +67,24 @@ export default function Home() {
           </Badge>
         </div>
         <h1 className="text-5xl font-bold tracking-tight">
-          Streamline Your Church
-          <span className="text-primary block">Petition Creation</span>
+          Complete Liturgical
+          <span className="text-primary block">Management Platform</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-          Generate beautifully formatted liturgical petitions in minutes. Save time, reduce errors, 
-          and focus on what matters most - serving your community with reverence and care.
+          Everything you need for liturgical planning, worship aids, ministry coordination, and 
+          community support - all in one sacred space designed for Catholic parishes.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
           <Button asChild size="lg" className="text-lg px-8">
-            <Link href="/petitions/create">
+            <Link href="/signup">
               <Plus className="h-5 w-5 mr-2" />
-              Create Your First Petition
+              Get Started Today
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="text-lg px-8">
-            <Link href="/petitions">
-              <FileText className="h-5 w-5 mr-2" />
-              View Examples
+            <Link href="#features">
+              <BookOpen className="h-5 w-5 mr-2" />
+              Explore Features
             </Link>
           </Button>
         </div>
@@ -95,10 +93,10 @@ export default function Home() {
       {/* Features Section */}
       <div id="features" className="space-y-12">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-bold">Everything You Need for Perfect Petitions</h2>
+          <h2 className="text-3xl font-bold">Complete Liturgical Management Suite</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Our intelligent system understands traditional Catholic liturgy and generates 
-            properly formatted petitions that honor sacred traditions.
+            From petitions to musical planning, ministry coordination to worship aids - 
+            everything your parish needs for seamless liturgical celebrations.
           </p>
         </div>
 
@@ -130,7 +128,7 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
-                  <Globe className="h-6 w-6 text-primary" />
+                  <BookOpen className="h-6 w-6 text-primary" />
                 </div>
                 Multi-Language Support
               </CardTitle>
@@ -153,21 +151,21 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
-                  <Shield className="h-6 w-6 text-primary" />
+                  <ClipboardList className="h-6 w-6 text-primary" />
                 </div>
-                Secure & Private
+                Liturgy Planning
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                Your community&apos;s sensitive information is protected with enterprise-grade 
-                security. Each user can only access their own petitions.
+                Plan complete liturgical celebrations with prayer selection, 
+                preface choices, and reading coordination all in one place.
               </p>
               <ul className="text-sm space-y-1 text-muted-foreground">
-                <li>• End-to-end encryption</li>
-                <li>• User isolation</li>
-                <li>• Secure authentication</li>
-                <li>• GDPR compliant</li>
+                <li>• Prayer selection</li>
+                <li>• Preface options</li>
+                <li>• Reading coordination</li>
+                <li>• Liturgical calendar</li>
               </ul>
             </CardContent>
           </Card>
@@ -176,46 +174,21 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
-                  <Clock className="h-6 w-6 text-primary" />
+                  <FileText className="h-6 w-6 text-primary" />
                 </div>
-                Save Time
+                Worship Aids
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                What once took 30+ minutes of careful writing now takes just 3 minutes. 
-                Spend more time on pastoral care, less on administrative tasks.
-              </p>
-              <div className="bg-muted p-3 rounded-md">
-                <p className="text-sm font-medium text-center">
-                  30 min → 3 min
-                  <span className="block text-xs text-muted-foreground mt-1">
-                    90% time savings
-                  </span>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Copy className="h-6 w-6 text-primary" />
-                </div>
-                Easy Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">
-                Organize, copy, and reuse petitions effortlessly. Build a library of 
-                your community&apos;s prayer intentions for future reference.
+                Generate complete worship aids and follow-along guides for your 
+                community, including newcomer-friendly explanations.
               </p>
               <ul className="text-sm space-y-1 text-muted-foreground">
-                <li>• One-click copying</li>
-                <li>• Search and filter</li>
-                <li>• Date organization</li>
-                <li>• Template creation</li>
+                <li>• Complete worship aids</li>
+                <li>• Newcomer guides</li>
+                <li>• Multi-language support</li>
+                <li>• Print-ready formats</li>
               </ul>
             </CardContent>
           </Card>
@@ -224,21 +197,44 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-lg">
-                  <Users className="h-6 w-6 text-primary" />
+                  <Music className="h-6 w-6 text-primary" />
                 </div>
-                Community Focused
+                Musical Planning
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                Built specifically for Catholic communities by understanding the unique 
-                needs of parish life and liturgical celebrations.
+                Coordinate musical selections and communicate with musicians 
+                for seamless liturgical celebrations.
               </p>
               <ul className="text-sm space-y-1 text-muted-foreground">
-                <li>• Liturgical accuracy</li>
-                <li>• Sacred traditions</li>
-                <li>• Pastoral sensitivity</li>
-                <li>• Community care</li>
+                <li>• Song selection</li>
+                <li>• Musician coordination</li>
+                <li>• Service planning</li>
+                <li>• Sheet music library</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Calendar className="h-6 w-6 text-primary" />
+                </div>
+                Liturgical Calendar
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Integrated liturgical calendar with feast days, special readings, 
+                and planning tools for the entire church year.
+              </p>
+              <ul className="text-sm space-y-1 text-muted-foreground">
+                <li>• Church year calendar</li>
+                <li>• Feast day planning</li>
+                <li>• Special readings</li>
+                <li>• Event coordination</li>
               </ul>
             </CardContent>
           </Card>
@@ -248,10 +244,10 @@ export default function Home() {
       {/* How It Works */}
       <div id="how-it-works" className="space-y-12">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-bold">Simple Three-Step Process</h2>
+          <h2 className="text-3xl font-bold">Streamlined Liturgical Management</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Creating professional liturgical petitions has never been easier. 
-            Follow these simple steps to generate beautiful, formatted prayers.
+            From initial planning to final execution, our platform guides you 
+            through every aspect of liturgical preparation and community coordination.
           </p>
         </div>
 
@@ -261,10 +257,10 @@ export default function Home() {
               1
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-2">Input Community Context</h3>
+              <h3 className="text-xl font-semibold mb-2">Plan & Coordinate</h3>
               <p className="text-muted-foreground">
-                Enter information about sacraments received, community members needing prayers, 
-                recent deaths, and special intentions through our guided form.
+                Access all liturgical tools in one place - from petitions and readings 
+                to musical selections and minister coordination.
               </p>
             </div>
           </div>
@@ -274,10 +270,10 @@ export default function Home() {
               2
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-2">Generate Petitions</h3>
+              <h3 className="text-xl font-semibold mb-2">Generate & Customize</h3>
               <p className="text-muted-foreground">
-                Our intelligent system creates properly formatted liturgical petitions 
-                following traditional Catholic prayer structures and language.
+                Create worship aids, follow-along guides, and all liturgical content 
+                with intelligent tools that understand Catholic traditions.
               </p>
             </div>
           </div>
@@ -287,10 +283,10 @@ export default function Home() {
               3
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-2">Copy & Use</h3>
+              <h3 className="text-xl font-semibold mb-2">Execute Seamlessly</h3>
               <p className="text-muted-foreground">
-                Copy the generated content with one click and use it directly in your 
-                Mass, prayer service, or other liturgical celebrations.
+                Use integrated calendar and communication tools to ensure every 
+                liturgical celebration runs smoothly from start to finish.
               </p>
             </div>
           </div>
@@ -300,53 +296,60 @@ export default function Home() {
       {/* Example Output */}
       <div className="space-y-8">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-bold">See What You&apos;ll Create</h2>
+          <h2 className="text-3xl font-bold">Everything You Need in One Platform</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Here&apos;s an example of the beautifully formatted petitions our system generates.
+            See how our integrated approach brings together all aspects of liturgical management.
           </p>
         </div>
 
-        <Card className="max-w-4xl mx-auto">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                Sample Generated Petition
+                <FileText className="h-5 w-5" />
+                Smart Petitions
               </CardTitle>
-              <Badge variant="secondary">English</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-muted p-6 rounded-lg">
-              <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">
-{`Petitions - December 15/16, 2024
+            </CardHeader>
+            <CardContent>
+              <div className="bg-muted p-4 rounded-lg text-sm">
+                <p className="font-medium mb-2">Generated Petition Example:</p>
+                <div className="text-muted-foreground">
+                  For all bishops, may the Holy Spirit protect and guide them...<br/>
+                  For those who are praying for healing, especially Maria Santos...<br/>
+                  <span className="text-xs italic">+ 5 more intentions</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-For all bishops, the successors of the Apostles, may the Holy Spirit protect and guide them, let us pray to the Lord.
-
-For government leaders, may God give them wisdom to work for justice and to protect the lives of the innocent, let us pray to the Lord.
-
-For those who do not know Christ, may the Holy Spirit bring them to recognize his love and goodness, let us pray to the Lord.
-
-For this community gathered here, may Christ grant us strength to proclaim him boldly, let us pray to the Lord.
-
-For all those who are praying for healing, especially Maria Santos, John Thompson, may they receive God's strength and grace, let us pray to the Lord.
-
-For all who have died, especially Father Michael O'Brien, Dorothy Martinez, may they rejoice with the angels and saints in the presence of God the Father, let us pray to the Lord.
-
-For the intentions that we hold in the silence of our hearts (PAUSE 2-3 seconds), and for those written in our book of intentions, let us pray to the Lord.`}
-              </pre>
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Liturgical Calendar
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-muted p-4 rounded-lg text-sm">
+                <p className="font-medium mb-2">Upcoming Events:</p>
+                <div className="space-y-1 text-muted-foreground">
+                  <div>Dec 25 - Christmas Day (Solemn)</div>
+                  <div>Jan 1 - Mary, Mother of God</div>
+                  <div>Jan 6 - Epiphany</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* CTA Section */}
       <div id="pricing" className="bg-muted/50 rounded-2xl p-12 text-center space-y-6">
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold">Ready to Transform Your Petition Process?</h2>
+          <h2 className="text-3xl font-bold">Ready to Transform Your Liturgical Management?</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Join parishes worldwide who are saving time and creating more meaningful 
-            liturgical experiences with our petition management system.
+            Join parishes worldwide who are creating more meaningful liturgical experiences 
+            with our comprehensive liturgical management platform.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -357,9 +360,9 @@ For the intentions that we hold in the silence of our hearts (PAUSE 2-3 seconds)
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="text-lg px-8">
-            <Link href="/petitions/create">
-              <Plus className="h-5 w-5 mr-2" />
-              Try Without Signing Up
+            <Link href="/login">
+              <Church className="h-5 w-5 mr-2" />
+              Sign In
             </Link>
           </Button>
         </div>

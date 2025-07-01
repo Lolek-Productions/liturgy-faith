@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Settings } from 'lucide-react'
 
 export default function SettingsPage() {

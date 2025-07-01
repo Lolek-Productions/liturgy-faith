@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import {
   Sidebar,
   SidebarContent,
@@ -9,26 +10,39 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarHeader,
   SidebarFooter,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
 import { 
   FileText,
   Home,
   Plus,
-  Settings,
-  Church
+  Church,
+  BookOpen,
+  ChevronRight,
+  ChevronDown,
+  UserCheck,
+  ClipboardList,
+  Calendar,
+  Settings
 } from "lucide-react"
 import Link from "next/link"
+import { UserProfile } from "@/components/user-profile"
+import * as Collapsible from "@radix-ui/react-collapsible"
 
-const items = [
+const mainItems = [
   {
     title: "Dashboard",
     url: "/dashboard",
     icon: Home,
   },
+]
+
+const petitionItems = [
   {
     title: "Create Petition",
     url: "/petitions/create",
@@ -41,8 +55,46 @@ const items = [
   },
 ]
 
+const liturgyItems = [
+  {
+    title: "Liturgy Planning",
+    url: "/liturgy-planning",
+    icon: ClipboardList,
+  },
+  {
+    title: "Liturgical Calendar",
+    url: "/calendar",
+    icon: Calendar,
+  },
+]
+
+const ministryItems = [
+  {
+    title: "Ministers Directory",
+    url: "/ministers",
+    icon: UserCheck,
+  },
+]
+
+const settingsItems = [
+  {
+    title: "Petition Definitions",
+    url: "/definitions",
+    icon: BookOpen,
+  },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+  },
+]
+
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar()
+  const [isPetitionsOpen, setIsPetitionsOpen] = useState(true)
+  const [isLiturgyOpen, setIsLiturgyOpen] = useState(true)
+  const [isMinistryOpen, setIsMinistryOpen] = useState(true)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const handleLinkClick = () => {
     if (isMobile) {
@@ -61,8 +113,8 @@ export function AppSidebar() {
                   <Church className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Petitions</span>
-                  <span className="truncate text-xs">Church Management</span>
+                  <span className="truncate font-semibold">Liturgy.Faith</span>
+                  <span className="truncate text-xs">Liturgical Tools</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -74,7 +126,8 @@ export function AppSidebar() {
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {/* Main navigation items */}
+              {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link href={item.url} onClick={handleLinkClick}>
@@ -84,21 +137,136 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              
+              {/* Petitions collapsible section */}
+              <SidebarMenuItem>
+                <Collapsible.Root open={isPetitionsOpen} onOpenChange={setIsPetitionsOpen}>
+                  <Collapsible.Trigger asChild>
+                    <SidebarMenuButton>
+                      <FileText />
+                      <span>Petitions</span>
+                      {isPetitionsOpen ? (
+                        <ChevronDown className="ml-auto transition-transform" />
+                      ) : (
+                        <ChevronRight className="ml-auto transition-transform" />
+                      )}
+                    </SidebarMenuButton>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <SidebarMenuSub>
+                      {petitionItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={item.url} onClick={handleLinkClick}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+              </SidebarMenuItem>
+
+              {/* Liturgy collapsible section */}
+              <SidebarMenuItem>
+                <Collapsible.Root open={isLiturgyOpen} onOpenChange={setIsLiturgyOpen}>
+                  <Collapsible.Trigger asChild>
+                    <SidebarMenuButton>
+                      <ClipboardList />
+                      <span>Liturgy</span>
+                      {isLiturgyOpen ? (
+                        <ChevronDown className="ml-auto transition-transform" />
+                      ) : (
+                        <ChevronRight className="ml-auto transition-transform" />
+                      )}
+                    </SidebarMenuButton>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <SidebarMenuSub>
+                      {liturgyItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={item.url} onClick={handleLinkClick}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+              </SidebarMenuItem>
+
+              {/* Ministry collapsible section */}
+              <SidebarMenuItem>
+                <Collapsible.Root open={isMinistryOpen} onOpenChange={setIsMinistryOpen}>
+                  <Collapsible.Trigger asChild>
+                    <SidebarMenuButton>
+                      <UserCheck />
+                      <span>Ministry</span>
+                      {isMinistryOpen ? (
+                        <ChevronDown className="ml-auto transition-transform" />
+                      ) : (
+                        <ChevronRight className="ml-auto transition-transform" />
+                      )}
+                    </SidebarMenuButton>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <SidebarMenuSub>
+                      {ministryItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={item.url} onClick={handleLinkClick}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+              </SidebarMenuItem>
+
+              {/* Settings collapsible section */}
+              <SidebarMenuItem>
+                <Collapsible.Root open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                  <Collapsible.Trigger asChild>
+                    <SidebarMenuButton>
+                      <Settings />
+                      <span>Settings</span>
+                      {isSettingsOpen ? (
+                        <ChevronDown className="ml-auto transition-transform" />
+                      ) : (
+                        <ChevronRight className="ml-auto transition-transform" />
+                      )}
+                    </SidebarMenuButton>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <SidebarMenuSub>
+                      {settingsItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={item.url} onClick={handleLinkClick}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t p-4">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/settings" onClick={handleLinkClick}>
-                <Settings />
-                <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="border-t p-2">
+        <UserProfile />
       </SidebarFooter>
     </Sidebar>
   )
