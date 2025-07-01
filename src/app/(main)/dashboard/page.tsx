@@ -1,11 +1,12 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Plus, FileText, TrendingUp, UserCheck, ClipboardList, Calendar as CalendarIcon } from "lucide-react"
+import { Plus, FileText, TrendingUp, UserCheck, ClipboardList, Calendar as CalendarIcon, Library } from "lucide-react"
 import { getPetitions } from "@/lib/actions/petitions"
 import { getMinisters } from "@/lib/actions/ministers"
 import { getLiturgyPlans } from "@/lib/actions/liturgy-planning"
 import { getUpcomingEvents } from "@/lib/actions/calendar"
+import { getReadingCollections } from "@/lib/actions/readings"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
@@ -21,10 +22,12 @@ export default async function DashboardPage() {
   const ministers = await getMinisters()
   const liturgyPlans = await getLiturgyPlans()
   const upcomingEvents = await getUpcomingEvents(5)
+  const readingCollections = await getReadingCollections()
   
   const recentPetitionsCount = recentPetitions.slice(0, 3)
   const activeMinisters = ministers.filter(m => m.is_active)
   const recentLiturgyPlans = liturgyPlans.slice(0, 3)
+  const userReadingCollections = readingCollections.filter(c => !c.is_template)
 
   return (
     <div className="space-y-8">
@@ -36,7 +39,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Petitions</CardTitle>
@@ -95,6 +98,19 @@ export default async function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Reading Collections</CardTitle>
+            <Library className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{userReadingCollections.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Personal collections created
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick Actions */}
@@ -129,6 +145,12 @@ export default async function DashboardPage() {
               <Link href="/calendar/create">
                 <CalendarIcon className="h-4 w-4 mr-2" />
                 Add Event
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full justify-start" size="sm">
+              <Link href="/readings/create">
+                <Library className="h-4 w-4 mr-2" />
+                New Reading Collection
               </Link>
             </Button>
           </CardContent>
@@ -291,6 +313,15 @@ export default async function DashboardPage() {
               </h4>
               <p className="text-sm text-muted-foreground">
                 Track feast days, special celebrations, and liturgical seasons throughout the year.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-medium flex items-center gap-2">
+                <Library className="h-4 w-4" />
+                Reading Collections
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Organize pre-assembled sets of readings for weddings, funerals, and other occasions.
               </p>
             </div>
           </div>

@@ -28,7 +28,8 @@ import {
   UserCheck,
   ClipboardList,
   Calendar,
-  Settings
+  Settings,
+  Library
 } from "lucide-react"
 import Link from "next/link"
 import { UserProfile } from "@/components/user-profile"
@@ -76,6 +77,19 @@ const ministryItems = [
   },
 ]
 
+const readingsItems = [
+  {
+    title: "Reading Collections",
+    url: "/readings",
+    icon: Library,
+  },
+  {
+    title: "Individual Readings",
+    url: "/readings/library",
+    icon: BookOpen,
+  },
+]
+
 const settingsItems = [
   {
     title: "Petition Definitions",
@@ -94,6 +108,7 @@ export function AppSidebar() {
   const [isPetitionsOpen, setIsPetitionsOpen] = useState(true)
   const [isLiturgyOpen, setIsLiturgyOpen] = useState(true)
   const [isMinistryOpen, setIsMinistryOpen] = useState(true)
+  const [isReadingsOpen, setIsReadingsOpen] = useState(true)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const handleLinkClick = () => {
@@ -217,6 +232,37 @@ export function AppSidebar() {
                   <Collapsible.Content>
                     <SidebarMenuSub>
                       {ministryItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={item.url} onClick={handleLinkClick}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+              </SidebarMenuItem>
+
+              {/* Readings collapsible section */}
+              <SidebarMenuItem>
+                <Collapsible.Root open={isReadingsOpen} onOpenChange={setIsReadingsOpen}>
+                  <Collapsible.Trigger asChild>
+                    <SidebarMenuButton>
+                      <Library />
+                      <span>Readings</span>
+                      {isReadingsOpen ? (
+                        <ChevronDown className="ml-auto transition-transform" />
+                      ) : (
+                        <ChevronRight className="ml-auto transition-transform" />
+                      )}
+                    </SidebarMenuButton>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <SidebarMenuSub>
+                      {readingsItems.map((item) => (
                         <SidebarMenuSubItem key={item.title}>
                           <SidebarMenuSubButton asChild>
                             <Link href={item.url} onClick={handleLinkClick}>
