@@ -30,7 +30,8 @@ import {
   Calendar,
   Settings,
   Library,
-  Printer
+  Printer,
+  Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { UserProfile } from "@/components/user-profile"
@@ -78,6 +79,29 @@ const ministryItems = [
   },
 ]
 
+const liturgicalReadingsItems = [
+  {
+    title: "My Readings",
+    url: "/liturgical-readings",
+    icon: BookOpen,
+  },
+  {
+    title: "Create Readings",
+    url: "/liturgical-readings/create",
+    icon: Plus,
+  },
+  {
+    title: "Readings Library",
+    url: "/liturgical-readings/library",
+    icon: Library,
+  },
+  {
+    title: "Readings Wizard",
+    url: "/liturgical-readings/wizard",
+    icon: Sparkles,
+  },
+]
+
 const readingsItems = [
   {
     title: "Reading Collections",
@@ -119,6 +143,7 @@ export function AppSidebar() {
   const [isPetitionsOpen, setIsPetitionsOpen] = useState(true)
   const [isLiturgyOpen, setIsLiturgyOpen] = useState(true)
   const [isMinistryOpen, setIsMinistryOpen] = useState(true)
+  const [isLiturgicalReadingsOpen, setIsLiturgicalReadingsOpen] = useState(true)
   const [isReadingsOpen, setIsReadingsOpen] = useState(true)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
@@ -243,6 +268,37 @@ export function AppSidebar() {
                   <Collapsible.Content>
                     <SidebarMenuSub>
                       {ministryItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={item.url} onClick={handleLinkClick}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+              </SidebarMenuItem>
+
+              {/* Liturgical Readings collapsible section */}
+              <SidebarMenuItem>
+                <Collapsible.Root open={isLiturgicalReadingsOpen} onOpenChange={setIsLiturgicalReadingsOpen}>
+                  <Collapsible.Trigger asChild>
+                    <SidebarMenuButton>
+                      <BookOpen />
+                      <span>Liturgical Readings</span>
+                      {isLiturgicalReadingsOpen ? (
+                        <ChevronDown className="ml-auto transition-transform" />
+                      ) : (
+                        <ChevronRight className="ml-auto transition-transform" />
+                      )}
+                    </SidebarMenuButton>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <SidebarMenuSub>
+                      {liturgicalReadingsItems.map((item) => (
                         <SidebarMenuSubItem key={item.title}>
                           <SidebarMenuSubButton asChild>
                             <Link href={item.url} onClick={handleLinkClick}>
