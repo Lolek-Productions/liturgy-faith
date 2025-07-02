@@ -89,9 +89,25 @@ export default function LanguageContextStep({
     if (context) {
       const contextData = parseContextData(context.context)
       if (contextData) {
+        // Legacy JSON format
         updateWizardData({ 
           contextId,
           contextData
+        })
+      } else {
+        // Simple text format - create minimal context data structure
+        const simpleContextData = {
+          name: context.title,
+          description: context.description || '',
+          community_info: context.context || '',
+          sacraments_received: [],
+          deaths_this_week: [],
+          sick_members: [],
+          special_petitions: []
+        }
+        updateWizardData({ 
+          contextId,
+          contextData: simpleContextData
         })
       }
     }
@@ -283,13 +299,14 @@ export default function LanguageContextStep({
             <div className="grid gap-3">
               {contexts
                 .filter(context => {
-                  // Filter out contexts with empty titles or invalid context data
-                  if (!context.title || context.title.trim() === '') return false
-                  const contextData = parseContextData(context.context)
-                  return contextData !== null
+                  // Filter out contexts with empty titles
+                  return context.title && context.title.trim() !== ''
                 })
                 .map((context) => {
-                  const contextData = parseContextData(context.context)!
+                  // Try to parse as JSON first (legacy format), fallback to simple text
+                  const contextData = parseContextData(context.context)
+                  const isSimpleText = !contextData
+                  
                   return (
                     <div
                       key={context.id}
@@ -315,10 +332,18 @@ export default function LanguageContextStep({
                           {context.description}
                         </p>
                       )}
-                      {contextData.community_info && (
-                        <p className="text-sm text-gray-600 mt-2">
-                          {contextData.community_info}
-                        </p>
+                      {isSimpleText ? (
+                        context.context && (
+                          <p className="text-sm text-gray-600 mt-2 font-mono bg-gray-50 p-2 rounded">
+                            {context.context.slice(0, 100)}{context.context.length > 100 ? '...' : ''}
+                          </p>
+                        )
+                      ) : (
+                        contextData?.community_info && (
+                          <p className="text-sm text-gray-600 mt-2">
+                            {contextData.community_info}
+                          </p>
+                        )
                       )}
                     </div>
                   )
