@@ -1,17 +1,27 @@
 The Story of liturgy.faith
 
-Introduction:
 
+Petitions (FileText icon) - Collapsible dropdown:
+- Create Petition - /petitions/wizard (Sparkles icon)
+- My Petitions - /petitions (FileText icon)
 
-Features:
--Petitions
--Readings - Weddings, funerals, 
--Ministers (contact information)
--Liturgy Planning - what prayers, what preface, what are the reading choices, what are the readings themselves.
--Worship Aid
--Follow Along for new people
--Musical Numbers - for planning andd communiication
--Calendar
+Readings (BookOpen icon) - Collapsible dropdown:
+- Create Readings - /readings/wizard (Sparkles icon)
+- My Readings - /readings (BookOpen icon)
+- Reading Collections - /readings/collections (Library icon)
+
+Liturgy (ClipboardList icon) - Collapsible dropdown:
+- Create Liturgy - /liturgy/wizard (Sparkles icon)
+- Liturgy Planning - /liturgy-planning (ClipboardList icon)
+- Liturgical Calendar - /calendar (Calendar icon)
+
+Ministry (UserCheck icon) - Collapsible dropdown:
+- Ministers Leaders - /ministry/leaders (Users icon)
+- Ministry Resources - /ministry/resources (GraduationCap icon)
+
+Settings (Settings icon) - Collapsible dropdown:
+- Petition Definitions - /settings/petition-definitions (FileText icon)
+- Liturgy Definitions - /settings/liturgy-definitions (BookOpen icon)
 
 
 # Petition Settings
@@ -25,6 +35,9 @@ Step 1: Language & Context
 Step 2: Context Details (auto-generate after clicking next)
 Step 3: Edit & Review (after generating)
 Step 4: Print & Complete
+
+# Petitions Context Settings
+allow the user to create whatever ones she wants.  just be sure to start with four: Sunday, Funeral, Wedding, and Daily
 
 
 # Readings

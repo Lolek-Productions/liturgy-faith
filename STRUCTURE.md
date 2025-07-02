@@ -120,3 +120,14 @@ https://github.com/fr-mccarty/liturgy-readings/blob/master/resources/views/livew
 
 # ./scripts/generate-database-docs.sh
 The purpose of this script is to dynamically generate the structure of the database in supabase to be displayed in the DATABASE.md for the AI to consume.  Other methods have been tried but I want to stick with this method for now for it allows the human to simply construct the structure of the database and then the AI to consume the structure.  From this point I am going to avoid letting the AI make structure changes (ordinarily), but needed a way to allow the AI to consume the changes that were made so as to understand the structure, purpose, and, eventually, the business logic of the application
+
+
+Using tmux on the server
+2 min overview (Fireship)
+https://www.youtube.com/watch?v=vtB1J_zCv8I
+
+tmux new -s work        # Start session
+Ctrl+b, d              # Detach (safe to disconnect)
+tmux attach -t work     # Resume when back online
+tmux ls                # List all sessions
+tmux kill-session -t session_name #to remove a session

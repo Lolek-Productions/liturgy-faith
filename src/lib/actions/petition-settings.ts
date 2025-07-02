@@ -2,15 +2,13 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getPetitionTextFromContext } from '@/lib/petition-context-utils'
 
-interface PetitionSettings {
-  daily_mass: string
-  sunday_mass: string
-  wedding: string
-  funeral: string
+export interface PetitionContextSettings {
+  [contextId: string]: string
 }
 
-export async function getPetitionSettings(): Promise<PetitionSettings | null> {
+export async function getPetitionContextSettings(): Promise<PetitionContextSettings> {
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
@@ -20,28 +18,25 @@ export async function getPetitionSettings(): Promise<PetitionSettings | null> {
   }
 
   const { data, error } = await supabase
-    .from('petition_settings')
+    .from('petition_contexts')
     .select('*')
     .eq('user_id', user.id)
-    .single()
 
-  if (error) {
-    // If no settings exist, return null to use defaults
-    if (error.code === 'PGRST116') {
-      return null
-    }
-    throw new Error('Failed to load petition settings')
+  if (error && error.code !== 'PGRST116') {
+    throw new Error('Failed to load petition contexts')
   }
 
-  return {
-    daily_mass: data.daily_mass || '',
-    sunday_mass: data.sunday_mass || '',
-    wedding: data.wedding || '',
-    funeral: data.funeral || ''
+  const settings: PetitionContextSettings = {}
+  if (data) {
+    data.forEach(context => {
+      settings[context.id] = getPetitionTextFromContext(context.context)
+    })
   }
+
+  return settings
 }
 
-export async function updatePetitionSettings(settings: PetitionSettings) {
+export async function updatePetitionContextSetting(contextId: string, petitionText: string) {
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
@@ -50,18 +45,30 @@ export async function updatePetitionSettings(settings: PetitionSettings) {
     redirect('/login')
   }
 
+  // Simply store the petition text directly in the context field
   const { error } = await supabase
-    .from('petition_settings')
-    .upsert({
-      user_id: user.id,
-      daily_mass: settings.daily_mass,
-      sunday_mass: settings.sunday_mass,
-      wedding: settings.wedding,
-      funeral: settings.funeral,
+    .from('petition_contexts')
+    .update({
+      context: petitionText,
       updated_at: new Date().toISOString()
     })
+    .eq('id', contextId)
+    .eq('user_id', user.id)
 
   if (error) {
-    throw new Error('Failed to save petition settings')
+    throw new Error('Failed to update petition context setting')
   }
+}
+
+export async function updateAllPetitionContextSettings(settings: PetitionContextSettings) {
+  // Update each context individually
+  for (const [contextId, petitionText] of Object.entries(settings)) {
+    await updatePetitionContextSetting(contextId, petitionText)
+  }
+}
+
+export async function deletePetitionContextSetting(contextId: string) {
+  // When deleting a context, the petition setting goes with it
+  // This function is mainly for API compatibility
+  return Promise.resolve()
 }

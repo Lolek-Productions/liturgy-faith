@@ -30,8 +30,9 @@ import {
   Calendar,
   Settings,
   Library,
-  Printer,
-  Sparkles
+  Sparkles,
+  Users,
+  GraduationCap
 } from "lucide-react"
 import Link from "next/link"
 import { UserProfile } from "@/components/user-profile"
@@ -48,8 +49,8 @@ const mainItems = [
 const petitionItems = [
   {
     title: "Create Petition",
-    url: "/petitions/create",
-    icon: Plus,
+    url: "/petitions/wizard",
+    icon: Sparkles,
   },
   {
     title: "My Petitions",
@@ -58,7 +59,30 @@ const petitionItems = [
   },
 ]
 
+const readingsItems = [
+  {
+    title: "Create Readings",
+    url: "/readings/wizard",
+    icon: Sparkles,
+  },
+  {
+    title: "My Readings",
+    url: "/readings",
+    icon: BookOpen,
+  },
+  {
+    title: "Reading Collections",
+    url: "/readings/collections",
+    icon: Library,
+  },
+]
+
 const liturgyItems = [
+  {
+    title: "Create Liturgy",
+    url: "/liturgy/wizard",
+    icon: Sparkles,
+  },
   {
     title: "Liturgy Planning",
     url: "/liturgy-planning",
@@ -73,78 +97,36 @@ const liturgyItems = [
 
 const ministryItems = [
   {
-    title: "Ministers Directory",
-    url: "/ministers",
-    icon: UserCheck,
-  },
-]
-
-const liturgicalReadingsItems = [
-  {
-    title: "My Readings",
-    url: "/liturgical-readings",
-    icon: BookOpen,
+    title: "Ministers Leaders",
+    url: "/ministry/leaders",
+    icon: Users,
   },
   {
-    title: "Create Readings",
-    url: "/liturgical-readings/create",
-    icon: Plus,
-  },
-  {
-    title: "Readings Library",
-    url: "/liturgical-readings/library",
-    icon: Library,
-  },
-  {
-    title: "Readings Wizard",
-    url: "/liturgical-readings/wizard",
-    icon: Sparkles,
-  },
-]
-
-const readingsItems = [
-  {
-    title: "Reading Collections",
-    url: "/readings",
-    icon: Library,
-  },
-  {
-    title: "Individual Readings",
-    url: "/readings/library",
-    icon: BookOpen,
-  },
-  {
-    title: "Readings Printout",
-    url: "/readings/printout",
-    icon: Printer,
+    title: "Ministry Resources",
+    url: "/ministry/resources",
+    icon: GraduationCap,
   },
 ]
 
 const settingsItems = [
   {
     title: "Petition Definitions",
-    url: "/definitions",
-    icon: BookOpen,
-  },
-  {
-    title: "Petition Settings",
-    url: "/settings/petitions",
+    url: "/settings/petition-definitions",
     icon: FileText,
   },
   {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
+    title: "Liturgy Definitions",
+    url: "/settings/liturgy-definitions",
+    icon: BookOpen,
   },
 ]
 
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar()
   const [isPetitionsOpen, setIsPetitionsOpen] = useState(true)
+  const [isReadingsOpen, setIsReadingsOpen] = useState(true)
   const [isLiturgyOpen, setIsLiturgyOpen] = useState(true)
   const [isMinistryOpen, setIsMinistryOpen] = useState(true)
-  const [isLiturgicalReadingsOpen, setIsLiturgicalReadingsOpen] = useState(true)
-  const [isReadingsOpen, setIsReadingsOpen] = useState(true)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const handleLinkClick = () => {
@@ -220,6 +202,37 @@ export function AppSidebar() {
                 </Collapsible.Root>
               </SidebarMenuItem>
 
+              {/* Readings collapsible section */}
+              <SidebarMenuItem>
+                <Collapsible.Root open={isReadingsOpen} onOpenChange={setIsReadingsOpen}>
+                  <Collapsible.Trigger asChild>
+                    <SidebarMenuButton>
+                      <BookOpen />
+                      <span>Readings</span>
+                      {isReadingsOpen ? (
+                        <ChevronDown className="ml-auto transition-transform" />
+                      ) : (
+                        <ChevronRight className="ml-auto transition-transform" />
+                      )}
+                    </SidebarMenuButton>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <SidebarMenuSub>
+                      {readingsItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={item.url} onClick={handleLinkClick}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+              </SidebarMenuItem>
+
               {/* Liturgy collapsible section */}
               <SidebarMenuItem>
                 <Collapsible.Root open={isLiturgyOpen} onOpenChange={setIsLiturgyOpen}>
@@ -268,68 +281,6 @@ export function AppSidebar() {
                   <Collapsible.Content>
                     <SidebarMenuSub>
                       {ministryItems.map((item) => (
-                        <SidebarMenuSubItem key={item.title}>
-                          <SidebarMenuSubButton asChild>
-                            <Link href={item.url} onClick={handleLinkClick}>
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </Collapsible.Content>
-                </Collapsible.Root>
-              </SidebarMenuItem>
-
-              {/* Liturgical Readings collapsible section */}
-              <SidebarMenuItem>
-                <Collapsible.Root open={isLiturgicalReadingsOpen} onOpenChange={setIsLiturgicalReadingsOpen}>
-                  <Collapsible.Trigger asChild>
-                    <SidebarMenuButton>
-                      <BookOpen />
-                      <span>Liturgical Readings</span>
-                      {isLiturgicalReadingsOpen ? (
-                        <ChevronDown className="ml-auto transition-transform" />
-                      ) : (
-                        <ChevronRight className="ml-auto transition-transform" />
-                      )}
-                    </SidebarMenuButton>
-                  </Collapsible.Trigger>
-                  <Collapsible.Content>
-                    <SidebarMenuSub>
-                      {liturgicalReadingsItems.map((item) => (
-                        <SidebarMenuSubItem key={item.title}>
-                          <SidebarMenuSubButton asChild>
-                            <Link href={item.url} onClick={handleLinkClick}>
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </Collapsible.Content>
-                </Collapsible.Root>
-              </SidebarMenuItem>
-
-              {/* Readings collapsible section */}
-              <SidebarMenuItem>
-                <Collapsible.Root open={isReadingsOpen} onOpenChange={setIsReadingsOpen}>
-                  <Collapsible.Trigger asChild>
-                    <SidebarMenuButton>
-                      <Library />
-                      <span>Readings</span>
-                      {isReadingsOpen ? (
-                        <ChevronDown className="ml-auto transition-transform" />
-                      ) : (
-                        <ChevronRight className="ml-auto transition-transform" />
-                      )}
-                    </SidebarMenuButton>
-                  </Collapsible.Trigger>
-                  <Collapsible.Content>
-                    <SidebarMenuSub>
-                      {readingsItems.map((item) => (
                         <SidebarMenuSubItem key={item.title}>
                           <SidebarMenuSubButton asChild>
                             <Link href={item.url} onClick={handleLinkClick}>
