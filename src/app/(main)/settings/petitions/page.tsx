@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Edit, Trash2, Settings, Save } from "lucide-react"
-import Link from "next/link"
+import { Plus, Edit, Trash2, Save } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { 
   getPetitionContexts, 
@@ -19,14 +18,12 @@ import {
   PetitionContextTemplate,
   CreateContextData,
   UpdateContextData,
-  ensureDefaultContexts
 } from '@/lib/actions/petition-contexts'
 import { getPetitionTextFromContext } from '@/lib/petition-context-utils'
 import { 
   getPetitionContextSettings, 
   updateAllPetitionContextSettings,
-  deletePetitionContextSetting,
-  PetitionContextSettings as StoredPetitionContextSettings
+  deletePetitionContextSetting
 } from '@/lib/actions/petition-settings'
 
 interface PetitionContextSettings {
@@ -57,7 +54,7 @@ export default function PetitionSettingsPage() {
 
   useEffect(() => {
     loadContexts()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadContexts = async () => {
     try {
@@ -202,7 +199,7 @@ For our deceased brothers and sisters.`
     if (!confirm('Are you sure you want to delete this context?')) return
     try {
       await deletePetitionContext(contextId)
-      await deletePetitionContextSetting(contextId)
+      await deletePetitionContextSetting()
       setContextSettings(prev => {
         const newSettings = { ...prev }
         delete newSettings[contextId]

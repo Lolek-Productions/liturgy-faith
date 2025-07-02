@@ -113,7 +113,7 @@ export default function LanguageContextStep({
       const newContext = await createPetitionContext({
         title: newContextForm.title,
         description: newContextForm.description,
-        context: contextData as unknown as Record<string, unknown>
+        context: JSON.stringify(contextData)
       })
 
       // Refresh contexts list

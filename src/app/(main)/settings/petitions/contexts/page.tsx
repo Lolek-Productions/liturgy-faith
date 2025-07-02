@@ -21,7 +21,6 @@ import {
   ensureDefaultContexts,
   cleanupInvalidContexts
 } from '@/lib/actions/petition-contexts'
-import { parseContextData } from '@/lib/petition-context-utils'
 
 export default function PetitionContextsPage() {
   const [contexts, setContexts] = useState<PetitionContextTemplate[]>([])
@@ -31,14 +30,7 @@ export default function PetitionContextsPage() {
   const [formData, setFormData] = useState<CreateContextData>({
     title: '',
     description: '',
-    context: {
-      name: '',
-      community_info: '',
-      sacraments_received: [],
-      deaths_this_week: [],
-      sick_members: [],
-      special_petitions: []
-    }
+    context: ''
   })
   const { setBreadcrumbs } = useBreadcrumbs()
 
@@ -108,29 +100,19 @@ export default function PetitionContextsPage() {
 
   const openEditDialog = (context: PetitionContextTemplate) => {
     setEditingContext(context)
-    const contextData = parseContextData(context.context)
-    if (contextData) {
-      setFormData({
-        title: context.title,
-        description: context.description || '',
-        context: contextData as unknown as Record<string, unknown>
-      })
-      setDialogOpen(true)
-    }
+    setFormData({
+      title: context.title,
+      description: context.description || '',
+      context: context.context || ''
+    })
+    setDialogOpen(true)
   }
 
   const resetForm = () => {
     setFormData({
       title: '',
       description: '',
-      context: {
-        name: '',
-        community_info: '',
-        sacraments_received: [],
-        deaths_this_week: [],
-        sick_members: [],
-        special_petitions: []
-      }
+      context: ''
     })
     setEditingContext(null)
   }
@@ -186,28 +168,16 @@ export default function PetitionContextsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="name">Context Name</Label>
-                <Input
-                  id="name"
-                  value={(formData.context.name as string) || ''}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    context: { ...formData.context, name: e.target.value }
-                  })}
-                  placeholder="Internal name for this context"
-                />
-              </div>
-              <div>
-                <Label htmlFor="community_info">Community Information</Label>
+                <Label htmlFor="context">Default Petition Text</Label>
                 <Textarea
-                  id="community_info"
-                  value={(formData.context.community_info as string) || ''}
+                  id="context"
+                  value={formData.context}
                   onChange={(e) => setFormData({ 
                     ...formData, 
-                    context: { ...formData.context, community_info: e.target.value }
+                    context: e.target.value
                   })}
-                  placeholder="General information about the community or occasion"
-                  className="min-h-[100px]"
+                  placeholder="Enter the default petition text for this context..."
+                  className="min-h-[200px] font-mono text-sm"
                 />
               </div>
               <div className="flex gap-4">
@@ -233,13 +203,10 @@ export default function PetitionContextsPage() {
       <div className="grid gap-6">
         {contexts
           .filter(context => {
-            // Filter out contexts with empty titles or invalid context data
-            if (!context.title || context.title.trim() === '') return false
-            const contextData = parseContextData(context.context)
-            return contextData !== null
+            // Filter out contexts with empty titles
+            return context.title && context.title.trim() !== ''
           })
           .map((context) => {
-            const contextData = parseContextData(context.context)!
             return (
               <Card key={context.id}>
                 <CardHeader>
@@ -270,33 +237,19 @@ export default function PetitionContextsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {contextData.community_info && (
+                    {context.context && (
                       <div>
-                        <Label className="text-xs font-medium text-muted-foreground">Community Info</Label>
-                        <p className="text-sm mt-1">{contextData.community_info}</p>
+                        <Label className="text-xs font-medium text-muted-foreground">Petition Text Preview</Label>
+                        <p className="text-sm mt-1 font-mono bg-muted p-2 rounded-md whitespace-pre-wrap">{context.context.slice(0, 200)}{context.context.length > 200 ? '...' : ''}</p>
                       </div>
                     )}
                     <div className="flex gap-2 flex-wrap">
-                      {contextData.sacraments_received?.length > 0 && (
-                        <Badge variant="outline">
-                          {contextData.sacraments_received.length} Sacraments
-                        </Badge>
-                      )}
-                      {contextData.deaths_this_week?.length > 0 && (
-                        <Badge variant="outline">
-                          {contextData.deaths_this_week.length} Deaths
-                        </Badge>
-                      )}
-                      {contextData.sick_members?.length > 0 && (
-                        <Badge variant="outline">
-                          {contextData.sick_members.length} Sick Members
-                        </Badge>
-                      )}
-                      {contextData.special_petitions?.length > 0 && (
-                        <Badge variant="outline">
-                          {contextData.special_petitions.length} Special Petitions
-                        </Badge>
-                      )}
+                      <Badge variant="outline">
+                        {context.context ? context.context.split('\n').filter(line => line.trim()).length : 0} petitions
+                      </Badge>
+                      <Badge variant="outline">
+                        {context.context ? context.context.length : 0} characters
+                      </Badge>
                     </div>
                   </div>
                 </CardContent>

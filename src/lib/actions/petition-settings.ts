@@ -67,7 +67,7 @@ export async function updateAllPetitionContextSettings(settings: PetitionContext
   }
 }
 
-export async function deletePetitionContextSetting(contextId: string) {
+export async function deletePetitionContextSetting() {
   // When deleting a context, the petition setting goes with it
   // This function is mainly for API compatibility
   return Promise.resolve()

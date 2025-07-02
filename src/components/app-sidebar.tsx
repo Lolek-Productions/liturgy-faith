@@ -20,7 +20,6 @@ import {
 import { 
   FileText,
   Home,
-  Plus,
   Church,
   BookOpen,
   ChevronRight,
