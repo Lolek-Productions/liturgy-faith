@@ -61,7 +61,7 @@ const petitionItems = [
 const readingsItems = [
   {
     title: "Create Readings",
-    url: "/readings/wizard",
+    url: "/readings/create",
     icon: Sparkles,
   },
   {
