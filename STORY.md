@@ -1,7 +1,65 @@
 The Story of liturgy.faith
 
-Overview: 
+Liturgy.Faith is a comprehensive liturgical management platform for Catholic churches, built with
+  Next.js 15, TypeScript, and Supabase.
 
+  Technology Stack
+
+  - Frontend: Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui components
+  - Backend: Supabase (PostgreSQL + Auth)
+  - Authentication: Supabase Auth with server-side session management
+  - UI Library: Radix UI primitives with shadcn/ui styling
+
+  Current Features
+
+  🙏 Smart Petitions
+  - AI-assisted petition generation following traditional Catholic liturgical formats
+  - Multi-language support (English, Spanish, French, Latin)
+  - Context-aware content generation based on sacraments, deaths, sick members, special requests
+  - Petition wizard with step-by-step creation process
+
+  📚 Reading Collections
+  - Organize pre-assembled sets of readings for special occasions
+  - Template collections for weddings, funerals, and other liturgical events
+  - Personal reading collection management
+
+  📋 Liturgy Planning
+  - Complete celebration planning with prayers, prefaces, readings
+  - Special instructions and notes
+  - Calendar integration for scheduling
+
+  👥 Ministers Directory
+  - Contact information and availability tracking
+  - Active/inactive status management
+  - Role assignment and scheduling
+
+  📅 Liturgical Calendar
+  - Track feast days and special celebrations
+  - Liturgical season awareness
+  - Event scheduling and management
+
+  Route Structure
+
+  - Public routes: / (landing), /login, /signup
+  - Protected routes (main app): All routes under /(main)/
+  - Print-optimized routes: Special layouts under /(print)/
+
+  Current State Assessment
+
+  - Fully implemented: Petitions system with wizard workflow
+  - Partially implemented: Dashboard with stats, ministers, liturgy planning, calendar
+  - Extensive navigation: 5 main sections with multiple sub-features each
+  - Print functionality: Dedicated print layouts for petitions and readings
+
+  Architecture Highlights
+
+  - Two-tier layout system (public vs authenticated areas)
+  - Server Actions for secure data operations
+  - Comprehensive authentication flow with middleware protection
+  - Modern React patterns with Server Components where possible
+
+
+## Navigation 
 
 Petitions (FileText icon) - Collapsible dropdown:
 - Create Petition - /petitions/wizard (Sparkles icon)

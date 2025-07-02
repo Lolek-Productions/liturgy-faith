@@ -19,7 +19,6 @@ Look to Github: https://github.com/Lolek-Productions/homily-build
 Need the button at the top of the page to trigger the sidebar open and closed
 Get the breadcrum component
 
-
 # Styling
 Use shadcn
 
@@ -131,3 +130,8 @@ Ctrl+b, d              # Detach (safe to disconnect)
 tmux attach -t work     # Resume when back online
 tmux ls                # List all sessions
 tmux kill-session -t session_name #to remove a session
+tmux kill-server # to kill all the sessions and stop the server
+
+e.g. 
+how do I close this session in tmux: 2: 1 windows (created Wed Jul  2 18:01:09 2025) (attached)
+tmux kill-session -t 2

@@ -3,10 +3,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { 
-  DEFAULT_PETITION_CONTEXT_SUNDAY,
+  DEFAULT_PETITION_CONTEXT_SUNDAY_ENGLISH,
+  DEFAULT_PETITION_CONTEXT_SUNDAY_SPANISH,
   DEFAULT_PETITION_CONTEXT_DAILY,
-  DEFAULT_PETITION_CONTEXT_WEDDING,
-  DEFAULT_PETITION_CONTEXT_FUNERAL
+  DEFAULT_PETITION_CONTEXT_WEDDING_ENGLISH,
+  DEFAULT_PETITION_CONTEXT_WEDDING_SPANISH,
+  DEFAULT_PETITION_CONTEXT_FUNERAL_ENGLISH,
+  DEFAULT_PETITION_CONTEXT_FUNERAL_SPANISH
 } from '@/lib/constants'
 
 export interface PetitionContextTemplate {
@@ -203,9 +206,14 @@ export async function ensureDefaultContexts(): Promise<void> {
   // Create default contexts with simple text
   const defaultContexts = [
     {
-      title: 'Sunday Mass',
-      description: 'Standard Sunday Mass petitions',
-      context: DEFAULT_PETITION_CONTEXT_SUNDAY
+      title: 'Sunday Mass (English)',
+      description: 'Standard Sunday Mass petitions in English',
+      context: DEFAULT_PETITION_CONTEXT_SUNDAY_ENGLISH
+    },
+    {
+      title: 'Sunday Mass (Spanish)',
+      description: 'Standard Sunday Mass petitions in Spanish',
+      context: DEFAULT_PETITION_CONTEXT_SUNDAY_SPANISH
     },
     {
       title: 'Daily Mass',
@@ -213,14 +221,24 @@ export async function ensureDefaultContexts(): Promise<void> {
       context: DEFAULT_PETITION_CONTEXT_DAILY
     },
     {
-      title: 'Wedding',
-      description: 'Wedding ceremony petitions',
-      context: DEFAULT_PETITION_CONTEXT_WEDDING
+      title: 'Wedding (English)',
+      description: 'Wedding ceremony petitions in English',
+      context: DEFAULT_PETITION_CONTEXT_WEDDING_ENGLISH
     },
     {
-      title: 'Funeral',
-      description: 'Funeral Mass petitions',
-      context: DEFAULT_PETITION_CONTEXT_FUNERAL
+      title: 'Wedding (Spanish)',
+      description: 'Wedding ceremony petitions in Spanish',
+      context: DEFAULT_PETITION_CONTEXT_WEDDING_SPANISH
+    },
+    {
+      title: 'Funeral (English)',
+      description: 'Funeral Mass petitions in English',
+      context: DEFAULT_PETITION_CONTEXT_FUNERAL_ENGLISH
+    },
+    {
+      title: 'Funeral (Spanish)',
+      description: 'Funeral Mass petitions in Spanish',
+      context: DEFAULT_PETITION_CONTEXT_FUNERAL_SPANISH
     }
   ]
 

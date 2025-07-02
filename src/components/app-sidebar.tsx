@@ -109,8 +109,8 @@ const ministryItems = [
 
 const settingsItems = [
   {
-    title: "Petition Definitions",
-    url: "/settings/petition-definitions",
+    title: "Petitions",
+    url: "/settings/petitions",
     icon: FileText,
   },
   {
@@ -122,10 +122,10 @@ const settingsItems = [
 
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar()
-  const [isPetitionsOpen, setIsPetitionsOpen] = useState(true)
-  const [isReadingsOpen, setIsReadingsOpen] = useState(true)
-  const [isLiturgyOpen, setIsLiturgyOpen] = useState(true)
-  const [isMinistryOpen, setIsMinistryOpen] = useState(true)
+  const [isPetitionsOpen, setIsPetitionsOpen] = useState(false)
+  const [isReadingsOpen, setIsReadingsOpen] = useState(false)
+  const [isLiturgyOpen, setIsLiturgyOpen] = useState(false)
+  const [isMinistryOpen, setIsMinistryOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const handleLinkClick = () => {

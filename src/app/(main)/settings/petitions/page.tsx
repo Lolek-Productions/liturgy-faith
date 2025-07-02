@@ -26,10 +26,13 @@ import {
   deletePetitionContextSetting
 } from '@/lib/actions/petition-settings'
 import { 
-  DEFAULT_PETITION_CONTEXT_SUNDAY,
+  DEFAULT_PETITION_CONTEXT_SUNDAY_ENGLISH,
+  DEFAULT_PETITION_CONTEXT_SUNDAY_SPANISH,
   DEFAULT_PETITION_CONTEXT_DAILY,
-  DEFAULT_PETITION_CONTEXT_WEDDING,
-  DEFAULT_PETITION_CONTEXT_FUNERAL
+  DEFAULT_PETITION_CONTEXT_WEDDING_ENGLISH,
+  DEFAULT_PETITION_CONTEXT_WEDDING_SPANISH,
+  DEFAULT_PETITION_CONTEXT_FUNERAL_ENGLISH,
+  DEFAULT_PETITION_CONTEXT_FUNERAL_SPANISH
 } from '@/lib/constants'
 
 interface PetitionContextSettings {
@@ -94,12 +97,17 @@ export default function PetitionSettingsPage() {
     const existingContexts = await getPetitionContexts()
     
     if (existingContexts.length === 0) {
-      // Create the 4 initial contexts with simple text
+      // Create the 7 initial contexts with simple text
       const initialContexts = [
         {
-          title: 'Sunday Mass',
-          description: 'Standard Sunday Mass petitions',
-          context: getDefaultPetitionsForContext('Sunday Mass')
+          title: 'Sunday Mass (English)',
+          description: 'Standard Sunday Mass petitions in English',
+          context: getDefaultPetitionsForContext('Sunday Mass (English)')
+        },
+        {
+          title: 'Sunday Mass (Spanish)',
+          description: 'Standard Sunday Mass petitions in Spanish',
+          context: getDefaultPetitionsForContext('Sunday Mass (Spanish)')
         },
         {
           title: 'Daily Mass',
@@ -107,14 +115,24 @@ export default function PetitionSettingsPage() {
           context: getDefaultPetitionsForContext('Daily Mass')
         },
         {
-          title: 'Wedding',
-          description: 'Wedding ceremony petitions',
-          context: getDefaultPetitionsForContext('Wedding')
+          title: 'Wedding (English)',
+          description: 'Wedding ceremony petitions in English',
+          context: getDefaultPetitionsForContext('Wedding (English)')
         },
         {
-          title: 'Funeral',
-          description: 'Funeral Mass petitions',
-          context: getDefaultPetitionsForContext('Funeral')
+          title: 'Wedding (Spanish)',
+          description: 'Wedding ceremony petitions in Spanish',
+          context: getDefaultPetitionsForContext('Wedding (Spanish)')
+        },
+        {
+          title: 'Funeral (English)',
+          description: 'Funeral Mass petitions in English',
+          context: getDefaultPetitionsForContext('Funeral (English)')
+        },
+        {
+          title: 'Funeral (Spanish)',
+          description: 'Funeral Mass petitions in Spanish',
+          context: getDefaultPetitionsForContext('Funeral (Spanish)')
         }
       ]
 
@@ -126,10 +144,13 @@ export default function PetitionSettingsPage() {
 
   const getDefaultPetitionsForContext = (title: string): string => {
     const defaults: { [key: string]: string } = {
-      'Sunday Mass': DEFAULT_PETITION_CONTEXT_SUNDAY,
+      'Sunday Mass (English)': DEFAULT_PETITION_CONTEXT_SUNDAY_ENGLISH,
+      'Sunday Mass (Spanish)': DEFAULT_PETITION_CONTEXT_SUNDAY_SPANISH,
       'Daily Mass': DEFAULT_PETITION_CONTEXT_DAILY,
-      'Wedding': DEFAULT_PETITION_CONTEXT_WEDDING,
-      'Funeral': DEFAULT_PETITION_CONTEXT_FUNERAL
+      'Wedding (English)': DEFAULT_PETITION_CONTEXT_WEDDING_ENGLISH,
+      'Wedding (Spanish)': DEFAULT_PETITION_CONTEXT_WEDDING_SPANISH,
+      'Funeral (English)': DEFAULT_PETITION_CONTEXT_FUNERAL_ENGLISH,
+      'Funeral (Spanish)': DEFAULT_PETITION_CONTEXT_FUNERAL_SPANISH
     }
     
     return defaults[title] || `For our community and all our intentions.
