@@ -52,14 +52,28 @@ export async function createPetition(data: CreatePetitionData) {
   if (data.contextId) {
     const template = await getPetitionContext(data.contextId)
     if (template) {
-      contextData = {
-        name: template.name,
-        description: template.description,
-        community_info: data.community_info, // Use the custom community info from the form
-        sacraments_received: template.sacraments_received,
-        deaths_this_week: template.deaths_this_week,
-        sick_members: template.sick_members,
-        special_petitions: template.special_petitions
+      try {
+        const parsedContext = JSON.parse(template.context)
+        contextData = {
+          name: parsedContext.name || template.title,
+          description: template.description,
+          community_info: data.community_info, // Use the custom community info from the form
+          sacraments_received: parsedContext.sacraments_received || [],
+          deaths_this_week: parsedContext.deaths_this_week || [],
+          sick_members: parsedContext.sick_members || [],
+          special_petitions: parsedContext.special_petitions || []
+        }
+      } catch {
+        // Fallback if parsing fails
+        contextData = {
+          name: template.title,
+          description: template.description,
+          community_info: data.community_info,
+          sacraments_received: [],
+          deaths_this_week: [],
+          sick_members: [],
+          special_petitions: []
+        }
       }
     }
   } else {
@@ -270,7 +284,7 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
   return petition
 }
 
-async function generatePetitionContent(data: CreatePetitionData): Promise<string> {
+export async function generatePetitionContent(data: CreatePetitionData): Promise<string> {
   // Get the user's custom prompt template
   const template = await getPromptTemplate()
   
@@ -375,25 +389,3 @@ export async function updatePetitionContent(petitionId: string, content: string)
   }
 }
 
-export async function getPetition(petitionId: string): Promise<Petition | null> {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
-
-  const { data: petition, error } = await supabase
-    .from('petitions')
-    .select('*')
-    .eq('id', petitionId)
-    .eq('user_id', user.id)
-    .single()
-
-  if (error) {
-    return null
-  }
-
-  return petition
-}

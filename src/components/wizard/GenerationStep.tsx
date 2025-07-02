@@ -4,18 +4,19 @@ import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Sparkles, RefreshCw } from 'lucide-react'
-import { generatePetitionContent } from '@/lib/actions/petitions'
+import { generatePetitionContent, updatePetitionContent } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
+import { toast } from 'sonner'
 
 interface GenerationStepProps {
   petition: Petition
   wizardData: {
     language: string
     contextId: string
-    contextData: any
+    contextData: Record<string, unknown>
     generatedContent: string
   }
-  updateWizardData: (updates: any) => void
+  updateWizardData: (updates: Record<string, unknown>) => void
   onNext: () => void
   onPrevious: () => void
 }
@@ -28,30 +29,34 @@ export default function GenerationStep({
   onPrevious 
 }: GenerationStepProps) {
   const [generating, setGenerating] = useState(false)
-  const [generated, setGenerated] = useState(!!wizardData.generatedContent)
+
 
   const handleGenerate = async () => {
     setGenerating(true)
     try {
+      toast.loading('Generating petitions...')
       const content = await generatePetitionContent({
         title: petition.title,
         date: petition.date,
         language: wizardData.language,
-        community_info: wizardData.contextData?.community_info || '',
+        community_info: (wizardData.contextData?.community_info as string) || '',
         contextId: wizardData.contextId
       })
       
+      // Save generated content to database
+      await updatePetitionContent(petition.id, content)
+      
       updateWizardData({ generatedContent: content })
-      setGenerated(true)
+      toast.success('Petitions regenerated and saved successfully')
     } catch (error) {
       console.error('Failed to generate petitions:', error)
+      toast.error('Failed to generate petitions')
     } finally {
       setGenerating(false)
     }
   }
 
   const handleRegenerate = () => {
-    setGenerated(false)
     updateWizardData({ generatedContent: '' })
   }
 
@@ -65,16 +70,16 @@ export default function GenerationStep({
             Generate Petitions
           </CardTitle>
           <p className="text-muted-foreground">
-            Use AI to generate liturgical petitions based on your context and community information.
+            Generate AI-powered liturgical petitions based on your context and community information.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!generated ? (
+          {!wizardData.generatedContent ? (
             <div className="text-center py-8">
               <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Ready to Generate Petitions</h3>
+              <h3 className="text-lg font-medium mb-2">No Content Generated Yet</h3>
               <p className="text-muted-foreground mb-6">
-                We'll create liturgical petitions in {wizardData.language} based on your context "{wizardData.contextData?.name}".
+                Please use the regenerate button below to create petitions in {wizardData.language} based on your context &quot;{(wizardData.contextData?.name as string) || 'Unknown'}&quot;.
               </p>
               <Button 
                 onClick={handleGenerate} 
@@ -111,15 +116,12 @@ export default function GenerationStep({
                 </Button>
               </div>
               
-              {wizardData.generatedContent && (
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-medium mb-2">Generated Petitions Preview:</h4>
-                  <div className="text-sm whitespace-pre-wrap font-mono">
-                    {wizardData.generatedContent.slice(0, 500)}
-                    {wizardData.generatedContent.length > 500 && '...'}
-                  </div>
+              <div className="bg-muted p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Generated Petitions Preview:</h4>
+                <div className="text-sm whitespace-pre-wrap font-mono max-h-60 overflow-y-auto">
+                  {wizardData.generatedContent}
                 </div>
-              )}
+              </div>
               
               <p className="text-sm text-muted-foreground">
                 You can review and edit these petitions in the next step.
@@ -128,6 +130,7 @@ export default function GenerationStep({
           )}
         </CardContent>
       </Card>
+
 
       {/* Context Summary */}
       <Card>
@@ -140,13 +143,13 @@ export default function GenerationStep({
               <span className="font-medium">Language:</span> {wizardData.language}
             </div>
             <div>
-              <span className="font-medium">Context:</span> {wizardData.contextData?.name}
+              <span className="font-medium">Context:</span> {(wizardData.contextData?.name as string) || 'Unknown'}
             </div>
-            {wizardData.contextData?.community_info && (
+            {(wizardData.contextData?.community_info as string) && (
               <div className="col-span-2">
                 <span className="font-medium">Community Info:</span>
                 <p className="text-muted-foreground mt-1">
-                  {wizardData.contextData.community_info}
+                  {wizardData.contextData.community_info as string}
                 </p>
               </div>
             )}
@@ -162,9 +165,9 @@ export default function GenerationStep({
         </Button>
         <Button 
           onClick={onNext} 
-          disabled={!generated}
+          disabled={!wizardData.generatedContent}
         >
-          Next: Review & Edit
+          Next: Edit & Review
         </Button>
       </div>
     </div>

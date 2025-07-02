@@ -114,6 +114,9 @@ https://github.com/fr-mccarty/liturgy-readings/blob/master/app/Helpers/ReadingHe
 
 https://github.com/fr-mccarty/liturgy-readings/blob/master/resources/views/livewire/wedding-readings.blade.php
 
+Format of Readings:
+https://github.com/fr-mccarty/liturgy-readings/blob/master/resources/views/livewire/print-funeral.blade.php
+
 
 # ./scripts/generate-database-docs.sh
 The purpose of this script is to dynamically generate the structure of the database in supabase to be displayed in the DATABASE.md for the AI to consume.  Other methods have been tried but I want to stick with this method for now for it allows the human to simply construct the structure of the database and then the AI to consume the structure.  From this point I am going to avoid letting the AI make structure changes (ordinarily), but needed a way to allow the AI to consume the changes that were made so as to understand the structure, purpose, and, eventually, the business logic of the application

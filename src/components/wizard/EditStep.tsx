@@ -7,16 +7,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { ArrowLeft, Save } from 'lucide-react'
 import { updatePetitionContent } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
+import { toast } from 'sonner'
 
 interface EditStepProps {
   petition: Petition
   wizardData: {
     language: string
     contextId: string
-    contextData: any
+    contextData: Record<string, unknown>
     generatedContent: string
   }
-  updateWizardData: (updates: any) => void
+  updateWizardData: (updates: Record<string, unknown>) => void
   onNext: () => void
   onPrevious: () => void
 }
@@ -36,14 +37,40 @@ export default function EditStep({
     setHasChanges(content !== wizardData.generatedContent)
   }, [content, wizardData.generatedContent])
 
+  // Auto-save with debouncing
+  useEffect(() => {
+    if (hasChanges && !saving && content.trim() !== '') {
+      const timer = setTimeout(async () => {
+        if (hasChanges) { // Check again in case it changed
+          setSaving(true)
+          try {
+            await updatePetitionContent(petition.id, content)
+            updateWizardData({ generatedContent: content })
+            setHasChanges(false)
+            toast.success('Petition changes saved automatically')
+          } catch (error) {
+            console.error('Failed to auto-save content:', error)
+            toast.error('Failed to auto-save petition changes')
+          } finally {
+            setSaving(false)
+          }
+        }
+      }, 2000) // Auto-save after 2 seconds of no changes
+      
+      return () => clearTimeout(timer)
+    }
+  }, [content, hasChanges, saving, petition.id, updateWizardData])
+
   const handleSave = async () => {
     setSaving(true)
     try {
       await updatePetitionContent(petition.id, content)
       updateWizardData({ generatedContent: content })
       setHasChanges(false)
+      toast.success('Petition changes saved successfully')
     } catch (error) {
       console.error('Failed to save content:', error)
+      toast.error('Failed to save petition changes')
     } finally {
       setSaving(false)
     }
@@ -52,6 +79,8 @@ export default function EditStep({
   const handleNext = async () => {
     if (hasChanges) {
       await handleSave()
+    } else {
+      toast.success('Petition review completed')
     }
     onNext()
   }
@@ -109,8 +138,8 @@ export default function EditStep({
               <h4 className="font-medium mb-2">Structure</h4>
               <ul className="space-y-1 text-muted-foreground">
                 <li>• Each petition on a separate line</li>
-                <li>• Start with "For..." or "That..."</li>
-                <li>• End with "...we pray to the Lord"</li>
+                <li>• Start with &quot;For...&quot; or &quot;That...&quot;</li>
+                <li>• End with &quot;...we pray to the Lord&quot;</li>
                 <li>• Use appropriate liturgical language</li>
               </ul>
             </div>

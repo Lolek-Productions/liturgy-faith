@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Wed Jul  2 16:18:34 UTC 2025
+**Generated on:** Wed Jul  2 16:37:39 UTC 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -34,11 +34,11 @@ The following tables are available in the database:
 | `date` | date | YES | none |
 | `first_reading` | text | YES | none |
 | `gospel_reading` | text | YES | none |
-| `id` | uuid | NO | auth.uid() |
+| `id` | uuid | NO | gen_random_uuid() |
 | `responsorial_psalm` | text | YES | none |
 | `second_reading` | text | YES | none |
 | `title` | text | YES | none |
-| `user_id` | uuid | NO | gen_random_uuid() |
+| `user_id` | uuid | YES | none |
 
 ---
 
@@ -108,6 +108,38 @@ The following tables are available in the database:
 | `language` | text | NO | english |
 | `title` | text | YES | none |
 | `updated_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
+| `user_id` | uuid | YES | none |
+
+---
+
+### Table: `readings`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `categories` | jsonb | YES | none |
+| `created_at` | timestamp with time zone | NO | now() |
+| `id` | uuid | NO | gen_random_uuid() |
+| `language` | text | YES | none |
+| `lectionary_id` | text | YES | none |
+| `pericope` | text | YES | none |
+| `text` | text | YES | none |
+| `user_id` | uuid | YES | none |
+
+---
+
+### Table: `translations`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `created_at` | timestamp with time zone | NO | now() |
+| `description` | text | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
+| `language` | text | YES | none |
+| `name` | text | YES | none |
 | `user_id` | uuid | YES | none |
 
 ---

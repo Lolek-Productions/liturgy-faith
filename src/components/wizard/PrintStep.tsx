@@ -11,7 +11,7 @@ interface PrintStepProps {
   wizardData: {
     language: string
     contextId: string
-    contextData: any
+    contextData: Record<string, unknown>
     generatedContent: string
   }
   onComplete: () => void
@@ -54,7 +54,7 @@ export default function PrintStep({
             <div className="flex gap-4 text-sm text-green-700">
               <span>Date: {new Date(petition.date).toLocaleDateString()}</span>
               <span>Language: {wizardData.language}</span>
-              <span>Context: {wizardData.contextData?.name}</span>
+              <span>Context: {(wizardData.contextData?.name as string) || 'Unknown'}</span>
             </div>
           </div>
         </CardContent>
@@ -65,7 +65,7 @@ export default function PrintStep({
         <CardHeader>
           <CardTitle>Print & Export Options</CardTitle>
           <p className="text-muted-foreground">
-            Choose how you'd like to use your petitions.
+            Choose how you&apos;d like to use your petitions.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -126,7 +126,7 @@ export default function PrintStep({
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Context:</span>
-              <span>{wizardData.contextData?.name}</span>
+              <span>{(wizardData.contextData?.name as string) || 'Unknown'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Content Length:</span>

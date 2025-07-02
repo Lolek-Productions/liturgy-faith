@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Plus, Edit, Trash2, Crown } from "lucide-react"
+import { Plus, Edit, Trash2 } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { 
   getPetitionContexts, 
@@ -17,8 +17,11 @@ import {
   deletePetitionContext,
   PetitionContextTemplate,
   CreateContextData,
-  UpdateContextData
+  UpdateContextData,
+  ensureDefaultContexts,
+  cleanupInvalidContexts
 } from '@/lib/actions/petition-contexts'
+import { parseContextData } from '@/lib/petition-context-utils'
 
 export default function PetitionContextsPage() {
   const [contexts, setContexts] = useState<PetitionContextTemplate[]>([])
@@ -26,13 +29,16 @@ export default function PetitionContextsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingContext, setEditingContext] = useState<PetitionContextTemplate | null>(null)
   const [formData, setFormData] = useState<CreateContextData>({
-    name: '',
+    title: '',
     description: '',
-    community_info: '',
-    sacraments_received: [],
-    deaths_this_week: [],
-    sick_members: [],
-    special_petitions: []
+    context: {
+      name: '',
+      community_info: '',
+      sacraments_received: [],
+      deaths_this_week: [],
+      sick_members: [],
+      special_petitions: []
+    }
   })
   const { setBreadcrumbs } = useBreadcrumbs()
 
@@ -51,6 +57,8 @@ export default function PetitionContextsPage() {
 
   const loadContexts = async () => {
     try {
+      await cleanupInvalidContexts()
+      await ensureDefaultContexts()
       const data = await getPetitionContexts()
       setContexts(data)
     } catch (error) {
@@ -100,27 +108,29 @@ export default function PetitionContextsPage() {
 
   const openEditDialog = (context: PetitionContextTemplate) => {
     setEditingContext(context)
-    setFormData({
-      name: context.name,
-      description: context.description || '',
-      community_info: context.community_info,
-      sacraments_received: context.sacraments_received,
-      deaths_this_week: context.deaths_this_week,
-      sick_members: context.sick_members,
-      special_petitions: context.special_petitions
-    })
-    setDialogOpen(true)
+    const contextData = parseContextData(context.context)
+    if (contextData) {
+      setFormData({
+        title: context.title,
+        description: context.description || '',
+        context: contextData as unknown as Record<string, unknown>
+      })
+      setDialogOpen(true)
+    }
   }
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      title: '',
       description: '',
-      community_info: '',
-      sacraments_received: [],
-      deaths_this_week: [],
-      sick_members: [],
-      special_petitions: []
+      context: {
+        name: '',
+        community_info: '',
+        sacraments_received: [],
+        deaths_this_week: [],
+        sick_members: [],
+        special_petitions: []
+      }
     })
     setEditingContext(null)
   }
@@ -158,11 +168,11 @@ export default function PetitionContextsPage() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="title">Title</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g., Christmas Mass, Easter Vigil"
                 />
               </div>
@@ -176,11 +186,26 @@ export default function PetitionContextsPage() {
                 />
               </div>
               <div>
+                <Label htmlFor="name">Context Name</Label>
+                <Input
+                  id="name"
+                  value={(formData.context.name as string) || ''}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    context: { ...formData.context, name: e.target.value }
+                  })}
+                  placeholder="Internal name for this context"
+                />
+              </div>
+              <div>
                 <Label htmlFor="community_info">Community Information</Label>
                 <Textarea
                   id="community_info"
-                  value={formData.community_info}
-                  onChange={(e) => setFormData({ ...formData, community_info: e.target.value })}
+                  value={(formData.context.community_info as string) || ''}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    context: { ...formData.context, community_info: e.target.value }
+                  })}
                   placeholder="General information about the community or occasion"
                   className="min-h-[100px]"
                 />
@@ -206,76 +231,78 @@ export default function PetitionContextsPage() {
       </div>
 
       <div className="grid gap-6">
-        {contexts.map((context) => (
-          <Card key={context.id}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-lg">{context.name}</CardTitle>
-                  {context.is_default && (
-                    <Badge variant="secondary" className="text-xs">
-                      <Crown className="h-3 w-3 mr-1" />
-                      Default
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => openEditDialog(context)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  {!context.is_default && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleDeleteContext(context.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-              {context.description && (
-                <p className="text-sm text-muted-foreground">{context.description}</p>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {context.community_info && (
-                  <div>
-                    <Label className="text-xs font-medium text-muted-foreground">Community Info</Label>
-                    <p className="text-sm mt-1">{context.community_info}</p>
+        {contexts
+          .filter(context => {
+            // Filter out contexts with empty titles or invalid context data
+            if (!context.title || context.title.trim() === '') return false
+            const contextData = parseContextData(context.context)
+            return contextData !== null
+          })
+          .map((context) => {
+            const contextData = parseContextData(context.context)!
+            return (
+              <Card key={context.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg">{context.title}</CardTitle>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openEditDialog(context)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteContext(context.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                )}
-                <div className="flex gap-2 flex-wrap">
-                  {context.sacraments_received.length > 0 && (
-                    <Badge variant="outline">
-                      {context.sacraments_received.length} Sacraments
-                    </Badge>
+                  {context.description && (
+                    <p className="text-sm text-muted-foreground">{context.description}</p>
                   )}
-                  {context.deaths_this_week.length > 0 && (
-                    <Badge variant="outline">
-                      {context.deaths_this_week.length} Deaths
-                    </Badge>
-                  )}
-                  {context.sick_members.length > 0 && (
-                    <Badge variant="outline">
-                      {context.sick_members.length} Sick Members
-                    </Badge>
-                  )}
-                  {context.special_petitions.length > 0 && (
-                    <Badge variant="outline">
-                      {context.special_petitions.length} Special Petitions
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {contextData.community_info && (
+                      <div>
+                        <Label className="text-xs font-medium text-muted-foreground">Community Info</Label>
+                        <p className="text-sm mt-1">{contextData.community_info}</p>
+                      </div>
+                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {contextData.sacraments_received?.length > 0 && (
+                        <Badge variant="outline">
+                          {contextData.sacraments_received.length} Sacraments
+                        </Badge>
+                      )}
+                      {contextData.deaths_this_week?.length > 0 && (
+                        <Badge variant="outline">
+                          {contextData.deaths_this_week.length} Deaths
+                        </Badge>
+                      )}
+                      {contextData.sick_members?.length > 0 && (
+                        <Badge variant="outline">
+                          {contextData.sick_members.length} Sick Members
+                        </Badge>
+                      )}
+                      {contextData.special_petitions?.length > 0 && (
+                        <Badge variant="outline">
+                          {contextData.special_petitions.length} Special Petitions
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
       </div>
 
       {contexts.length === 0 && (

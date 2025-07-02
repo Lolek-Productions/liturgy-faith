@@ -20,6 +20,12 @@ Petition settings is where I want to allow the user to create and save various c
 # Creating Petitions
 To create petitions, the user is first asked to input the title and date for the set of petitions.  After saving, they are redirected. To the petitions wizard. The petitions wizard ask the user to choose a language, and a context once the context is selected it is dropped into the column named context in the petitions table. The user is allowed to update the context with any further specifications, such as the name of the bride and the name of the groom or the name of the deceased person. After they click next within the wizard, then they are redirected to the next step which will generates the petitions using a large language model. Once the petitions are generated, then the user can further edit the petitions if they wish. Finally, the user is shown a next button, which will allow the user to go to the print view and print out the petitions.
 
+Steps for Petition Wizard (the wizard begins after saving the name, date, and language of the petitions):
+Step 1: Language & Context
+Step 2: Context Details (auto-generate after clicking next)
+Step 3: Edit & Review (after generating)
+Step 4: Print & Complete
+
 
 # Readings
 

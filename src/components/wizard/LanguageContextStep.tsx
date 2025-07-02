@@ -3,24 +3,24 @@
 import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Crown } from 'lucide-react'
-import { getPetitionContexts, PetitionContextTemplate } from '@/lib/actions/petition-contexts'
-import { updatePetitionLanguage } from '@/lib/actions/petitions'
+import { FormField } from '@/components/ui/form-field'
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { getPetitionContexts, PetitionContextTemplate, ensureDefaultContexts, cleanupInvalidContexts } from '@/lib/actions/petition-contexts'
+import { parseContextData } from '@/lib/petition-context-utils'
+import { updatePetitionLanguage, updatePetitionContext } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
 import { useAppContext } from '@/contexts/AppContextProvider'
+import { toast } from 'sonner'
 
 interface LanguageContextStepProps {
   petition: Petition
   wizardData: {
     language: string
     contextId: string
-    contextData: any
+    contextData: Record<string, unknown>
     generatedContent: string
   }
-  updateWizardData: (updates: any) => void
+  updateWizardData: (updates: Record<string, unknown>) => void
   onNext: () => void
 }
 
@@ -38,6 +38,11 @@ export default function LanguageContextStep({
   useEffect(() => {
     const loadContexts = async () => {
       try {
+        // Clean up invalid contexts first
+        await cleanupInvalidContexts()
+        // Ensure user has default contexts
+        await ensureDefaultContexts()
+        
         const data = await getPetitionContexts()
         setContexts(data)
         
@@ -68,30 +73,30 @@ export default function LanguageContextStep({
 
   const handleContextSelect = (contextId: string) => {
     const context = contexts.find(c => c.id === contextId)
-    updateWizardData({ 
-      contextId,
-      contextData: context ? {
-        name: context.name,
-        description: context.description,
-        community_info: context.community_info,
-        sacraments_received: context.sacraments_received,
-        deaths_this_week: context.deaths_this_week,
-        sick_members: context.sick_members,
-        special_petitions: context.special_petitions
-      } : null
-    })
+    if (context) {
+      const contextData = parseContextData(context.context)
+      if (contextData) {
+        updateWizardData({ 
+          contextId,
+          contextData
+        })
+      }
+    }
   }
 
   const handleNext = async () => {
-    if (!wizardData.language) return
+    if (!wizardData.language || !wizardData.contextData) return
 
     setSaving(true)
     try {
-      // Update petition with selected language
+      // Update petition with selected language and context
       await updatePetitionLanguage(petition.id, wizardData.language)
+      await updatePetitionContext(petition.id, JSON.stringify(wizardData.contextData))
+      toast.success('Language and context saved successfully')
       onNext()
     } catch (error) {
       console.error('Failed to save language:', error)
+      toast.error('Failed to save language and context')
     } finally {
       setSaving(false)
     }
@@ -110,20 +115,24 @@ export default function LanguageContextStep({
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="language">Language</Label>
-            <Select value={wizardData.language} onValueChange={handleLanguageChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="spanish">Spanish</SelectItem>
-                <SelectItem value="french">French</SelectItem>
-                <SelectItem value="latin">Latin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <FormField
+            id="language"
+            label="Language"
+            description="The language in which the petitions should be generated"
+            type="select"
+            value={wizardData.language}
+            onChange={handleLanguageChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="english">English</SelectItem>
+              <SelectItem value="spanish">Spanish</SelectItem>
+              <SelectItem value="french">French</SelectItem>
+              <SelectItem value="latin">Latin</SelectItem>
+            </SelectContent>
+          </FormField>
         </CardContent>
       </Card>
 
@@ -132,7 +141,7 @@ export default function LanguageContextStep({
         <CardHeader>
           <CardTitle>Select Context Template</CardTitle>
           <p className="text-muted-foreground">
-            Choose a context template that matches your liturgical occasion. You'll be able to customize it in the next step.
+            Choose a context template that matches your liturgical occasion. You&apos;ll be able to customize it in the next step.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -142,44 +151,48 @@ export default function LanguageContextStep({
             <p className="text-muted-foreground">No contexts available.</p>
           ) : (
             <div className="grid gap-3">
-              {contexts.map((context) => (
-                <div
-                  key={context.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    wizardData.contextId === context.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleContextSelect(context.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{context.name}</h3>
-                      {context.is_default && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Crown className="h-3 w-3 mr-1" />
-                          Default
-                        </Badge>
+              {contexts
+                .filter(context => {
+                  // Filter out contexts with empty titles or invalid context data
+                  if (!context.title || context.title.trim() === '') return false
+                  const contextData = parseContextData(context.context)
+                  return contextData !== null
+                })
+                .map((context) => {
+                  const contextData = parseContextData(context.context)!
+                  return (
+                    <div
+                      key={context.id}
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                        wizardData.contextId === context.id
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => handleContextSelect(context.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium">{context.title}</h3>
+                        </div>
+                        {wizardData.contextId === context.id && (
+                          <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          </div>
+                        )}
+                      </div>
+                      {context.description && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {context.description}
+                        </p>
+                      )}
+                      {contextData.community_info && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          {contextData.community_info}
+                        </p>
                       )}
                     </div>
-                    {wizardData.contextId === context.id && (
-                      <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                      </div>
-                    )}
-                  </div>
-                  {context.description && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {context.description}
-                    </p>
-                  )}
-                  {context.community_info && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      {context.community_info}
-                    </p>
-                  )}
-                </div>
-              ))}
+                  )
+                })}
             </div>
           )}
         </CardContent>

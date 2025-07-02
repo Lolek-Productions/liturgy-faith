@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { getPetition } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
@@ -21,7 +21,7 @@ const STEPS = [
   { id: 1, title: 'Language & Context', description: 'Choose language and select context template' },
   { id: 2, title: 'Context Details', description: 'Customize context with specific names and details' },
   { id: 3, title: 'Generate Petitions', description: 'Generate petitions using AI' },
-  { id: 4, title: 'Edit & Review', description: 'Review and edit generated petitions' },
+  { id: 4, title: 'Edit & Review', description: 'Generate and edit petitions using AI' },
   { id: 5, title: 'Print & Complete', description: 'Print petitions and complete' }
 ]
 
@@ -38,7 +38,7 @@ export default function PetitionWizardPage() {
   const [wizardData, setWizardData] = useState({
     language: 'english',
     contextId: '',
-    contextData: null as any,
+    contextData: {} as Record<string, unknown>,
     generatedContent: '',
   })
 
@@ -208,29 +208,31 @@ export default function PetitionWizardPage() {
       {/* Progress Steps */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center">
             {STEPS.map((step, index) => (
               <div key={step.id} className="flex items-center">
-                <button
-                  onClick={() => handleStepClick(step.id)}
-                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                    step.id < currentStep
-                      ? 'bg-green-500 border-green-500 text-white'
-                      : step.id === currentStep
-                      ? 'bg-blue-500 border-blue-500 text-white'
-                      : 'border-gray-300 text-gray-500'
-                  } ${step.id <= currentStep ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-                >
-                  {step.id < currentStep ? (
-                    <Check className="w-5 h-5" />
-                  ) : (
-                    step.id
-                  )}
-                </button>
+                <div className="flex flex-col items-center">
+                  <button
+                    onClick={() => handleStepClick(step.id)}
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
+                      step.id < currentStep
+                        ? 'bg-green-500 border-green-500 text-white'
+                        : step.id === currentStep
+                        ? 'bg-blue-500 border-blue-500 text-white'
+                        : 'border-gray-300 text-gray-500'
+                    } ${step.id <= currentStep ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                  >
+                    {step.id < currentStep ? (
+                      <Check className="w-5 h-5" />
+                    ) : (
+                      step.id
+                    )}
+                  </button>
+                </div>
                 
                 {index < STEPS.length - 1 && (
                   <div 
-                    className={`w-12 h-0.5 mx-2 ${
+                    className={`w-16 h-0.5 mx-4 ${
                       step.id < currentStep ? 'bg-green-500' : 'bg-gray-300'
                     }`}
                   />

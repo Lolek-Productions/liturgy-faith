@@ -14,7 +14,6 @@ function PrintPetitionsContent() {
   const router = useRouter()
   
   const petitionId = searchParams.get('id')
-  const title = searchParams.get('title') || 'Petitions'
 
   useEffect(() => {
     const loadData = async () => {
@@ -102,15 +101,19 @@ function PrintPetitionsContent() {
         Print Preview - This page will automatically print when content finishes loading
       </div>
 
-      {/* Print Header */}
-      <div className="print-header">
-        <h1 style={{ fontSize: '18pt', margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>
-          {title}
-        </h1>
-        <div style={{ fontSize: '14pt', margin: '0.5rem 0' }}>
+      {/* Petitions Content - Page Break Container */}
+      <div className="p-6 break-after-page">
+        {/* Header - Right Aligned Red Text */}
+        <div className="text-right text-xl text-red-500 font-semibold">
+          {petition.language === 'spanish' ? 'PETICIONES' :
+           petition.language === 'french' ? 'PRIÈRE UNIVERSELLE' :
+           petition.language === 'latin' ? 'ORATIO UNIVERSALIS' :
+           'PETITIONS'}
+        </div>
+        <div className="text-right text-xl text-red-500 font-semibold italic">
           {petition.title}
         </div>
-        <div style={{ fontSize: '12pt', color: '#666' }}>
+        <div className="text-right text-xl text-red-500 font-bold">
           {new Date(petition.date).toLocaleDateString('en-US', { 
             weekday: 'long', 
             year: 'numeric', 
@@ -118,33 +121,60 @@ function PrintPetitionsContent() {
             day: 'numeric' 
           })}
         </div>
-      </div>
 
-      {/* Petitions Content */}
-      <div className="petition-section">
-        <div>
-          {(petition.generated_content || '').split('\n').filter(line => line.trim()).map((petitionText, i) => (
-            <div key={i} className="petition-item">
-              <div style={{ marginBottom: '0.3rem' }}>
-                {petitionText}
-              </div>
-              <div className="petition-response liturgical-rubric">
-                Lord, hear our prayer.
-              </div>
+        {/* Introduction */}
+        <div className="mt-3 font-semibold">
+          {petition.language === 'spanish' ? 
+            'Confiando en la misericordia de Dios, presentemos nuestras peticiones:' :
+           petition.language === 'french' ? 
+            'Confiants en la miséricorde de Dieu, présentons nos demandes :' :
+           petition.language === 'latin' ? 
+            'Confidentes in Dei misericordia, preces nostras offeramus:' :
+           'Trusting in God\'s mercy, let us present our petitions:'}
+        </div>
+
+        {/* Petitions Content */}
+        <div className="mt-3">
+          {petition.generated_content ? (
+            <div className="whitespace-pre-line">
+              {petition.generated_content.split('\n').filter(line => line.trim()).map((petitionText, i) => (
+                <div key={i} className="mb-4">
+                  <div className="mb-1">
+                    {petitionText}
+                  </div>
+                  <div className="font-semibold text-red-500 italic ml-8">
+                    {petition.language === 'spanish' ? 'Te rogamos, óyenos.' : 
+                     petition.language === 'french' ? 'Nous te prions, écoute-nous.' :
+                     petition.language === 'latin' ? 'Te rogamus, audi nos.' :
+                     'Lord, hear our prayer.'}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <div className="mt-3 italic text-gray-600">
+              No petition content generated yet. Please return to the wizard to generate petitions.
+            </div>
+          )}
         </div>
         
         {/* Concluding Prayer */}
-        <div style={{ marginTop: '2rem', fontSize: '12pt', fontStyle: 'italic' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            Almighty and eternal God, ruler of all things in heaven and earth: 
-            Mercifully accept the prayers of your people, and strengthen us to do your will; 
-            through Jesus Christ our Lord.
-          </div>
-          <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
-            Amen.
-          </div>
+        <div className="mt-6 font-semibold">
+          {petition.language === 'spanish' ? 
+            'Dios todopoderoso y eterno, que gobiernas todas las cosas en el cielo y en la tierra: Acepta misericordiosamente las oraciones de tu pueblo, y fortalécenos para hacer tu voluntad; por Jesucristo nuestro Señor.' :
+           petition.language === 'french' ? 
+            'Dieu tout-puissant et éternel, maître de toutes choses au ciel et sur la terre : Accepte avec miséricorde les prières de ton peuple, et fortifie-nous pour faire ta volonté ; par Jésus-Christ notre Seigneur.' :
+           petition.language === 'latin' ? 
+            'Omnipotens sempiterne Deus, qui universa in caelo et in terra regis: Clementer exaudi preces populi tui, et confirma nos ad voluntatem tuam faciendam; per Jesum Christum Dominum nostrum.' :
+           'Almighty and eternal God, ruler of all things in heaven and earth: Mercifully accept the prayers of your people, and strengthen us to do your will; through Jesus Christ our Lord.'}
+        </div>
+        
+        {/* Amen - Right Aligned */}
+        <div className="text-right font-bold mt-3">
+          {petition.language === 'spanish' ? 'Amén.' :
+           petition.language === 'french' ? 'Amen.' :
+           petition.language === 'latin' ? 'Amen.' :
+           'Amen.'}
         </div>
       </div>
 

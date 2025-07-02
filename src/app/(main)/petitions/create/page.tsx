@@ -52,7 +52,7 @@ export default function CreatePetitionPage() {
         <CardHeader>
           <CardTitle>Create New Petitions</CardTitle>
           <p className="text-muted-foreground">
-            Start by providing basic information. You'll configure language and context details in the next step.
+            Start by providing basic information. You&apos;ll configure language and context details in the next step.
           </p>
         </CardHeader>
         <CardContent>
