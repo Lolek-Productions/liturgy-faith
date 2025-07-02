@@ -6,9 +6,6 @@ import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { getPetitionContexts, PetitionContextTemplate, ensureDefaultContexts, cleanupInvalidContexts, createPetitionContext } from '@/lib/actions/petition-contexts'
 import { parseContextData } from '@/lib/petition-context-utils'
 import { updatePetitionLanguage, updatePetitionContext } from '@/lib/actions/petitions'
@@ -44,8 +41,7 @@ export default function LanguageContextStep({
   const [newContextForm, setNewContextForm] = useState({
     title: '',
     description: '',
-    name: '',
-    community_info: ''
+    context: ''
   })
 
   useEffect(() => {
@@ -116,20 +112,27 @@ export default function LanguageContextStep({
   const handleCreateContext = async () => {
     setCreating(true)
     try {
-      const contextData = {
-        name: newContextForm.name,
-        description: newContextForm.description,
-        community_info: newContextForm.community_info,
-        sacraments_received: [],
-        deaths_this_week: [],
-        sick_members: [],
-        special_petitions: []
+      // Try to parse as JSON first, otherwise use as plain text
+      let contextData
+      try {
+        contextData = JSON.parse(newContextForm.context)
+      } catch {
+        // If not JSON, create a default structure with the text as community_info
+        contextData = {
+          name: newContextForm.title,
+          description: newContextForm.description,
+          community_info: newContextForm.context,
+          sacraments_received: [],
+          deaths_this_week: [],
+          sick_members: [],
+          special_petitions: []
+        }
       }
 
       const newContext = await createPetitionContext({
         title: newContextForm.title,
         description: newContextForm.description,
-        context: JSON.stringify(contextData)
+        context: typeof contextData === 'string' ? newContextForm.context : JSON.stringify(contextData)
       })
 
       // Refresh contexts list
@@ -146,8 +149,7 @@ export default function LanguageContextStep({
       setNewContextForm({
         title: '',
         description: '',
-        name: '',
-        community_info: ''
+        context: ''
       })
       setDialogOpen(false)
       toast.success('New context created and selected')
@@ -233,43 +235,31 @@ export default function LanguageContextStep({
                   <DialogTitle>Create New Context Template</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="new-title">Title</Label>
-                    <Input
-                      id="new-title"
-                      value={newContextForm.title}
-                      onChange={(e) => setNewContextForm({ ...newContextForm, title: e.target.value })}
-                      placeholder="e.g., Easter Vigil, Funeral Mass"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="new-description">Description</Label>
-                    <Input
-                      id="new-description"
-                      value={newContextForm.description}
-                      onChange={(e) => setNewContextForm({ ...newContextForm, description: e.target.value })}
-                      placeholder="Brief description of when to use this context"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="new-name">Context Name</Label>
-                    <Input
-                      id="new-name"
-                      value={newContextForm.name}
-                      onChange={(e) => setNewContextForm({ ...newContextForm, name: e.target.value })}
-                      placeholder="Internal name for this context"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="new-community-info">Community Information</Label>
-                    <Textarea
-                      id="new-community-info"
-                      value={newContextForm.community_info}
-                      onChange={(e) => setNewContextForm({ ...newContextForm, community_info: e.target.value })}
-                      placeholder="Default community information for this context"
-                      className="min-h-[100px]"
-                    />
-                  </div>
+                  <FormField
+                    id="new-title"
+                    label="Title"
+                    type="input"
+                    value={newContextForm.title}
+                    onChange={(value) => setNewContextForm({ ...newContextForm, title: value })}
+                    placeholder="e.g., Easter Vigil, Funeral Mass"
+                  />
+                  <FormField
+                    id="new-description"
+                    label="Description"
+                    type="input"
+                    value={newContextForm.description}
+                    onChange={(value) => setNewContextForm({ ...newContextForm, description: value })}
+                    placeholder="Brief description of when to use this context"
+                  />
+                  <FormField
+                    id="new-context"
+                    label="Context Information"
+                    type="textarea"
+                    value={newContextForm.context}
+                    onChange={(value) => setNewContextForm({ ...newContextForm, context: value })}
+                    placeholder="Describe the liturgical context and community needs for this template. Example: St. Mary's Parish - Sunday Mass with recent baptisms, wedding anniversaries, and prayers for the sick including John Smith recovering from surgery."
+                    className="min-h-[100px]"
+                  />
                   <div className="flex gap-4">
                     <Button 
                       variant="outline" 
@@ -280,7 +270,7 @@ export default function LanguageContextStep({
                     </Button>
                     <Button 
                       onClick={handleCreateContext}
-                      disabled={creating || !newContextForm.title || !newContextForm.name}
+                      disabled={creating || !newContextForm.title}
                     >
                       {creating ? 'Creating...' : 'Create Context'}
                     </Button>
