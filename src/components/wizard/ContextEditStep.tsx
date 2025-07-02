@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowLeft } from 'lucide-react'
-import { updatePetitionContext, generatePetitionContent, updatePetitionContent } from '@/lib/actions/petitions'
+import { updatePetitionContext } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
 import { ContextData } from '@/lib/petition-context-utils'
 import { toast } from 'sonner'
@@ -53,26 +53,10 @@ export default function ContextEditStep({
       await updatePetitionContext(petition.id, JSON.stringify(contextData))
       updateWizardData({ contextData })
       toast.success('Context details saved successfully')
-      
-      // Automatically generate petitions
-      toast.loading('Generating petitions...')
-      const generatedContent = await generatePetitionContent({
-        title: petition.title,
-        date: petition.date,
-        language: wizardData.language,
-        community_info: contextData.community_info || '',
-        contextId: wizardData.contextId
-      })
-      
-      // Save generated content to database
-      await updatePetitionContent(petition.id, generatedContent)
-      
-      updateWizardData({ generatedContent })
-      toast.success('Petitions generated and saved successfully')
       onNext()
     } catch (error) {
-      console.error('Failed to save context or generate petitions:', error)
-      toast.error('Failed to save context or generate petitions')
+      console.error('Failed to save context:', error)
+      toast.error('Failed to save context details')
     } finally {
       setSaving(false)
     }
@@ -130,7 +114,7 @@ export default function ContextEditStep({
           Previous
         </Button>
         <Button onClick={handleNext} disabled={saving}>
-          {saving ? 'Generating...' : 'Next: Generate & Edit Petitions'}
+          {saving ? 'Saving...' : 'Next: Edit & Review'}
         </Button>
       </div>
     </div>

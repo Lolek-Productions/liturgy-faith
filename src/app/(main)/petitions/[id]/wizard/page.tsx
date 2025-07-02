@@ -13,16 +13,14 @@ import { Petition } from '@/lib/types'
 // Import wizard steps
 import LanguageContextStep from '@/components/wizard/LanguageContextStep'
 import ContextEditStep from '@/components/wizard/ContextEditStep'
-import GenerationStep from '@/components/wizard/GenerationStep'
 import EditStep from '@/components/wizard/EditStep'
 import PrintStep from '@/components/wizard/PrintStep'
 
 const STEPS = [
   { id: 1, title: 'Language & Context', description: 'Choose language and select context template' },
   { id: 2, title: 'Context Details', description: 'Customize context with specific names and details' },
-  { id: 3, title: 'Generate Petitions', description: 'Generate petitions using AI' },
-  { id: 4, title: 'Edit & Review', description: 'Generate and edit petitions using AI' },
-  { id: 5, title: 'Print & Complete', description: 'Print petitions and complete' }
+  { id: 3, title: 'Edit & Review', description: 'Generate and edit petitions using AI' },
+  { id: 4, title: 'Print & Complete', description: 'Print petitions and complete' }
 ]
 
 export default function PetitionWizardPage() {
@@ -156,16 +154,6 @@ export default function PetitionWizardPage() {
         )
       case 3:
         return (
-          <GenerationStep
-            petition={petition}
-            wizardData={wizardData}
-            updateWizardData={updateWizardData}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-          />
-        )
-      case 4:
-        return (
           <EditStep
             petition={petition}
             wizardData={wizardData}
@@ -174,7 +162,7 @@ export default function PetitionWizardPage() {
             onPrevious={handlePrevious}
           />
         )
-      case 5:
+      case 4:
         return (
           <PrintStep
             petition={petition}

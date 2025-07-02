@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, Save } from 'lucide-react'
-import { updatePetitionContent } from '@/lib/actions/petitions'
+import { ArrowLeft, Save, Sparkles, RefreshCw } from 'lucide-react'
+import { updatePetitionContent, generatePetitionContent } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
 import { toast } from 'sonner'
 
@@ -32,6 +32,13 @@ export default function EditStep({
   const [content, setContent] = useState(wizardData.generatedContent || '')
   const [saving, setSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const [hasGenerated, setHasGenerated] = useState(!!wizardData.generatedContent)
+
+  useEffect(() => {
+    setContent(wizardData.generatedContent || '')
+    setHasGenerated(!!wizardData.generatedContent)
+  }, [wizardData.generatedContent])
 
   useEffect(() => {
     setHasChanges(content !== wizardData.generatedContent)
@@ -61,6 +68,37 @@ export default function EditStep({
     }
   }, [content, hasChanges, saving, petition.id, updateWizardData])
 
+  const handleGenerate = async () => {
+    setGenerating(true)
+    try {
+      toast.loading('Generating petitions...')
+      const generatedContent = await generatePetitionContent({
+        title: petition.title,
+        date: petition.date,
+        language: wizardData.language,
+        community_info: (wizardData.contextData?.community_info as string) || '',
+        contextId: wizardData.contextId
+      })
+      
+      // Save generated content to database
+      await updatePetitionContent(petition.id, generatedContent)
+      
+      updateWizardData({ generatedContent })
+      setContent(generatedContent)
+      setHasGenerated(true)
+      toast.success('Petitions generated and saved successfully')
+    } catch (error) {
+      console.error('Failed to generate petitions:', error)
+      toast.error('Failed to generate petitions')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleRegenerate = async () => {
+    await handleGenerate()
+  }
+
   const handleSave = async () => {
     setSaving(true)
     try {
@@ -87,43 +125,89 @@ export default function EditStep({
 
   return (
     <div className="space-y-6">
-      {/* Edit Content */}
+      {/* Generation/Edit Content */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Review & Edit Petitions</span>
-            {hasChanges && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleSave}
-                disabled={saving}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              <span>Edit & Review Petitions</span>
+            </div>
+            <div className="flex gap-2">
+              {hasGenerated && hasChanges && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              )}
+              {hasGenerated && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleRegenerate}
+                  disabled={generating}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Regenerate
+                </Button>
+              )}
+            </div>
           </CardTitle>
           <p className="text-muted-foreground">
-            Review the generated petitions and make any necessary edits. Changes are automatically saved.
+            {!hasGenerated 
+              ? 'Generate AI-powered liturgical petitions based on your context and community information.'
+              : 'Review the generated petitions and make any necessary edits. Changes are automatically saved.'
+            }
           </p>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Your petition content will appear here..."
-              className="min-h-[400px] font-mono text-sm"
-            />
-            
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>{content.length} characters</span>
-              {hasChanges && (
-                <span className="text-orange-600">Unsaved changes</span>
-              )}
+          {!hasGenerated ? (
+            <div className="text-center py-8">
+              <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Ready to Generate Petitions</h3>
+              <p className="text-muted-foreground mb-6">
+                We&apos;ll create liturgical petitions in {wizardData.language} based on your context &quot;{(wizardData.contextData?.name as string) || 'Unknown'}&quot;.
+              </p>
+              <Button 
+                onClick={handleGenerate} 
+                disabled={generating}
+                size="lg"
+              >
+                {generating ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate Petitions
+                  </>
+                )}
+              </Button>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Your petition content will appear here..."
+                className="min-h-[400px] font-mono text-sm"
+              />
+              
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{content.length} characters</span>
+                {hasChanges && (
+                  <span className="text-orange-600">Unsaved changes</span>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -162,7 +246,7 @@ export default function EditStep({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Previous
         </Button>
-        <Button onClick={handleNext} disabled={saving}>
+        <Button onClick={handleNext} disabled={!hasGenerated || saving}>
           {saving ? 'Saving...' : 'Next: Print & Complete'}
         </Button>
       </div>
