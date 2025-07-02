@@ -215,7 +215,7 @@ export default function ReadingsLibraryPage() {
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/readings/library/${reading.id}`}>
+                      <Link href={`/liturgical-readings/library/${reading.id}`}>
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>

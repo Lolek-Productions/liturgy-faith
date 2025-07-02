@@ -1,0 +1,106 @@
+# Structure of liturgy.faith
+
+
+## Public Pages
+//Note that public pages should be set as an array in the middleware file
+
+### Components
+- public header
+- Public footer
+
+
+## App Pages area
+
+### Components
+- main header
+
+
+Look to Github: https://github.com/Lolek-Productions/homily-build
+Need the button at the top of the page to trigger the sidebar open and closed
+Get the breadcrum component
+
+
+Integration of Supabase
+
+Use shadcn
+
+Use lucide-react icons
+
+Authentication
+/signup
+/login
+
+publicPaths = ['login', 'signup']
+
+After authentication: redirect to /dashboard
+
+No current request for email verification
+
+Change the settings in supabase
+
+
+Administer supabase users in 
+https://supabase.com/dashboard/project/kpuaengwebmbxshuvzia/auth/users
+
+
+how to use tables:
+use shadcn
+
+
+
+Logo: how to create a logo:??
+https://lucide.dev/icons/church
+
+Where can we NOT use the church icon?
+
+Favicon:
+The image that comes up on an iphone: 
+
+Create favicon, but how?
+
+
+
+
+
+Definition of
+AppContextProvider
+-Gives the user and userSettings
+-
+
+
+What is behind authentication:
+
+
+Landing Page:
+Navigation on the "/" page
+
+
+Follow the structure of: homily.build
+
+
+Sidebar definition:I want you to look at homily.build again and to incorporate the sidebar in the way that it is incorporporated.  the sidebar surrounds all the content in the "(main)" folder.  But the sidebar is not shown on the landing page "/"
+
+
+Entity Module:
+-index page
+-create page - redireccts to Edit page
+-edit page
+
+
+Creating a flow: for example creating a homily
+
+
+Dashboard Definition: ???
+
+
+Toast usage: define this
+
+Navigation on the "/" page
+
+
+
+
+
+
+
+

@@ -9,8 +9,10 @@ import { FormField } from '@/components/ui/form-field'
 import { createPetition, getSavedContexts } from '@/lib/actions/petitions'
 import { useRouter } from 'next/navigation'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { useAppContext } from '@/contexts/AppContextProvider'
 
 export default function CreatePetitionPage() {
+  const { userSettings } = useAppContext()
   const [title, setTitle] = useState('')
   const [date, setDate] = useState(() => {
     // Get the next Sunday
@@ -20,7 +22,20 @@ export default function CreatePetitionPage() {
     nextSunday.setDate(today.getDate() + (daysUntilSunday === 0 ? 7 : daysUntilSunday))
     return nextSunday.toISOString().split('T')[0]
   })
-  const [language, setLanguage] = useState('english')
+  
+  // Use user's preferred language from settings, fallback to 'english'
+  const [language, setLanguage] = useState(() => {
+    if (userSettings?.language) {
+      switch (userSettings.language) {
+        case 'en': return 'english'
+        case 'es': return 'spanish'
+        case 'fr': return 'french'
+        case 'la': return 'latin'
+        default: return 'english'
+      }
+    }
+    return 'english'
+  })
   const [communityInfo, setCommunityInfo] = useState('')
   const [selectedContext, setSelectedContext] = useState('')
   const [savedContexts, setSavedContexts] = useState<Array<{id: string, name: string, community_info: string}>>([])
