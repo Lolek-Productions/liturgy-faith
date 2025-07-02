@@ -78,9 +78,9 @@ export function FormField(props: FormFieldProps) {
 
   return (
     <div className={className}>
-      <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
+      <Label htmlFor={id} className={`text-sm font-medium ${description ? '' : 'mb-1'}`}>{label}</Label>
       {description && (
-        <p className="text-xs text-muted-foreground mb-1">{description}</p>
+        <p className="text-xs text-muted-foreground mb-1.5">{description}</p>
       )}
       {renderInput()}
     </div>

@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { FormField } from '@/components/ui/form-field'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { Church } from 'lucide-react'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -70,9 +71,13 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
+        {/* Logo Header */}
         <div className="text-center">
-          <Link href="/" className="inline-flex items-center space-x-2 text-2xl font-bold text-primary hover:opacity-80">
-            <span>← Back to Home</span>
+          <Link href="/" className="inline-flex items-center justify-center space-x-4 hover:opacity-80 transition-opacity">
+            <div className="flex aspect-square size-14 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Church className="size-7" />
+            </div>
+            <div className="font-semibold text-2xl text-gray-900">Liturgy.Faith</div>
           </Link>
         </div>
         <Card className="w-full">

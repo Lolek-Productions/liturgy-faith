@@ -14,23 +14,24 @@
 ### Components
 - main header
 
-
+## Example
 Look to Github: https://github.com/Lolek-Productions/homily-build
 Need the button at the top of the page to trigger the sidebar open and closed
 Get the breadcrum component
 
 
-Integration of Supabase
-
+# Styling
 Use shadcn
 
-Use lucide-react icons
+# Design
+Use lucide-react icons where posssible
 
-Authentication
+# Authentication Pages
 /signup
 /login
 
-publicPaths = ['login', 'signup']
+# middleware
+publicPaths = ['/login', '/signup', '/']
 
 After authentication: redirect to /dashboard
 
@@ -99,8 +100,9 @@ Navigation on the "/" page
 
 
 
-
-
+## Supabase - running on the remote server
+Using the CLI but mostly for the following command:
+supabase db push
 
 
 
