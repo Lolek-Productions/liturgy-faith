@@ -48,7 +48,7 @@ const mainItems = [
 const petitionItems = [
   {
     title: "Create Petition",
-    url: "/petitions/wizard",
+    url: "/petitions/create",
     icon: Sparkles,
   },
   {
