@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Save, RotateCcw } from "lucide-react"
+import { Save, RotateCcw, Settings } from "lucide-react"
+import Link from "next/link"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { getPetitionSettings, updatePetitionSettings } from '@/lib/actions/petition-settings'
 
@@ -129,10 +130,18 @@ export default function PetitionSettingsPage() {
             Configure default petition templates for different types of liturgical celebrations.
           </p>
         </div>
-        <Button onClick={handleSave} disabled={saving}>
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Saving...' : 'Save All Changes'}
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/settings/petitions/contexts">
+            <Button variant="outline">
+              <Settings className="h-4 w-4 mr-2" />
+              Manage Contexts
+            </Button>
+          </Link>
+          <Button onClick={handleSave} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Saving...' : 'Save All Changes'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-12 gap-6">

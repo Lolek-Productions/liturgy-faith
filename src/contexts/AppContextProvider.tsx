@@ -21,6 +21,7 @@ interface UserSettings {
     show_pericope: boolean
     show_conclusion: boolean
   }
+  petitions_definition: string
   created_at: string
   updated_at: string
 }
@@ -67,7 +68,8 @@ export function AppContextProvider({
       preferred_translation: 'NABRE',
       show_pericope: true,
       show_conclusion: true
-    }
+    },
+    petitions_definition: 'For the Church and her ministers... For those who serve in government... For the sick and suffering... For our parish community... For the faithful departed...'
   })
 
   const refreshSettings = async () => {

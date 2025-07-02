@@ -6,6 +6,7 @@ export interface Petition {
   language: string
   generated_content?: string
   petition_text?: string // Alias for generated_content for compatibility
+  context?: string // Serialized context data
   created_at: string
   updated_at: string
 }
@@ -24,6 +25,7 @@ export interface CreatePetitionData {
   date: string
   language: string
   community_info: string
+  contextId?: string // Optional context template ID to copy from
 }
 
 export interface PetitionSettings {

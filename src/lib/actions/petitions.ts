@@ -5,6 +5,38 @@ import { CreatePetitionData, Petition, PetitionContext } from '@/lib/types'
 import { redirect } from 'next/navigation'
 import { getPromptTemplate } from '@/lib/actions/definitions'
 import { replaceTemplateVariables, getTemplateVariables } from '@/lib/template-utils'
+import { getPetitionContext } from './petition-contexts'
+
+export async function createBasicPetition(data: { title: string; date: string }) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: petition, error: petitionError } = await supabase
+    .from('petitions')
+    .insert([
+      {
+        user_id: user.id,
+        title: data.title,
+        date: data.date,
+        language: 'english', // Default, will be set in wizard
+        generated_content: null, // Will be generated in wizard
+        context: null, // Will be set in wizard
+      },
+    ])
+    .select()
+    .single()
+
+  if (petitionError) {
+    throw new Error('Failed to create petition')
+  }
+
+  return petition
+}
 
 export async function createPetition(data: CreatePetitionData) {
   const supabase = await createClient()
@@ -13,6 +45,33 @@ export async function createPetition(data: CreatePetitionData) {
   
   if (!user) {
     redirect('/login')
+  }
+
+  // If a context ID is provided, get the full context data
+  let contextData = null
+  if (data.contextId) {
+    const template = await getPetitionContext(data.contextId)
+    if (template) {
+      contextData = {
+        name: template.name,
+        description: template.description,
+        community_info: data.community_info, // Use the custom community info from the form
+        sacraments_received: template.sacraments_received,
+        deaths_this_week: template.deaths_this_week,
+        sick_members: template.sick_members,
+        special_petitions: template.special_petitions
+      }
+    }
+  } else {
+    // Create a basic context with just community info
+    contextData = {
+      name: 'Custom Context',
+      community_info: data.community_info,
+      sacraments_received: [],
+      deaths_this_week: [],
+      sick_members: [],
+      special_petitions: []
+    }
   }
 
   const generatedContent = await generatePetitionContent(data)
@@ -26,6 +85,7 @@ export async function createPetition(data: CreatePetitionData) {
         date: data.date,
         language: data.language,
         generated_content: generatedContent,
+        context: contextData ? JSON.stringify(contextData) : null,
       },
     ])
     .select()
@@ -33,21 +93,6 @@ export async function createPetition(data: CreatePetitionData) {
 
   if (petitionError) {
     throw new Error('Failed to create petition')
-  }
-
-
-  const { error: contextError } = await supabase
-    .from('petition_contexts')
-    .insert([
-      {
-        petition_id: petition.id,
-        user_id: user.id,
-        community_info: data.community_info,
-      },
-    ])
-
-  if (contextError) {
-    throw new Error('Failed to create petition context')
   }
 
   return petition
@@ -112,10 +157,15 @@ export async function getSavedContexts(): Promise<Array<{id: string, name: strin
     .select(`
       id,
       community_info,
-      petitions!inner(title, date)
+      petition_id,
+      petitions (
+        title,
+        date
+      )
     `)
     .eq('user_id', user.id)
     .neq('community_info', '')
+    .not('petitions', 'is', null)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -123,13 +173,22 @@ export async function getSavedContexts(): Promise<Array<{id: string, name: strin
   }
 
   return (data || []).map(item => {
-    const typedItem = item as unknown as { id: string; community_info: string; petitions: { title: string; date: string } }
+    const typedItem = item as unknown as { 
+      id: string; 
+      community_info: string; 
+      petitions: { title: string; date: string } | null 
+    }
+    
+    if (!typedItem.petitions) {
+      return null
+    }
+    
     return {
       id: typedItem.id,
       name: `${typedItem.petitions.title} - ${new Date(typedItem.petitions.date).toLocaleDateString()}`,
       community_info: typedItem.community_info
     }
-  })
+  }).filter(Boolean) as Array<{id: string, name: string, community_info: string}>
 }
 
 export async function getPetitionWithContext(id: string): Promise<{ petition: Petition; context: PetitionContext } | null> {
@@ -254,4 +313,87 @@ async function generatePetitionContent(data: CreatePetitionData): Promise<string
 
   // Fallback template when API fails
   return `${data.title}\n\nFor all bishops, the successors of the Apostles, may the Holy Spirit protect and guide them, let us pray to the Lord.\n\nFor government leaders, may God give them wisdom to work for justice and to protect the lives of the innocent, let us pray to the Lord.\n\nFor those who do not know Christ, may the Holy Spirit bring them to recognize his love and goodness, let us pray to the Lord.\n\nFor this community gathered here, may Christ grant us strength to proclaim him boldly, let us pray to the Lord.\n\nFor the intentions that we hold in the silence of our hearts (PAUSE 2-3 seconds), and for those written in our book of intentions, let us pray to the Lord.`
+}
+
+export async function updatePetitionLanguage(petitionId: string, language: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { error } = await supabase
+    .from('petitions')
+    .update({ language })
+    .eq('id', petitionId)
+    .eq('user_id', user.id)
+
+  if (error) {
+    throw new Error('Failed to update petition language')
+  }
+}
+
+export async function updatePetitionContext(petitionId: string, context: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { error } = await supabase
+    .from('petitions')
+    .update({ context })
+    .eq('id', petitionId)
+    .eq('user_id', user.id)
+
+  if (error) {
+    throw new Error('Failed to update petition context')
+  }
+}
+
+export async function updatePetitionContent(petitionId: string, content: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { error } = await supabase
+    .from('petitions')
+    .update({ generated_content: content })
+    .eq('id', petitionId)
+    .eq('user_id', user.id)
+
+  if (error) {
+    throw new Error('Failed to update petition content')
+  }
+}
+
+export async function getPetition(petitionId: string): Promise<Petition | null> {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: petition, error } = await supabase
+    .from('petitions')
+    .select('*')
+    .eq('id', petitionId)
+    .eq('user_id', user.id)
+    .single()
+
+  if (error) {
+    return null
+  }
+
+  return petition
 }
