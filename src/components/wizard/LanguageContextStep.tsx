@@ -5,12 +5,17 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { getPetitionContexts, PetitionContextTemplate, ensureDefaultContexts, cleanupInvalidContexts } from '@/lib/actions/petition-contexts'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { getPetitionContexts, PetitionContextTemplate, ensureDefaultContexts, cleanupInvalidContexts, createPetitionContext } from '@/lib/actions/petition-contexts'
 import { parseContextData } from '@/lib/petition-context-utils'
 import { updatePetitionLanguage, updatePetitionContext } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
 import { useAppContext } from '@/contexts/AppContextProvider'
 import { toast } from 'sonner'
+import { Plus } from 'lucide-react'
 
 interface LanguageContextStepProps {
   petition: Petition
@@ -34,6 +39,14 @@ export default function LanguageContextStep({
   const [contexts, setContexts] = useState<PetitionContextTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [newContextForm, setNewContextForm] = useState({
+    title: '',
+    description: '',
+    name: '',
+    community_info: ''
+  })
 
   useEffect(() => {
     const loadContexts = async () => {
@@ -81,6 +94,52 @@ export default function LanguageContextStep({
           contextData
         })
       }
+    }
+  }
+
+  const handleCreateContext = async () => {
+    setCreating(true)
+    try {
+      const contextData = {
+        name: newContextForm.name,
+        description: newContextForm.description,
+        community_info: newContextForm.community_info,
+        sacraments_received: [],
+        deaths_this_week: [],
+        sick_members: [],
+        special_petitions: []
+      }
+
+      const newContext = await createPetitionContext({
+        title: newContextForm.title,
+        description: newContextForm.description,
+        context: contextData as unknown as Record<string, unknown>
+      })
+
+      // Refresh contexts list
+      const updatedContexts = await getPetitionContexts()
+      setContexts(updatedContexts)
+
+      // Auto-select the new context
+      updateWizardData({ 
+        contextId: newContext.id,
+        contextData: contextData as unknown as Record<string, unknown>
+      })
+
+      // Reset form and close dialog
+      setNewContextForm({
+        title: '',
+        description: '',
+        name: '',
+        community_info: ''
+      })
+      setDialogOpen(false)
+      toast.success('New context created and selected')
+    } catch (error) {
+      console.error('Failed to create context:', error)
+      toast.error('Failed to create new context')
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -139,10 +198,81 @@ export default function LanguageContextStep({
       {/* Context Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Select Context Template</CardTitle>
-          <p className="text-muted-foreground">
-            Choose a context template that matches your liturgical occasion. You&apos;ll be able to customize it in the next step.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Select Context Template</CardTitle>
+              <p className="text-muted-foreground">
+                Choose a context template that matches your liturgical occasion. You&apos;ll be able to customize it in the next step.
+              </p>
+            </div>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Context Template</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="new-title">Title</Label>
+                    <Input
+                      id="new-title"
+                      value={newContextForm.title}
+                      onChange={(e) => setNewContextForm({ ...newContextForm, title: e.target.value })}
+                      placeholder="e.g., Easter Vigil, Funeral Mass"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-description">Description</Label>
+                    <Input
+                      id="new-description"
+                      value={newContextForm.description}
+                      onChange={(e) => setNewContextForm({ ...newContextForm, description: e.target.value })}
+                      placeholder="Brief description of when to use this context"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-name">Context Name</Label>
+                    <Input
+                      id="new-name"
+                      value={newContextForm.name}
+                      onChange={(e) => setNewContextForm({ ...newContextForm, name: e.target.value })}
+                      placeholder="Internal name for this context"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="new-community-info">Community Information</Label>
+                    <Textarea
+                      id="new-community-info"
+                      value={newContextForm.community_info}
+                      onChange={(e) => setNewContextForm({ ...newContextForm, community_info: e.target.value })}
+                      placeholder="Default community information for this context"
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  <div className="flex gap-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setDialogOpen(false)}
+                      disabled={creating}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateContext}
+                      disabled={creating || !newContextForm.title || !newContextForm.name}
+                    >
+                      {creating ? 'Creating...' : 'Create Context'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {loading ? (
