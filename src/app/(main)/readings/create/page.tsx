@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { ArrowLeft, Save, Plus, X } from "lucide-react"
 import { createReading, type CreateReadingData } from "@/lib/actions/readings"
 import { getCategories, type Category } from "@/lib/actions/categories"
+import { CategorySelector } from "@/components/category-selector"
 import { useRouter } from "next/navigation"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { toast } from 'sonner'
@@ -108,8 +108,8 @@ export default function CreateReadingPage() {
     }
   }
 
-  const getSelectedCategories = () => {
-    return availableCategories.filter(cat => selectedCategoryIds.includes(cat.id))
+  const handleCategoryCreated = (newCategory: Category) => {
+    setAvailableCategories(prev => [...prev, newCategory])
   }
 
   return (
@@ -189,21 +189,57 @@ export default function CreateReadingPage() {
               </p>
             </div>
 
-            <div className="space-y-4">
-              <Label>Categories</Label>
-              
-              {categoriesLoading ? (
+            {categoriesLoading ? (
+              <div className="space-y-2">
+                <Label>Categories</Label>
                 <p className="text-sm text-muted-foreground">Loading categories...</p>
-              ) : availableCategories.length === 0 ? (
-                <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    No categories found. You can create categories in{" "}
-                    <Link href="/settings/categories" className="text-primary hover:underline">
-                      Settings → Categories
-                    </Link>
-                  </p>
-                  <div className="p-4 border rounded-lg bg-muted/50">
-                    <h4 className="font-medium mb-2">Legacy Category Input</h4>
+              </div>
+            ) : (
+              <CategorySelector
+                categories={availableCategories}
+                selectedCategoryIds={selectedCategoryIds}
+                onCategoryToggle={handleCategoryToggle}
+                onCategoryCreated={handleCategoryCreated}
+                placeholder="Search for categories..."
+                label="Categories"
+                description="Select categories to organize and filter your reading"
+              />
+            )}
+
+            {/* Keep legacy category support if user added manual categories */}
+            {formData.categories && formData.categories.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Legacy Categories</Label>
+                <div className="flex flex-wrap gap-2">
+                  {formData.categories.map((category) => (
+                    <Badge key={category} variant="outline" className="flex items-center gap-1">
+                      {category}
+                      <button
+                        type="button"
+                        onClick={() => removeCategory(category)}
+                        className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Fallback for users with no categories */}
+            {!categoriesLoading && availableCategories.length === 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Categories</Label>
+                <div className="p-4 border rounded-lg bg-muted/50">
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      No categories found. Create categories in{" "}
+                      <Link href="/settings/categories" className="text-primary hover:underline">
+                        Settings → Categories
+                      </Link>{" "}
+                      for better organization, or add a quick category below.
+                    </p>
                     <div className="flex gap-2">
                       <Input
                         value={newCategory}
@@ -223,74 +259,8 @@ export default function CreateReadingPage() {
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-3">
-                    {availableCategories.map((category) => (
-                      <div key={category.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`category-${category.id}`}
-                          checked={selectedCategoryIds.includes(category.id)}
-                          onCheckedChange={(checked) => handleCategoryToggle(category.id, !!checked)}
-                        />
-                        <Label 
-                          htmlFor={`category-${category.id}`} 
-                          className="text-sm font-normal cursor-pointer flex-1"
-                          title={category.description || undefined}
-                        >
-                          {category.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {getSelectedCategories().length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {getSelectedCategories().map((category) => (
-                        <Badge key={category.id} variant="secondary" className="flex items-center gap-1">
-                          {category.name}
-                          <button
-                            type="button"
-                            onClick={() => handleCategoryToggle(category.id, false)}
-                            className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full p-0.5"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {/* Keep legacy category support if user added manual categories */}
-              {formData.categories && formData.categories.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Legacy categories:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.categories.map((category) => (
-                      <Badge key={category} variant="outline" className="flex items-center gap-1">
-                        {category}
-                        <button
-                          type="button"
-                          onClick={() => removeCategory(category)}
-                          className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full p-0.5"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <p className="text-xs text-muted-foreground">
-                Categories help organize and filter your readings. You can manage categories in{" "}
-                <Link href="/settings/categories" className="text-primary hover:underline">
-                  Settings
-                </Link>.
-              </p>
-            </div>
+              </div>
+            )}
 
             <div className="bg-muted/50 p-4 rounded-lg">
               <h3 className="font-medium mb-2">Reading Guidelines</h3>
