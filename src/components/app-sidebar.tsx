@@ -30,7 +30,7 @@ import {
   Settings,
   Sparkles,
   Users,
-  GraduationCap
+  User
 } from "lucide-react"
 import Link from "next/link"
 import { UserProfile } from "@/components/user-profile"
@@ -103,14 +103,19 @@ const liturgyItems = [
 
 const ministryItems = [
   {
-    title: "Ministers Leaders",
-    url: "/ministry/leaders",
-    icon: Users,
+    title: "Ministers Directory",
+    url: "/ministers",
+    icon: UserCheck,
   },
   {
-    title: "Ministry Resources",
-    url: "/ministry/resources",
-    icon: GraduationCap,
+    title: "People",
+    url: "/people",
+    icon: User,
+  },
+  {
+    title: "Groups",
+    url: "/groups",
+    icon: Users,
   },
 ]
 

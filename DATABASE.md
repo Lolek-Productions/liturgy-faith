@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Thu Jul  3 13:36:25 UTC 2025
+**Generated on:** Thu Jul  3 17:39:00 UTC 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -37,6 +37,25 @@ The following tables are available in the database:
 
 ---
 
+### Table: `liturgical_events`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `created_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
+| `description` | text | NO |  |
+| `id` | uuid | NO | extensions.uuid_generate_v4() |
+| `liturgical_readings_id` | uuid | YES | none |
+| `note` | text | YES | none |
+| `petitions_id` | uuid | YES | none |
+| `start_timestamp` | timestamp with time zone | YES | none |
+| `title` | text | YES | none |
+| `updated_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
+| `user_id` | uuid | YES | none |
+
+---
+
 ### Table: `liturgical_readings`
 
 **Column Schema:**
@@ -56,25 +75,6 @@ The following tables are available in the database:
 | `second_reading_lector` | text | YES | none |
 | `second_reading` | text | YES | none |
 | `title` | text | YES | none |
-| `user_id` | uuid | YES | none |
-
----
-
-### Table: `liturgy_plans`
-
-**Column Schema:**
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `created_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
-| `date` | date | YES | none |
-| `description` | text | NO |  |
-| `id` | uuid | NO | extensions.uuid_generate_v4() |
-| `liturgical_readings_id` | uuid | YES | none |
-| `note` | text | YES | none |
-| `petitions_id` | uuid | YES | none |
-| `title` | text | YES | none |
-| `updated_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
 | `user_id` | uuid | YES | none |
 
 ---
