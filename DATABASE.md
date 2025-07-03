@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Thu Jul  3 02:28:29 UTC 2025
+**Generated on:** Thu Jul  3 13:36:25 UTC 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -23,6 +23,19 @@ This PostgreSQL database supports a liturgical management application with the f
 The following tables are available in the database:
 
 ## Table Schemas
+
+### Table: `categories`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `created_at` | timestamp with time zone | NO | now() |
+| `id` | uuid | NO | gen_random_uuid() |
+| `name` | text | YES | none |
+| `user_id` | uuid | YES | none |
+
+---
 
 ### Table: `liturgical_readings`
 
@@ -83,6 +96,32 @@ The following tables are available in the database:
 
 ---
 
+### Table: `parish_user`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `parish_id` | uuid | YES | none |
+| `roles` | jsonb | YES | none |
+| `user_id` | uuid | YES | none |
+
+---
+
+### Table: `parishes`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `city` | text | YES | none |
+| `created_at` | timestamp with time zone | NO | now() |
+| `id` | uuid | NO | gen_random_uuid() |
+| `name` | text | YES | none |
+| `state` | text | YES | none |
+
+---
+
 ### Table: `petition_contexts`
 
 **Column Schema:**
@@ -117,6 +156,19 @@ The following tables are available in the database:
 
 ---
 
+### Table: `reading_categories`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `category_id` | uuid | YES | none |
+| `created_at` | timestamp with time zone | NO | now() |
+| `id` | uuid | NO | gen_random_uuid() |
+| `reading_id` | uuid | YES | none |
+
+---
+
 ### Table: `readings`
 
 **Column Schema:**
@@ -131,44 +183,9 @@ The following tables are available in the database:
 | `language` | text | YES | none |
 | `lectionary_id` | text | YES | none |
 | `pericope` | text | YES | none |
+| `reading_category_ids` | jsonb | YES | none |
 | `text` | text | YES | none |
 | `user_id` | uuid | YES | none |
-
----
-
-### Table: `categories`
-
-**Column Schema:**
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | NO | gen_random_uuid() |
-| `user_id` | uuid | YES | none |
-| `name` | text | NO | none |
-| `description` | text | YES | none |
-| `sort_order` | integer | NO | 0 |
-| `created_at` | timestamp with time zone | NO | now() |
-
-**Purpose:** Normalized categories for liturgical readings classification. Supports reading types (Gospel, First Reading), ceremony types (Funeral, Wedding), liturgical seasons (Advent, Lent), and languages (Spanish, Latin).
-
----
-
-### Table: `reading_categories`
-
-**Column Schema:**
-
-| Column | Type | Nullable | Default |
-|--------|------|----------|---------|
-| `id` | uuid | NO | gen_random_uuid() |
-| `reading_id` | uuid | NO | none |
-| `category_id` | uuid | NO | none |
-| `created_at` | timestamp with time zone | NO | now() |
-
-**Purpose:** Junction table creating many-to-many relationships between readings and categories. Allows readings to belong to multiple categories (e.g., a reading can be both "Gospel" and "Funeral").
-
-**Foreign Keys:**
-- `reading_id` → `readings.id` (CASCADE DELETE)
-- `category_id` → `categories.id` (CASCADE DELETE)
 
 ---
 
@@ -196,8 +213,6 @@ The following tables are available in the database:
 | `created_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
 | `id` | uuid | NO | gen_random_uuid() |
 | `language` | text | NO | en |
-| `petition_definition` | text | YES | none |
-| `petitions_definition` | text | NO | For the Church and her ministers... For those who serve in government... For the sick and suffering... For our parish community... For the faithful departed... |
 | `updated_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
 | `user_id` | uuid | YES | none |
 
@@ -223,10 +238,9 @@ The following tables are available in the database:
 
 ### Reading Management
 
-- **readings**: Individual scripture passages with categories and language support
-- **liturgical_readings**: Collections of readings for specific liturgical events
-- **categories**: Normalized categories for liturgical classification (newly added)
-- **reading_categories**: Many-to-many relationship between readings and categories
+- **reading_collections**: Named collections of scripture readings
+- **individual_readings**: Individual scripture passages
+- **reading_collection_items**: Many-to-many relationship between collections and readings
 
 ## Security
 
