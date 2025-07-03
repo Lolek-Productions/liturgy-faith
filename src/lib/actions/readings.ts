@@ -136,6 +136,8 @@ export async function updateReading(id: string, data: CreateReadingData): Promis
     .from('readings')
     .update({
       categories: data.categories || null,
+      conclusion: data.conclusion || null,
+      introduction: data.introduction || null,
       language: data.language || null,
       lectionary_id: data.lectionary_id || null,
       pericope: data.pericope,
