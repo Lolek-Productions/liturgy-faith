@@ -190,18 +190,18 @@ export function CategorySelector({
                 <CommandList>
                   <CommandEmpty>
                     {showCreateOption ? (
-                      <div className="py-2">
-                        <p className="text-sm text-muted-foreground mb-3">
+                      <div className="py-2 px-2">
+                        <p className="text-xs text-muted-foreground mb-2">
                           No matching categories found.
                         </p>
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           <Button
                             size="sm"
                             onClick={handleQuickCreate}
                             disabled={isCreating}
-                            className="w-full"
+                            className="w-full h-8 text-xs"
                           >
-                            <Plus className="h-4 w-4 mr-2" />
+                            <Plus className="h-3 w-3 mr-1" />
                             {isCreating ? 'Creating...' : `Create "${debouncedSearchValue}"`}
                           </Button>
                           <Button
@@ -209,9 +209,9 @@ export function CategorySelector({
                             variant="outline"
                             onClick={openCreateModal}
                             disabled={isCreating}
-                            className="w-full"
+                            className="w-full h-7 text-xs"
                           >
-                            Create with description...
+                            Add description...
                           </Button>
                         </div>
                       </div>
@@ -249,9 +249,9 @@ export function CategorySelector({
                           value={`create-${debouncedSearchValue}`}
                           onSelect={handleQuickCreate}
                           disabled={isCreating}
-                          className="text-primary"
+                          className="text-primary text-xs py-1.5"
                         >
-                          <Plus className="h-4 w-4 mr-2" />
+                          <Plus className="h-3 w-3 mr-1.5" />
                           {isCreating ? 'Creating...' : `Create "${debouncedSearchValue}"`}
                         </CommandItem>
                       </>
