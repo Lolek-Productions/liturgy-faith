@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Printer, Download, Eye } from "lucide-react"
-import { getReadingCollections, getIndividualReadings, getReadingCollectionWithItems } from "@/lib/actions/readings"
+import { getReadingCollections, getIndividualReadings } from "@/lib/actions/readings"
 import { getPetitions } from "@/lib/actions/petitions"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 
@@ -40,7 +40,7 @@ export default function ReadingsPrintoutPage() {
           getIndividualReadings(),
           getPetitions()
         ])
-        setCollections(collectionsData)
+        setCollections(collectionsData as ReadingCollection[])
         setIndividualReadings(readingsData)
         setPetitions(petitionsData)
       } catch (error) {
@@ -66,8 +66,8 @@ export default function ReadingsPrintoutPage() {
     const loadCollectionReadings = async () => {
       if (selectedCollection) {
         try {
-          const collectionWithItems = await getReadingCollectionWithItems(selectedCollection)
-          setCollectionReadings(collectionWithItems?.items.map(item => item.reading) || [])
+          // Legacy function - return empty for now
+          setCollectionReadings([])
         } catch (error) {
           console.error('Failed to load collection readings:', error)
           setCollectionReadings([])

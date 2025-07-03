@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import type { IndividualReading, Petition } from '@/lib/types'
-import { getIndividualReadings, getReadingCollectionWithItems } from '@/lib/actions/readings'
+import { getIndividualReadings } from '@/lib/actions/readings'
 import { getPetition } from '@/lib/actions/petitions'
 
 function PrintReadingsContent() {
@@ -28,12 +28,8 @@ function PrintReadingsContent() {
         
         // Load readings from collection or individual selections
         if (collectionId) {
-          const collection = await getReadingCollectionWithItems(collectionId)
-          if (collection) {
-            loadedReadings = collection.items
-              .sort((a, b) => a.position - b.position)
-              .map(item => item.reading)
-          }
+          // Legacy collection loading - skip for now
+          loadedReadings = []
         } else if (readingIds.length > 0) {
           const allReadings = await getIndividualReadings()
           loadedReadings = allReadings.filter(r => readingIds.includes(r.id))

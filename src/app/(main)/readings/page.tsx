@@ -53,7 +53,7 @@ export default function ReadingsPage() {
   }
 
   // Get unique languages and categories for filtering
-  const languages = [...new Set(readings.map(r => r.language).filter(Boolean))]
+  const languages = [...new Set(readings.map(r => r.language).filter(Boolean))] as string[]
   const allCategories = [...new Set(readings.flatMap(r => r.categories || []))]
 
   // Filter readings based on search and filters

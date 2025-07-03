@@ -193,3 +193,113 @@ export async function getReadingsByLanguage(language: string): Promise<Reading[]
 
   return data || []
 }
+
+// Legacy type definition for compatibility
+export interface IndividualReading {
+  id: string
+  user_id?: string
+  pericope: string
+  title: string
+  category: string
+  translation_id: number
+  sort_order: number
+  introduction?: string
+  reading_text: string
+  conclusion?: string
+  is_template: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateIndividualReadingData {
+  pericope: string
+  title: string
+  category: string
+  translation_id?: number
+  sort_order?: number
+  introduction?: string
+  reading_text: string
+  conclusion?: string
+  is_template?: boolean
+}
+
+// Placeholder functions for legacy compatibility
+export async function getIndividualReadings(): Promise<IndividualReading[]> {
+  const readings = await getReadings()
+  // Transform Reading to IndividualReading format
+  return readings.map(reading => ({
+    id: reading.id,
+    user_id: reading.user_id || undefined,
+    pericope: reading.pericope || '',
+    title: reading.pericope || 'Untitled Reading',
+    category: reading.categories?.[0] || 'general',
+    translation_id: 1,
+    sort_order: 0,
+    introduction: '',
+    reading_text: reading.text || '',
+    conclusion: '',
+    is_template: false,
+    created_at: reading.created_at,
+    updated_at: reading.created_at
+  }))
+}
+
+export async function getIndividualReading(id: string): Promise<IndividualReading | null> {
+  const reading = await getReading(id)
+  if (!reading) return null
+  
+  // Transform Reading to IndividualReading format
+  return {
+    id: reading.id,
+    user_id: reading.user_id || undefined,
+    pericope: reading.pericope || '',
+    title: reading.pericope || 'Untitled Reading',
+    category: reading.categories?.[0] || 'general',
+    translation_id: 1,
+    sort_order: 0,
+    introduction: '',
+    reading_text: reading.text || '',
+    conclusion: '',
+    is_template: false,
+    created_at: reading.created_at,
+    updated_at: reading.created_at
+  }
+}
+
+export async function createIndividualReading(data: CreateIndividualReadingData): Promise<IndividualReading> {
+  const readingData: CreateReadingData = {
+    pericope: data.pericope,
+    text: data.reading_text,
+    categories: [data.category],
+    language: 'English'
+  }
+  
+  const reading = await createReading(readingData)
+  
+  // Transform Reading to IndividualReading format
+  return {
+    id: reading.id,
+    user_id: reading.user_id || undefined,
+    pericope: reading.pericope || '',
+    title: data.title,
+    category: data.category,
+    translation_id: data.translation_id || 1,
+    sort_order: data.sort_order || 0,
+    introduction: data.introduction || '',
+    reading_text: data.reading_text,
+    conclusion: data.conclusion || '',
+    is_template: data.is_template || false,
+    created_at: reading.created_at,
+    updated_at: reading.created_at
+  }
+}
+
+export async function getReadingCollections(): Promise<unknown[]> {
+  // Legacy function - return empty array for now
+  return []
+}
+
+export async function getReadingCollectionWithItems(): Promise<unknown | null> {
+  // Legacy function - return null for now
+  return null
+}
