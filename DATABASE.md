@@ -32,6 +32,7 @@ The following tables are available in the database:
 |--------|------|----------|---------|
 | `created_at` | timestamp with time zone | NO | now() |
 | `date` | date | YES | none |
+| `description` | text | YES | none |
 | `first_reading` | text | YES | none |
 | `gospel_reading` | text | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |

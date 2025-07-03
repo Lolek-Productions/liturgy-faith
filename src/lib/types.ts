@@ -244,3 +244,27 @@ export const LITURGICAL_CATEGORIES: Record<string, LiturgicalCategory[]> = {
   'confirmation': ['confirmation-1', 'confirmation-psalm', 'confirmation-2', 'confirmation-gospel'],
   'mass': ['mass-1', 'mass-psalm', 'mass-2', 'mass-gospel'],
 }
+
+// Liturgical Reading types
+export interface LiturgicalReading {
+  id: string
+  user_id: string
+  title: string
+  description?: string
+  date?: string
+  first_reading?: string
+  responsorial_psalm?: string
+  second_reading?: string
+  gospel_reading?: string
+  created_at: string
+}
+
+export interface CreateLiturgicalReadingData {
+  title: string
+  description?: string
+  date?: string
+  first_reading?: string
+  responsorial_psalm?: string
+  second_reading?: string
+  gospel_reading?: string
+}

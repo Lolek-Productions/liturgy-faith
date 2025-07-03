@@ -118,6 +118,18 @@ allow the user to create whatever ones she wants.  just be sure to start with fo
 Then, under Readings, create a Readings Wizard.  In the wizarad, ask the user what the title of the event, then a description (optional).  Ask the user if they want to include the petitions.  Then ask what the first reading (can skip if they want), psalm (can skip if they want), second (can skip if they want), and Gospel (can skip if they want).  Save the readings and ask the person if they want to print the readings.  Look at the format on this page and follow the format similarly: https://github.com/fr-mccarty/liturgy-readings/blob/master/resources/views/livewire/funeral-readings.blade.php. 
 
 
+## Liturgical Readings
+To create you will go to the create page.  Then you will be redirected to step 2 on the wizard page.
+
+## Liturgical Readings Wizard
+Wizard Steps
+1. Name, Description, and date
+2. First Reading - chose from the list of readings, chose the name of the reader, or chose to omit the reading.  If you do that, we will just leave the column blank.
+3. Choose the Psalm
+4. Choose the Second Reading
+5. Choose the Gospel Reading 
+
+
 
 Allow the user to ask for a recommendation for the readings for a funeral and for a wedding.
 
