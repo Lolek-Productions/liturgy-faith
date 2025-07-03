@@ -15,7 +15,8 @@ export interface Reading {
 }
 
 export interface CreateReadingData {
-  categories?: string[]
+  categories?: string[] // Legacy support - will be converted to category IDs
+  categoryIds?: string[] // New normalized category IDs
   language?: string
   lectionary_id?: string
   pericope: string
@@ -31,12 +32,13 @@ export async function createReading(data: CreateReadingData): Promise<Reading> {
     redirect('/login')
   }
 
+  // Create the reading first
   const { data: reading, error } = await supabase
     .from('readings')
     .insert([
       {
         user_id: user.id,
-        categories: data.categories || null,
+        categories: data.categories || null, // Keep legacy support
         language: data.language || null,
         lectionary_id: data.lectionary_id || null,
         pericope: data.pericope,
@@ -48,6 +50,23 @@ export async function createReading(data: CreateReadingData): Promise<Reading> {
 
   if (error) {
     throw new Error('Failed to create reading')
+  }
+
+  // If we have new normalized category IDs, create the associations
+  if (data.categoryIds && data.categoryIds.length > 0) {
+    const categoryAssociations = data.categoryIds.map(categoryId => ({
+      reading_id: reading.id,
+      category_id: categoryId
+    }))
+
+    const { error: categoryError } = await supabase
+      .from('reading_categories')
+      .insert(categoryAssociations)
+
+    if (categoryError) {
+      console.error('Failed to create category associations:', categoryError)
+      // Don't fail the whole operation, just log the error
+    }
   }
 
   return reading

@@ -7,20 +7,26 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { ArrowLeft, Save, Plus, X } from "lucide-react"
 import { createReading, type CreateReadingData } from "@/lib/actions/readings"
+import { getCategories, type Category } from "@/lib/actions/categories"
 import { useRouter } from "next/navigation"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { toast } from 'sonner'
 
 export default function CreateReadingPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [newCategory, setNewCategory] = useState("")
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([])
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
+  const [newCategory, setNewCategory] = useState("") // Keep for legacy support
   const [formData, setFormData] = useState<CreateReadingData>({
     pericope: "",
     text: "",
-    categories: [],
+    categories: [], // Keep for legacy support
     language: "",
     lectionary_id: ""
   })
@@ -34,15 +40,37 @@ export default function CreateReadingPage() {
     ])
   }, [setBreadcrumbs])
 
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const categories = await getCategories()
+        setAvailableCategories(categories)
+      } catch (error) {
+        console.error('Failed to load categories:', error)
+        toast.error('Failed to load categories')
+      } finally {
+        setCategoriesLoading(false)
+      }
+    }
+
+    loadCategories()
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const reading = await createReading(formData)
+      const readingData: CreateReadingData = {
+        ...formData,
+        categoryIds: selectedCategoryIds // Use the new normalized categories
+      }
+      const reading = await createReading(readingData)
+      toast.success('Reading created successfully!')
       router.push(`/readings/${reading.id}`)
-    } catch {
-      alert("Failed to create reading. Please try again.")
+    } catch (error) {
+      console.error('Failed to create reading:', error)
+      toast.error('Failed to create reading. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -70,6 +98,18 @@ export default function CreateReadingPage() {
       e.preventDefault()
       addCategory()
     }
+  }
+
+  const handleCategoryToggle = (categoryId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCategoryIds(prev => [...prev, categoryId])
+    } else {
+      setSelectedCategoryIds(prev => prev.filter(id => id !== categoryId))
+    }
+  }
+
+  const getSelectedCategories = () => {
+    return availableCategories.filter(cat => selectedCategoryIds.includes(cat.id))
   }
 
   return (
@@ -151,42 +191,104 @@ export default function CreateReadingPage() {
 
             <div className="space-y-4">
               <Label>Categories</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Add a category (e.g., Gospel, Psalm, Wedding)"
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addCategory}
-                  disabled={!newCategory.trim()}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
               
-              {formData.categories && formData.categories.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.categories.map((category) => (
-                    <Badge key={category} variant="secondary" className="flex items-center gap-1">
-                      {category}
-                      <button
+              {categoriesLoading ? (
+                <p className="text-sm text-muted-foreground">Loading categories...</p>
+              ) : availableCategories.length === 0 ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    No categories found. You can create categories in{" "}
+                    <Link href="/settings/categories" className="text-primary hover:underline">
+                      Settings → Categories
+                    </Link>
+                  </p>
+                  <div className="p-4 border rounded-lg bg-muted/50">
+                    <h4 className="font-medium mb-2">Legacy Category Input</h4>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Add a category (e.g., Gospel, Psalm, Wedding)"
+                        className="flex-1"
+                      />
+                      <Button
                         type="button"
-                        onClick={() => removeCategory(category)}
-                        className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full p-0.5"
+                        variant="outline"
+                        onClick={addCategory}
+                        disabled={!newCategory.trim()}
                       >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-3">
+                    {availableCategories.map((category) => (
+                      <div key={category.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`category-${category.id}`}
+                          checked={selectedCategoryIds.includes(category.id)}
+                          onCheckedChange={(checked) => handleCategoryToggle(category.id, !!checked)}
+                        />
+                        <Label 
+                          htmlFor={`category-${category.id}`} 
+                          className="text-sm font-normal cursor-pointer flex-1"
+                          title={category.description || undefined}
+                        >
+                          {category.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {getSelectedCategories().length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {getSelectedCategories().map((category) => (
+                        <Badge key={category.id} variant="secondary" className="flex items-center gap-1">
+                          {category.name}
+                          <button
+                            type="button"
+                            onClick={() => handleCategoryToggle(category.id, false)}
+                            className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full p-0.5"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
+              
+              {/* Keep legacy category support if user added manual categories */}
+              {formData.categories && formData.categories.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Legacy categories:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.categories.map((category) => (
+                      <Badge key={category} variant="outline" className="flex items-center gap-1">
+                        {category}
+                        <button
+                          type="button"
+                          onClick={() => removeCategory(category)}
+                          className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <p className="text-xs text-muted-foreground">
-                Categories help organize and filter your readings
+                Categories help organize and filter your readings. You can manage categories in{" "}
+                <Link href="/settings/categories" className="text-primary hover:underline">
+                  Settings
+                </Link>.
               </p>
             </div>
 
