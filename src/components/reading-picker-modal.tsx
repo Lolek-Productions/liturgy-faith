@@ -7,8 +7,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, BookOpen, Filter, X, Check } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { Search, BookOpen, Filter, X, Check, Sparkles, Loader2 } from "lucide-react"
 import type { IndividualReading } from '@/lib/actions/readings'
+import { getReadingSuggestions, type ReadingSuggestion } from '@/lib/actions/claude'
+import { toast } from 'sonner'
 
 interface ReadingPickerModalProps {
   isOpen: boolean
@@ -33,6 +36,10 @@ export function ReadingPickerModal({
   const [selectedLanguage, setSelectedLanguage] = useState('all')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [sortBy, setSortBy] = useState('relevance')
+  const [showAiDialog, setShowAiDialog] = useState(false)
+  const [aiDescription, setAiDescription] = useState('')
+  const [aiSuggestions, setAiSuggestions] = useState<ReadingSuggestion[]>([])
+  const [isLoadingAi, setIsLoadingAi] = useState(false)
 
   // Get relevant readings based on type
   const relevantReadings = useMemo(() => {
@@ -85,6 +92,14 @@ export function ReadingPickerModal({
 
   // Filter and sort readings
   const filteredReadings = useMemo(() => {
+    // If we have AI suggestions and sort is set to AI, prioritize those
+    if (sortBy === 'ai-suggestions' && aiSuggestions.length > 0) {
+      const suggestedIds = new Set(aiSuggestions.map(s => s.reading.id))
+      const suggested = aiSuggestions.map(s => s.reading)
+      const others = relevantReadings.filter(r => !suggestedIds.has(r.id))
+      return [...suggested, ...others]
+    }
+
     const filtered = relevantReadings.filter(reading => {
       // Text search
       if (searchTerm) {
@@ -119,6 +134,9 @@ export function ReadingPickerModal({
       filtered.sort((a, b) => (a.pericope || '').localeCompare(b.pericope || ''))
     } else if (sortBy === 'category') {
       filtered.sort((a, b) => (a.category || '').localeCompare(b.category || ''))
+    } else if (sortBy === 'ai-suggestions') {
+      // AI suggestions are already in priority order
+      return filtered
     } else if (sortBy === 'relevance') {
       // Sort by relevance to reading type
       const typeKeywords: Record<string, string[]> = {
@@ -139,7 +157,7 @@ export function ReadingPickerModal({
     }
 
     return filtered
-  }, [relevantReadings, searchTerm, selectedLanguage, selectedCategories, sortBy, readingType, getReadingLanguage])
+  }, [relevantReadings, searchTerm, selectedLanguage, selectedCategories, sortBy, readingType, getReadingLanguage, aiSuggestions])
 
   const handleSelect = (reading: IndividualReading | null) => {
     onSelect(reading)
@@ -151,7 +169,44 @@ export function ReadingPickerModal({
     setSelectedLanguage('all')
     setSelectedCategories([])
     setSortBy('relevance')
+    setAiSuggestions([])
   }
+
+  const handleAiSuggestion = async () => {
+    if (!aiDescription.trim()) {
+      toast.error('Please describe what you\'re looking for')
+      return
+    }
+
+    setIsLoadingAi(true)
+    try {
+      const suggestions = await getReadingSuggestions({
+        description: aiDescription,
+        readingType,
+        availableReadings: relevantReadings
+      })
+      
+      setAiSuggestions(suggestions)
+      setShowAiDialog(false)
+      
+      if (suggestions.length === 0) {
+        toast.info('No specific suggestions found. Try adjusting your description.')
+      } else {
+        toast.success(`Found ${suggestions.length} AI suggestions!`)
+        // Clear other filters to show AI suggestions
+        setSearchTerm('')
+        setSelectedLanguage('all')
+        setSelectedCategories([])
+        setSortBy('ai-suggestions')
+      }
+    } catch (error) {
+      console.error('AI suggestion error:', error)
+      toast.error('Failed to get AI suggestions. Please try again.')
+    } finally {
+      setIsLoadingAi(false)
+    }
+  }
+
 
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev => 
@@ -162,32 +217,44 @@ export function ReadingPickerModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="max-h-[90vh] flex flex-col"
-        style={{ width: '80vw', maxWidth: '1000px' }}
-      >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            {title}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent 
+          className="max-h-[90vh] flex flex-col"
+          style={{ width: '80vw', maxWidth: '1000px' }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              {title}
+            </DialogTitle>
+          </DialogHeader>
 
         {/* Filters */}
         <div className="space-y-4 border-b pb-4">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex-1 min-w-64">
               <Label htmlFor="search" className="text-sm font-medium">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  placeholder="Search by pericope, text, or reference..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="relative flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    placeholder="Search by pericope, text, or reference..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAiDialog(true)}
+                  className="px-3 py-2 h-auto"
+                  title="AI Reading Suggestions"
+                >
+                  <Sparkles className="h-4 w-4" />
+                </Button>
               </div>
             </div>
 
@@ -217,6 +284,9 @@ export function ReadingPickerModal({
                     <SelectItem value="relevance">Relevance</SelectItem>
                     <SelectItem value="pericope">Pericope</SelectItem>
                     <SelectItem value="category">Category</SelectItem>
+                    {aiSuggestions.length > 0 && (
+                      <SelectItem value="ai-suggestions">AI Suggestions</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -263,6 +333,11 @@ export function ReadingPickerModal({
                     • {selectedCategories.length} category filter{selectedCategories.length > 1 ? 's' : ''}
                   </span>
                 )}
+                {aiSuggestions.length > 0 && (
+                  <span className="ml-2 text-purple-600">
+                    • {aiSuggestions.length} AI suggestion{aiSuggestions.length > 1 ? 's' : ''}
+                  </span>
+                )}
               </span>
             </div>
             <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -277,37 +352,57 @@ export function ReadingPickerModal({
           <div className="space-y-4 pr-4">
             {/* Reading options */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {filteredReadings.slice(0, 8).map((reading) => (
-                <div
-                  key={reading.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedReading?.id === reading.id 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                  onClick={() => handleSelect(reading)}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="font-medium text-base flex-1 pr-2">
-                      {reading.pericope}
+              {filteredReadings.slice(0, 8).map((reading) => {
+                const aiSuggestion = aiSuggestions.find(s => s.reading.id === reading.id)
+                return (
+                  <div
+                    key={reading.id}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors relative ${
+                      selectedReading?.id === reading.id 
+                        ? 'border-primary bg-primary/5' 
+                        : aiSuggestion
+                          ? 'border-purple-200 bg-purple-50/50 hover:border-purple-300'
+                          : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => handleSelect(reading)}
+                  >
+                    {aiSuggestion && (
+                      <div className="absolute top-2 right-2">
+                        <div className="flex items-center gap-1 bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs">
+                          <Sparkles className="h-3 w-3" />
+                          AI
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="font-medium text-base flex-1 pr-2">
+                        {reading.pericope}
+                      </div>
+                      {selectedReading?.id === reading.id && (
+                        <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                      )}
                     </div>
-                    {selectedReading?.id === reading.id && (
-                      <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                    
+                    <div className="text-sm text-muted-foreground mb-2">
+                      {reading.category}
+                    </div>
+                    
+                    {aiSuggestion && (
+                      <div className="text-sm text-purple-700 mb-2 font-medium">
+                        {aiSuggestion.reason}
+                      </div>
+                    )}
+                    
+                    {reading.reading_text && (
+                      <div className="text-sm text-gray-700 line-clamp-2">
+                        {reading.reading_text.substring(0, 120)}
+                        {reading.reading_text.length > 120 && '...'}
+                      </div>
                     )}
                   </div>
-                  
-                  <div className="text-sm text-muted-foreground mb-2">
-                    {reading.category}
-                  </div>
-                  
-                  {reading.reading_text && (
-                    <div className="text-sm text-gray-700 line-clamp-2">
-                      {reading.reading_text.substring(0, 120)}
-                      {reading.reading_text.length > 120 && '...'}
-                    </div>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             {filteredReadings.length > 8 && (
@@ -342,7 +437,52 @@ export function ReadingPickerModal({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Suggestion Dialog */}
+      <Dialog open={showAiDialog} onOpenChange={setShowAiDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              AI Reading Suggestions
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="ai-description" className="text-sm font-medium">
+                Describe what you&apos;re looking for
+              </Label>
+              <Textarea
+                id="ai-description"
+                placeholder="e.g., &apos;readings about hope and perseverance for a difficult time&apos; or &apos;joyful passages for a wedding celebration&apos;"
+                value={aiDescription}
+                onChange={(e) => setAiDescription(e.target.value)}
+                rows={3}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Be specific about the theme, occasion, or mood you&apos;re seeking
+              </p>
+            </div>
+            
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowAiDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAiSuggestion}
+                disabled={isLoadingAi || !aiDescription.trim()}
+              >
+                {isLoadingAi && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Get Suggestions
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

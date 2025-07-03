@@ -134,3 +134,24 @@ Wizard Steps
 
 Allow the user to ask for a recommendation for the readings for a funeral and for a wedding.
 
+
+## Liturgical Events
+Description: This module is for planning liturgical events.  This module will contain these main parts: Create page, an edit wizard for building new liturgical events.
+
+Database: name, description, date, time, varieties of people related to the event performing various roles (many-to-many).
+
+There will be ministries for liturgical events.  There should be a separate table to keep track of those ministries.
+
+There will be realted individuals.  Also, individuals can belong to a group and the group can be scheduled together
+
+
+## Groups
+Groups are used to put together people who may serve at a ministry together.
+
+## People/servants(?)
+
+## Ministries
+This table keeps track of ministries.  Examples are: usher, extroradinary Eucharristic minister, server, lector, welcoming, and others can be created.
+
+# Liturgical Event Template
+The liturgical event template is given the fact that each liturgical event may have a different set of needs.
