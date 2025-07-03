@@ -1,87 +1,98 @@
 The Story of liturgy.faith
 
 Liturgy.Faith is a comprehensive liturgical management platform for Catholic churches, built with
-  Next.js 15, TypeScript, and Supabase.
+Next.js 15, TypeScript, and Supabase.
 
-  Technology Stack
+Technology Stack
+- Frontend: Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui components
+- Backend: Supabase (PostgreSQL + Auth)
+- Authentication: Supabase Auth with server-side session management
+- UI Library: Radix UI primitives with shadcn/ui styling
 
-  - Frontend: Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui components
-  - Backend: Supabase (PostgreSQL + Auth)
-  - Authentication: Supabase Auth with server-side session management
-  - UI Library: Radix UI primitives with shadcn/ui styling
+Current Features
 
-  Current Features
+🙏 Smart Petitions
+- AI-assisted petition generation following traditional Catholic liturgical formats
+- Multi-language support (English, Spanish, French, Latin)
+- Context-aware content generation based on sacraments, deaths, sick members, special requests
+- Petition wizard with step-by-step creation process
 
-  🙏 Smart Petitions
-  - AI-assisted petition generation following traditional Catholic liturgical formats
-  - Multi-language support (English, Spanish, French, Latin)
-  - Context-aware content generation based on sacraments, deaths, sick members, special requests
-  - Petition wizard with step-by-step creation process
+📚 Reading Collections
+- Organize pre-assembled sets of readings for special occasions
+- Template collections for weddings, funerals, and other liturgical events
+- Personal reading collection management
 
-  📚 Reading Collections
-  - Organize pre-assembled sets of readings for special occasions
-  - Template collections for weddings, funerals, and other liturgical events
-  - Personal reading collection management
+📋 Liturgy Planning
+- Complete celebration planning with prayers, prefaces, readings
+- Special instructions and notes
+- Calendar integration for scheduling
 
-  📋 Liturgy Planning
-  - Complete celebration planning with prayers, prefaces, readings
-  - Special instructions and notes
-  - Calendar integration for scheduling
+👥 Ministers Directory
+- Contact information and availability tracking
+- Active/inactive status management
+- Role assignment and scheduling
 
-  👥 Ministers Directory
-  - Contact information and availability tracking
-  - Active/inactive status management
-  - Role assignment and scheduling
+📅 Liturgical Calendar
+- Track feast days and special celebrations
+- Liturgical season awareness
+- Event scheduling and management
 
-  📅 Liturgical Calendar
-  - Track feast days and special celebrations
-  - Liturgical season awareness
-  - Event scheduling and management
+Route Structure
 
-  Route Structure
+- Public routes: / (landing), /login, /signup
+- Protected routes (main app): All routes under /(main)/
+- Print-optimized routes: Special layouts under /(print)/
 
-  - Public routes: / (landing), /login, /signup
-  - Protected routes (main app): All routes under /(main)/
-  - Print-optimized routes: Special layouts under /(print)/
+Current State Assessment
 
-  Current State Assessment
+- Fully implemented: Petitions system with wizard workflow
+- Partially implemented: Dashboard with stats, ministers, liturgy planning, calendar
+- Extensive navigation: 5 main sections with multiple sub-features each
+- Print functionality: Dedicated print layouts for petitions and readings
 
-  - Fully implemented: Petitions system with wizard workflow
-  - Partially implemented: Dashboard with stats, ministers, liturgy planning, calendar
-  - Extensive navigation: 5 main sections with multiple sub-features each
-  - Print functionality: Dedicated print layouts for petitions and readings
+Architecture Highlights
 
-  Architecture Highlights
-
-  - Two-tier layout system (public vs authenticated areas)
-  - Server Actions for secure data operations
-  - Comprehensive authentication flow with middleware protection
-  - Modern React patterns with Server Components where possible
+- Two-tier layout system (public vs authenticated areas)
+- Server Actions for secure data operations
+- Comprehensive authentication flow with middleware protection
+- Modern React patterns with Server Components where possible
 
 
 ## Navigation 
-
 Petitions (FileText icon) - Collapsible dropdown:
-- Create Petition - /petitions/wizard (Sparkles icon)
+- Create Petition - /petitions/create (Sparkles icon)
 - My Petitions - /petitions (FileText icon)
 
-Readings (BookOpen icon) - Collapsible dropdown:
-- Create Readings - /readings/wizard (Sparkles icon)
+Liturgical Readings (BookOpen icon) - Collapsible dropdown:
+- Create Liturgical Reading - /liturgical-readings/create (Sparkles icon)
+- My Liturgical Readings - /liturgical-readings (BookOpen icon)
+
+Readings
+- Create Reading - /readings/create (Sparkles icon)
 - My Readings - /readings (BookOpen icon)
-- Reading Collections - /readings/collections (Library icon)
 
 Liturgy (ClipboardList icon) - Collapsible dropdown:
-- Create Liturgy - /liturgy/wizard (Sparkles icon)
+- Create Liturgy - /liturgy/create (Sparkles icon)
 - Liturgy Planning - /liturgy-planning (ClipboardList icon)
 - Liturgical Calendar - /calendar (Calendar icon)
 
 Ministry (UserCheck icon) - Collapsible dropdown:
 - Ministers Leaders - /ministry/leaders (Users icon)
 - Ministry Resources - /ministry/resources (GraduationCap icon)
+//todo: need a create
 
 Settings (Settings icon) - Collapsible dropdown:
 - Petition Definitions - /settings/petition-definitions (FileText icon)
 - Liturgy Definitions - /settings/liturgy-definitions (BookOpen icon)
+
+
+# Liturgical Readings
+A liturgical reading is a set of readings which contains a first_reading, psalm_reading, second_reading, and gospel_reading.
+
+The liturgical reading can be printed out.  It could be for a weekend Mass, for a funeral, for a wedding, for a quinceanera, for a daily Mass, for a baptism.
+
+# Reading
+A reading is a scripture reading which has a language, lectionary_id, pericope, text.  This is a simple scripture reading.
 
 
 # Petition Settings

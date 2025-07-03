@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Wed Jul  2 16:37:39 UTC 2025
+**Generated on:** Wed Jul  2 22:28:33 UTC 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -119,8 +119,10 @@ The following tables are available in the database:
 | Column | Type | Nullable | Default |
 |--------|------|----------|---------|
 | `categories` | jsonb | YES | none |
+| `conclusion` | text | YES | none |
 | `created_at` | timestamp with time zone | NO | now() |
 | `id` | uuid | NO | gen_random_uuid() |
+| `introduction` | text | YES | none |
 | `language` | text | YES | none |
 | `lectionary_id` | text | YES | none |
 | `pericope` | text | YES | none |

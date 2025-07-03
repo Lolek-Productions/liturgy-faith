@@ -5,77 +5,94 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { ArrowLeft, Edit, Plus, BookOpen, Copy, GripVertical } from "lucide-react"
-import { getReadingCollectionWithItems } from "@/lib/actions/readings"
+import { ArrowLeft, Edit, Copy, BookOpen, Trash2, Calendar } from "lucide-react"
+import { getReading, deleteReading, type Reading } from "@/lib/actions/readings"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { useRouter } from 'next/navigation'
-import type { ReadingCollectionWithItems } from '@/lib/types'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export default function ReadingCollectionDetailPage({ params }: PageProps) {
-  const [collection, setCollection] = useState<ReadingCollectionWithItems | null>(null)
+export default function ReadingDetailPage({ params }: PageProps) {
+  const [reading, setReading] = useState<Reading | null>(null)
   const [loading, setLoading] = useState(true)
-  const [collectionId, setCollectionId] = useState<string>('')
+  const [readingId, setReadingId] = useState<string>('')
+  const [isDeleting, setIsDeleting] = useState(false)
   const { setBreadcrumbs } = useBreadcrumbs()
   const router = useRouter()
 
   useEffect(() => {
-    const loadCollection = async () => {
+    const loadReading = async () => {
       try {
         const { id } = await params
-        setCollectionId(id)
-        const collectionData = await getReadingCollectionWithItems(id)
+        setReadingId(id)
+        const readingData = await getReading(id)
         
-        if (!collectionData) {
+        if (!readingData) {
           router.push('/readings')
           return
         }
 
-        setCollection(collectionData)
+        setReading(readingData)
         setBreadcrumbs([
           { label: "Dashboard", href: "/dashboard" },
-          { label: "Reading Collections", href: "/readings" },
-          { label: collectionData.name }
+          { label: "My Readings", href: "/readings" },
+          { label: readingData.pericope || 'Reading' }
         ])
       } catch (error) {
-        console.error('Failed to load reading collection:', error)
+        console.error('Failed to load reading:', error)
         router.push('/readings')
       } finally {
         setLoading(false)
       }
     }
 
-    loadCollection()
+    loadReading()
   }, [params, setBreadcrumbs, router])
+
+  const handleDelete = async () => {
+    if (!reading || !window.confirm('Are you sure you want to delete this reading? This action cannot be undone.')) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await deleteReading(reading.id)
+      router.push('/readings')
+    } catch (error) {
+      console.error('Failed to delete reading:', error)
+      alert('Failed to delete reading. Please try again.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleCopyText = () => {
+    if (reading) {
+      const fullText = `${reading.pericope}\n\n${reading.text}`
+      navigator.clipboard.writeText(fullText)
+    }
+  }
 
   if (loading) {
     return <div className="space-y-6">Loading...</div>
   }
 
-  if (!collection) {
+  if (!reading) {
     return null
   }
 
-  const getOccasionColor = (occasion: string) => {
-    switch (occasion.toLowerCase()) {
-      case 'wedding': return 'bg-pink-100 text-pink-800'
-      case 'funeral': return 'bg-gray-100 text-gray-800'
-      case 'baptism': return 'bg-blue-100 text-blue-800'
-      case 'confirmation': return 'bg-purple-100 text-purple-800'
-      case 'mass': return 'bg-green-100 text-green-800'
-      default: return 'bg-orange-100 text-orange-800'
-    }
-  }
-
-  const getReadingTypeColor = (category: string) => {
-    if (category.includes('-1') || category.includes('first')) return 'bg-blue-100 text-blue-800'
-    if (category.includes('psalm')) return 'bg-purple-100 text-purple-800'  
-    if (category.includes('-2') || category.includes('second')) return 'bg-green-100 text-green-800'
-    if (category.includes('gospel')) return 'bg-yellow-100 text-yellow-800'
-    return 'bg-gray-100 text-gray-800'
+  const getCategoryColor = (category: string) => {
+    const colors = [
+      'bg-blue-100 text-blue-800',
+      'bg-green-100 text-green-800',
+      'bg-purple-100 text-purple-800',
+      'bg-orange-100 text-orange-800',
+      'bg-pink-100 text-pink-800',
+      'bg-indigo-100 text-indigo-800',
+    ]
+    return colors[Math.abs(category.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % colors.length]
   }
 
   return (
@@ -85,200 +102,200 @@ export default function ReadingCollectionDetailPage({ params }: PageProps) {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/readings">
               <ArrowLeft className="h-4 w-4" />
-              Back to Collections
+              Back to Readings
             </Link>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{collection.name}</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge className={getOccasionColor(collection.occasion_type)}>
-                {collection.occasion_type}
-              </Badge>
-              {collection.is_template && (
-                <Badge variant="secondary">Template</Badge>
+            <h1 className="text-3xl font-bold">{reading.pericope || 'Untitled Reading'}</h1>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              {reading.language && (
+                <Badge variant="outline">
+                  {reading.language}
+                </Badge>
               )}
-              <span className="text-muted-foreground">
-                {collection.items.length} reading{collection.items.length !== 1 ? 's' : ''}
-              </span>
+              {reading.lectionary_id && (
+                <Badge variant="secondary">
+                  {reading.lectionary_id}
+                </Badge>
+              )}
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <Calendar className="h-3 w-3" />
+                {new Date(reading.created_at).toLocaleDateString()}
+              </div>
             </div>
           </div>
         </div>
         <div className="flex gap-2">
-          {!collection.is_template && (
-            <>
-              <Button variant="outline" asChild>
-                <Link href={`/readings/${collectionId}/add-reading`}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Reading
-                </Link>
-              </Button>
-              <Button asChild>
-                <Link href={`/readings/${collectionId}/edit`}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Collection
-                </Link>
-              </Button>
-            </>
-          )}
-          {collection.is_template && (
-            <Button asChild>
-              <Link href={`/readings/${collectionId}/copy`}>
-                <Copy className="h-4 w-4 mr-2" />
-                Copy to My Collections
-              </Link>
-            </Button>
-          )}
+          <Button variant="outline" onClick={handleCopyText}>
+            <Copy className="h-4 w-4 mr-2" />
+            Copy Text
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={`/readings/${readingId}/edit`}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Link>
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
         </div>
       </div>
 
-      {collection.description && (
+      {/* Categories */}
+      {reading.categories && reading.categories.length > 0 && (
         <Card>
           <CardContent className="pt-6">
-            <p className="text-muted-foreground">{collection.description}</p>
+            <div className="flex flex-wrap gap-2">
+              {reading.categories.map(category => (
+                <Badge key={category} className={getCategoryColor(category)}>
+                  {category}
+                </Badge>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Readings List */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Readings in this Collection</h2>
-          {collection.items.length > 0 && (
+      {/* Reading Text */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5" />
+            Reading Text
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-muted/30 p-6 rounded-lg">
+            <div className="space-y-4">
+              {reading.pericope && (
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-primary">
+                    {reading.pericope}
+                  </h3>
+                </div>
+              )}
+              <div className="prose prose-sm max-w-none">
+                <p className="whitespace-pre-wrap leading-relaxed text-foreground">
+                  {reading.text}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reading Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Reading Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                Pericope
+              </h4>
+              <p className="text-sm">
+                {reading.pericope || 'Not specified'}
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                Language
+              </h4>
+              <p className="text-sm">
+                {reading.language || 'Not specified'}
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                Lectionary ID
+              </h4>
+              <p className="text-sm">
+                {reading.lectionary_id || 'Not specified'}
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                Categories
+              </h4>
+              <p className="text-sm">
+                {reading.categories && reading.categories.length > 0 
+                  ? reading.categories.length 
+                  : 'None'
+                } {reading.categories && reading.categories.length === 1 ? 'category' : 'categories'}
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                Created
+              </h4>
+              <p className="text-sm">
+                {new Date(reading.created_at).toLocaleDateString()}
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                Word Count
+              </h4>
+              <p className="text-sm">
+                {reading.text ? reading.text.split(' ').length : 0} words
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                Character Count
+              </h4>
+              <p className="text-sm">
+                {reading.text ? reading.text.length : 0} characters
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                Reading ID
+              </h4>
+              <p className="text-xs font-mono text-muted-foreground">
+                {reading.id}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4">
+            <Button variant="outline" onClick={handleCopyText}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copy Full Text
+            </Button>
             <Button 
               variant="outline" 
               onClick={() => {
-                const fullText = collection.items
-                  .map(item => `${item.reading.pericope}\n${item.reading.title}\n\n${item.reading.reading_text}\n\n${item.reading.conclusion || ''}`)
-                  .join('\n\n---\n\n')
-                navigator.clipboard.writeText(fullText)
+                if (reading.pericope) {
+                  navigator.clipboard.writeText(reading.pericope)
+                }
               }}
             >
               <Copy className="h-4 w-4 mr-2" />
-              Copy All Readings
+              Copy Pericope
             </Button>
-          )}
-        </div>
-
-        {collection.items.length > 0 ? (
-          <div className="space-y-4">
-            {collection.items.map((item, index) => (
-              <Card key={item.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex items-center gap-2 mt-1">
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        #{index + 1}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle className="text-lg">{item.reading.title}</CardTitle>
-                          <p className="text-muted-foreground mt-1">{item.reading.pericope}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge className={getReadingTypeColor(item.reading.category)}>
-                              {item.reading.category.replace('-', ' ').replace('_', ' ')}
-                            </Badge>
-                            {item.reading.is_template && (
-                              <Badge variant="outline" className="text-xs">
-                                Template
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => navigator.clipboard.writeText(item.reading.reading_text)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/readings/library/${item.reading.id}`}>
-                              <BookOpen className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-muted/30 p-4 rounded-lg">
-                    <p className="text-sm line-clamp-3 whitespace-pre-wrap">
-                      {item.reading.reading_text}
-                    </p>
-                  </div>
-                  {item.notes && (
-                    <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-sm text-amber-800">
-                        <strong>Note:</strong> {item.notes}
-                      </p>
-                    </div>
-                  )}
-                  {item.reading.conclusion && (
-                    <p className="text-xs text-muted-foreground italic mt-2">
-                      {item.reading.conclusion}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="text-center py-12">
-              <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No readings in this collection yet</h3>
-              <p className="text-muted-foreground mb-6">
-                Add readings from your library or create new ones to build this collection.
-              </p>
-              {!collection.is_template && (
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button asChild>
-                    <Link href={`/readings/${collectionId}/add-reading`}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Reading from Library
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link href="/readings/library/create">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New Reading
-                    </Link>
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Collection Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Collection Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">Created:</span>
-              <span className="ml-2">{new Date(collection.created_at).toLocaleDateString()}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Updated:</span>
-              <span className="ml-2">{new Date(collection.updated_at).toLocaleDateString()}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Readings:</span>
-              <span className="ml-2">{collection.items.length}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Type:</span>
-              <span className="ml-2">{collection.is_template ? 'Template' : 'Personal'}</span>
-            </div>
+            <Button variant="outline" asChild>
+              <Link href="/readings/create">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Create Similar Reading
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

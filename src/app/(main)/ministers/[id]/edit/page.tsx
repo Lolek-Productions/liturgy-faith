@@ -80,16 +80,15 @@ export default function EditMinisterPage() {
   if (isLoadingData) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/ministers">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Ministers
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Loading...</h1>
-          </div>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/ministers">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Ministers
+          </Link>
+        </Button>
+        
+        <div>
+          <h1 className="text-3xl font-bold">Loading...</h1>
         </div>
       </div>
     )
@@ -97,19 +96,18 @@ export default function EditMinisterPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/ministers/${id}`}>
-            <ArrowLeft className="h-4 w-4" />
-            Back to Minister
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Edit Minister</h1>
-          <p className="text-muted-foreground">
-            Update minister information and contact details.
-          </p>
-        </div>
+      <Button variant="ghost" size="sm" asChild>
+        <Link href={`/ministers/${id}`}>
+          <ArrowLeft className="h-4 w-4" />
+          Back to Minister
+        </Link>
+      </Button>
+      
+      <div>
+        <h1 className="text-3xl font-bold">Edit Minister</h1>
+        <p className="text-muted-foreground">
+          Update minister information and contact details.
+        </p>
       </div>
 
       <Card className="max-w-2xl">

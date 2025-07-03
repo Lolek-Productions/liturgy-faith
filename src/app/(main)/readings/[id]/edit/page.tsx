@@ -9,14 +9,21 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { ArrowLeft, Save, Plus, X } from "lucide-react"
-import { createReading, type CreateReadingData } from "@/lib/actions/readings"
+import { getReading, updateReading, type CreateReadingData } from "@/lib/actions/readings"
 import { useRouter } from "next/navigation"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { toast } from 'sonner'
 
-export default function CreateReadingPage() {
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export default function EditReadingPage({ params }: PageProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
   const [newCategory, setNewCategory] = useState("")
+  const [readingId, setReadingId] = useState<string>('')
   const [formData, setFormData] = useState<CreateReadingData>({
     pericope: "",
     text: "",
@@ -27,22 +34,54 @@ export default function CreateReadingPage() {
   const { setBreadcrumbs } = useBreadcrumbs()
 
   useEffect(() => {
-    setBreadcrumbs([
-      { label: "Dashboard", href: "/dashboard" },
-      { label: "My Readings", href: "/readings" },
-      { label: "Create Reading" }
-    ])
-  }, [setBreadcrumbs])
+    const loadReading = async () => {
+      try {
+        const { id } = await params
+        setReadingId(id)
+        const reading = await getReading(id)
+        
+        if (!reading) {
+          router.push('/readings')
+          return
+        }
+
+        // Populate form with existing data
+        setFormData({
+          pericope: reading.pericope || "",
+          text: reading.text || "",
+          categories: reading.categories || [],
+          language: reading.language || "",
+          lectionary_id: reading.lectionary_id || ""
+        })
+
+        setBreadcrumbs([
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "My Readings", href: "/readings" },
+          { label: reading.pericope || 'Reading', href: `/readings/${id}` }
+        ])
+      } catch (error) {
+        console.error('Failed to load reading:', error)
+        toast.error('Failed to load reading')
+        router.push('/readings')
+      } finally {
+        setPageLoading(false)
+      }
+    }
+
+    loadReading()
+  }, [params, setBreadcrumbs, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const reading = await createReading(formData)
-      router.push(`/readings/${reading.id}`)
-    } catch {
-      alert("Failed to create reading. Please try again.")
+      await updateReading(readingId, formData)
+      toast.success('Reading updated successfully')
+      router.push(`/readings/${readingId}`)
+    } catch (error) {
+      console.error('Failed to update reading:', error)
+      toast.error('Failed to update reading. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -72,19 +111,23 @@ export default function CreateReadingPage() {
     }
   }
 
+  if (pageLoading) {
+    return <div className="space-y-6">Loading...</div>
+  }
+
   return (
     <div className="space-y-6">
       <Button variant="ghost" size="sm" asChild>
-        <Link href="/readings">
+        <Link href={`/readings/${readingId}`}>
           <ArrowLeft className="h-4 w-4" />
-          Back to Readings
+          Back to Reading
         </Link>
       </Button>
       
       <div>
-        <h1 className="text-3xl font-bold">Create Reading</h1>
+        <h1 className="text-3xl font-bold">Edit Reading</h1>
         <p className="text-muted-foreground">
-          Add a new scripture reading or liturgical text to your collection.
+          Update the scripture reading or liturgical text details.
         </p>
       </div>
 
@@ -203,10 +246,10 @@ export default function CreateReadingPage() {
             <div className="flex gap-4">
               <Button type="submit" disabled={isLoading}>
                 <Save className="h-4 w-4 mr-2" />
-                {isLoading ? "Creating..." : "Create Reading"}
+                {isLoading ? "Saving..." : "Save Changes"}
               </Button>
               <Button type="button" variant="outline" asChild>
-                <Link href="/readings">Cancel</Link>
+                <Link href={`/readings/${readingId}`}>Cancel</Link>
               </Button>
             </div>
           </form>

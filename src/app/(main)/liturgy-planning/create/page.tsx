@@ -71,19 +71,18 @@ export default function CreateLiturgyPlanPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/liturgy-planning">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Plans
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Create Liturgy Plan</h1>
-          <p className="text-muted-foreground">
-            Plan a complete liturgical celebration with prayers, readings, and instructions.
-          </p>
-        </div>
+      <Button variant="ghost" size="sm" asChild>
+        <Link href="/liturgy-planning">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Plans
+        </Link>
+      </Button>
+      
+      <div>
+        <h1 className="text-3xl font-bold">Create Liturgy Plan</h1>
+        <p className="text-muted-foreground">
+          Plan a complete liturgical celebration with prayers, readings, and instructions.
+        </p>
       </div>
 
       <Card className="max-w-4xl">

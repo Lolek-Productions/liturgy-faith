@@ -6,7 +6,7 @@ import { getPetitions } from "@/lib/actions/petitions"
 import { getMinisters } from "@/lib/actions/ministers"
 import { getLiturgyPlans } from "@/lib/actions/liturgy-planning"
 import { getUpcomingEvents } from "@/lib/actions/calendar"
-import { getReadingCollections } from "@/lib/actions/readings"
+import { getReadings } from "@/lib/actions/readings"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
@@ -22,12 +22,12 @@ export default async function DashboardPage() {
   const ministers = await getMinisters()
   const liturgyPlans = await getLiturgyPlans()
   const upcomingEvents = await getUpcomingEvents(5)
-  const readingCollections = await getReadingCollections()
+  const readings = await getReadings()
   
   const recentPetitionsCount = recentPetitions.slice(0, 3)
   const activeMinisters = ministers.filter(m => m.is_active)
   const recentLiturgyPlans = liturgyPlans.slice(0, 3)
-  const userReadingCollections = readingCollections.filter(c => !c.is_template)
+  const userReadings = readings
 
   return (
     <div className="space-y-8">
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
             <Library className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{userReadingCollections.length}</div>
+            <div className="text-2xl font-bold">{userReadings.length}</div>
             <p className="text-xs text-muted-foreground">
               Personal collections created
             </p>

@@ -74,19 +74,18 @@ export default function CreateCalendarPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/calendar">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Calendar
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Add Calendar Event</h1>
-          <p className="text-muted-foreground">
-            Add a liturgical celebration or special event to the calendar.
-          </p>
-        </div>
+      <Button variant="ghost" size="sm" asChild>
+        <Link href="/calendar">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Calendar
+        </Link>
+      </Button>
+      
+      <div>
+        <h1 className="text-3xl font-bold">Add Calendar Event</h1>
+        <p className="text-muted-foreground">
+          Add a liturgical celebration or special event to the calendar.
+        </p>
       </div>
 
       <Card className="max-w-4xl">
