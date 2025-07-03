@@ -26,6 +26,8 @@ export default function CreateReadingPage() {
   const [formData, setFormData] = useState<CreateReadingData>({
     pericope: "",
     text: "",
+    introduction: "",
+    conclusion: "",
     categories: [], // Keep for legacy support
     language: "",
     lectionary_id: ""
@@ -174,6 +176,21 @@ export default function CreateReadingPage() {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="introduction">Introduction (Optional)</Label>
+              <Textarea
+                id="introduction"
+                value={formData.introduction || ""}
+                onChange={(e) => setFormData({...formData, introduction: e.target.value})}
+                placeholder="Optional introduction text read before the main reading..."
+                rows={3}
+                className="text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                Text read before the main reading (e.g., &quot;A reading from the Book of Genesis&quot;)
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="text">Reading Text *</Label>
               <Textarea
                 id="text"
@@ -186,6 +203,21 @@ export default function CreateReadingPage() {
               />
               <p className="text-xs text-muted-foreground">
                 The complete text of the scripture reading or liturgical text
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="conclusion">Conclusion (Optional)</Label>
+              <Textarea
+                id="conclusion"
+                value={formData.conclusion || ""}
+                onChange={(e) => setFormData({...formData, conclusion: e.target.value})}
+                placeholder="Optional conclusion text read after the main reading..."
+                rows={2}
+                className="text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                Text read after the main reading (e.g., &quot;The Word of the Lord&quot;)
               </p>
             </div>
 
@@ -266,8 +298,10 @@ export default function CreateReadingPage() {
               <h3 className="font-medium mb-2">Reading Guidelines</h3>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Use standard biblical references for the pericope (e.g., &quot;John 3:16-21&quot;)</li>
-                <li>• Include paragraph breaks and formatting in the text as needed</li>
-                <li>• Categories can include liturgical seasons, reading types, or occasions</li>
+                <li>• Introduction typically includes the source (e.g., &quot;A reading from the Book of Genesis&quot;)</li>
+                <li>• Include paragraph breaks and formatting in the main text as needed</li>
+                <li>• Conclusion usually includes response cues (e.g., &quot;The Word of the Lord&quot;)</li>
+                <li>• Categories help organize readings by type, season, or occasion</li>
                 <li>• Lectionary ID helps reference specific liturgical cycles</li>
               </ul>
             </div>

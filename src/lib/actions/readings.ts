@@ -6,7 +6,9 @@ import { redirect } from 'next/navigation'
 export interface Reading {
   id: string
   categories: string[] | null
+  conclusion: string | null
   created_at: string
+  introduction: string | null
   language: string | null
   lectionary_id: string | null
   pericope: string | null
@@ -17,6 +19,8 @@ export interface Reading {
 export interface CreateReadingData {
   categories?: string[] // Legacy support - will be converted to category IDs
   categoryIds?: string[] // New normalized category IDs
+  conclusion?: string
+  introduction?: string
   language?: string
   lectionary_id?: string
   pericope: string
@@ -39,6 +43,8 @@ export async function createReading(data: CreateReadingData): Promise<Reading> {
       {
         user_id: user.id,
         categories: data.categories || null, // Keep legacy support
+        conclusion: data.conclusion || null,
+        introduction: data.introduction || null,
         language: data.language || null,
         lectionary_id: data.lectionary_id || null,
         pericope: data.pericope,
