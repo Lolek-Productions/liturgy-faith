@@ -339,7 +339,7 @@ export function CategorySelector({
             />
             <FormField
               id="category-description"
-              type="textarea"
+              inputType="textarea"
               label="Description"
               description="Optional description to help explain this category's purpose"
               value={newCategoryForm.description}

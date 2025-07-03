@@ -2,7 +2,7 @@ import React from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface BaseFormFieldProps {
   id: string
@@ -14,15 +14,17 @@ interface BaseFormFieldProps {
 }
 
 interface InputFieldProps extends BaseFormFieldProps {
-  type?: 'input'
   inputType?: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
+  min?: string
+  max?: string
+  step?: string
 }
 
 interface TextareaFieldProps extends BaseFormFieldProps {
-  type: 'textarea'
+  inputType: 'textarea'
   value: string
   onChange: (value: string) => void
   placeholder?: string
@@ -31,10 +33,11 @@ interface TextareaFieldProps extends BaseFormFieldProps {
 }
 
 interface SelectFieldProps extends BaseFormFieldProps {
-  type: 'select'
+  inputType: 'select'
   value: string
   onChange: (value: string) => void
-  children: React.ReactNode
+  children?: React.ReactNode
+  options?: Array<{value: string; label: string}>
 }
 
 type FormFieldProps = InputFieldProps | TextareaFieldProps | SelectFieldProps
@@ -43,23 +46,36 @@ export function FormField(props: FormFieldProps) {
   const { id, label, description, required = false, className = '' } = props
 
   const renderInput = () => {
-    switch (props.type) {
+    switch (props.inputType) {
       case 'textarea':
         return (
           <Textarea
             id={id}
             value={props.value}
             onChange={(e) => props.onChange(e.target.value)}
-            placeholder={props.placeholder}
-            rows={props.rows || 12}
-            className={`min-h-[200px] ${props.resize ? 'resize-y' : 'resize-none'}`}
+            placeholder={(props as TextareaFieldProps).placeholder}
+            rows={(props as TextareaFieldProps).rows || 12}
+            className={`min-h-[200px] ${(props as TextareaFieldProps).resize ? 'resize-y' : 'resize-none'}`}
             required={required}
           />
         )
       case 'select':
         return (
           <Select value={props.value} onValueChange={props.onChange}>
-            {props.children}
+            <SelectTrigger>
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {(props as SelectFieldProps).options ? (
+                (props as SelectFieldProps).options!.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))
+              ) : (
+                (props as SelectFieldProps).children
+              )}
+            </SelectContent>
           </Select>
         )
       default:
@@ -69,7 +85,10 @@ export function FormField(props: FormFieldProps) {
             type={props.inputType || 'text'}
             value={props.value}
             onChange={(e) => props.onChange(e.target.value)}
-            placeholder={props.placeholder}
+            placeholder={(props as InputFieldProps).placeholder}
+            min={(props as InputFieldProps).min}
+            max={(props as InputFieldProps).max}
+            step={(props as InputFieldProps).step}
             required={required}
           />
         )

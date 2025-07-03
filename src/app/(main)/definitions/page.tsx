@@ -111,7 +111,7 @@ export default function DefinitionsPage() {
           <FormField
             id="promptTemplate"
             label="AI Prompt Template"
-            type="textarea"
+            inputType="textarea"
             value={promptTemplate}
             onChange={setPromptTemplate}
             rows={25}

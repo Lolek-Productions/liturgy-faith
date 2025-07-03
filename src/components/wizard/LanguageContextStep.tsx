@@ -196,7 +196,7 @@ export default function LanguageContextStep({
             id="language"
             label="Language"
             description="The language in which the petitions should be generated"
-            type="select"
+            inputType="select"
             value={wizardData.language}
             onChange={handleLanguageChange}
           >
@@ -238,7 +238,6 @@ export default function LanguageContextStep({
                   <FormField
                     id="new-title"
                     label="Title"
-                    type="input"
                     value={newContextForm.title}
                     onChange={(value) => setNewContextForm({ ...newContextForm, title: value })}
                     placeholder="e.g., Easter Vigil, Funeral Mass"
@@ -246,7 +245,6 @@ export default function LanguageContextStep({
                   <FormField
                     id="new-description"
                     label="Description"
-                    type="input"
                     value={newContextForm.description}
                     onChange={(value) => setNewContextForm({ ...newContextForm, description: value })}
                     placeholder="Brief description of when to use this context"
@@ -254,7 +252,7 @@ export default function LanguageContextStep({
                   <FormField
                     id="new-context"
                     label="Context Information"
-                    type="textarea"
+                    inputType="textarea"
                     value={newContextForm.context}
                     onChange={(value) => setNewContextForm({ ...newContextForm, context: value })}
                     placeholder="Describe the liturgical context and community needs for this template. Example: St. Mary's Parish - Sunday Mass with recent baptisms, wedding anniversaries, and prayers for the sick including John Smith recovering from surgery."

@@ -117,6 +117,16 @@ const ministryItems = [
     url: "/groups",
     icon: Users,
   },
+  {
+    title: "Ministries",
+    url: "/ministries",
+    icon: Sparkles,
+  },
+  {
+    title: "Event Templates",
+    url: "/liturgical-event-templates",
+    icon: FileText,
+  },
 ]
 
 const settingsItems = [

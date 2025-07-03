@@ -266,7 +266,7 @@ export default function CategoriesPage() {
             />
             <FormField
               id="description"
-              type="textarea"
+              inputType="textarea"
               label="Description"
               description="Optional description to help explain this category's purpose"
               value={formData.description}
