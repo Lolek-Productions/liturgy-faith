@@ -214,37 +214,6 @@ export function AppSidebar() {
                 </Collapsible.Root>
               </SidebarMenuItem>
 
-              {/* Liturgical Readings collapsible section */}
-              <SidebarMenuItem>
-                <Collapsible.Root open={isLiturgicalReadingsOpen} onOpenChange={setIsLiturgicalReadingsOpen}>
-                  <Collapsible.Trigger asChild>
-                    <SidebarMenuButton>
-                      <BookOpen />
-                      <span>Liturgical Readings</span>
-                      {isLiturgicalReadingsOpen ? (
-                        <ChevronDown className="ml-auto transition-transform" />
-                      ) : (
-                        <ChevronRight className="ml-auto transition-transform" />
-                      )}
-                    </SidebarMenuButton>
-                  </Collapsible.Trigger>
-                  <Collapsible.Content>
-                    <SidebarMenuSub>
-                      {liturgicalReadingsItems.map((item) => (
-                        <SidebarMenuSubItem key={item.title}>
-                          <SidebarMenuSubButton asChild>
-                            <Link href={item.url} onClick={handleLinkClick}>
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </Collapsible.Content>
-                </Collapsible.Root>
-              </SidebarMenuItem>
-
               {/* Readings collapsible section */}
               <SidebarMenuItem>
                 <Collapsible.Root open={isReadingsOpen} onOpenChange={setIsReadingsOpen}>
@@ -262,6 +231,37 @@ export function AppSidebar() {
                   <Collapsible.Content>
                     <SidebarMenuSub>
                       {readingsItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link href={item.url} onClick={handleLinkClick}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+              </SidebarMenuItem>
+
+              {/* Liturgical Readings collapsible section */}
+              <SidebarMenuItem>
+                <Collapsible.Root open={isLiturgicalReadingsOpen} onOpenChange={setIsLiturgicalReadingsOpen}>
+                  <Collapsible.Trigger asChild>
+                    <SidebarMenuButton>
+                      <BookOpen />
+                      <span>Liturgical Readings</span>
+                      {isLiturgicalReadingsOpen ? (
+                        <ChevronDown className="ml-auto transition-transform" />
+                      ) : (
+                        <ChevronRight className="ml-auto transition-transform" />
+                      )}
+                    </SidebarMenuButton>
+                  </Collapsible.Trigger>
+                  <Collapsible.Content>
+                    <SidebarMenuSub>
+                      {liturgicalReadingsItems.map((item) => (
                         <SidebarMenuSubItem key={item.title}>
                           <SidebarMenuSubButton asChild>
                             <Link href={item.url} onClick={handleLinkClick}>
