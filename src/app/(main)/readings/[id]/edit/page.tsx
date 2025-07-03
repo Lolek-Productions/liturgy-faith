@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { CenteredFormCard } from "@/components/centered-form-card"
+import { PageContainer } from "@/components/page-container"
 import Link from "next/link"
-import { ArrowLeft, Save, Plus, X } from "lucide-react"
+import { Save, Plus, X } from "lucide-react"
 import { getReading, updateReading, type CreateReadingData } from "@/lib/actions/readings"
 import { useRouter } from "next/navigation"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
@@ -120,23 +120,12 @@ export default function EditReadingPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href={`/readings/${readingId}`}>
-          <ArrowLeft className="h-4 w-4" />
-          Back to Reading
-        </Link>
-      </Button>
-      
-      <div>
-        <h1 className="text-3xl font-bold">Edit Reading</h1>
-        <p className="text-muted-foreground">
-          Update the scripture reading or liturgical text details.
-        </p>
-      </div>
-
-      <CenteredFormCard title="Reading Details">
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <PageContainer 
+      title="Edit Reading"
+      description="Update the scripture reading or liturgical text details."
+      cardTitle="Reading Details"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="pericope">Pericope *</Label>
@@ -285,7 +274,6 @@ export default function EditReadingPage({ params }: PageProps) {
               </Button>
             </div>
           </form>
-      </CenteredFormCard>
-    </div>
+    </PageContainer>
   )
 }

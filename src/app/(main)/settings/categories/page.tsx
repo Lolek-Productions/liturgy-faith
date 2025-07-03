@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { PageContainer } from "@/components/page-container"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
@@ -160,24 +161,24 @@ export default function CategoriesPage() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Categories</h1>
-          <p className="text-muted-foreground">Loading categories...</p>
+      <PageContainer 
+        title="Categories"
+        description="Loading categories..."
+      >
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Loading...</p>
         </div>
-      </div>
+      </PageContainer>
     )
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Categories</h1>
-          <p className="text-muted-foreground">
-            Manage your reading categories for better organization
-          </p>
-        </div>
+    <PageContainer 
+      title="Categories"
+      description="Manage your reading categories for better organization"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <div></div>
         <Button onClick={handleCreate}>
           <Plus className="h-4 w-4 mr-2" />
           Create Category
@@ -293,6 +294,6 @@ export default function CategoriesPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   )
 }

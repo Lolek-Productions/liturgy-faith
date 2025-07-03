@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { PageContainer } from "@/components/page-container"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { ArrowLeft, Save, Plus, X } from "lucide-react"
+import { Save, Plus, X } from "lucide-react"
 import { createReading, type CreateReadingData } from "@/lib/actions/readings"
 import { getCategories, type Category } from "@/lib/actions/categories"
 import { CategorySelector } from "@/components/category-selector"
@@ -115,26 +115,12 @@ export default function CreateReadingPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/readings">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Readings
-        </Link>
-      </Button>
-      
-      <div>
-        <h1 className="text-3xl font-bold">Create Reading</h1>
-        <p className="text-muted-foreground">
-          Add a new scripture reading or liturgical text to your collection.
-        </p>
-      </div>
-
-      <Card className="max-w-4xl">
-        <CardHeader>
-          <CardTitle>Reading Details</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <PageContainer 
+      title="Create Reading"
+      description="Add a new scripture reading or liturgical text to your collection."
+      cardTitle="Reading Details"
+      maxWidth="4xl"
+    >
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -316,8 +302,6 @@ export default function CreateReadingPage() {
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+    </PageContainer>
   )
 }

@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { PageContainer } from "@/components/page-container"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import Link from "next/link"
-import { ArrowLeft, Save } from "lucide-react"
+import { Save } from "lucide-react"
 import { getMinister, updateMinister } from "@/lib/actions/ministers"
 import { useRouter, useParams } from "next/navigation"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
@@ -79,42 +79,24 @@ export default function EditMinisterPage() {
 
   if (isLoadingData) {
     return (
-      <div className="space-y-6">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/ministers">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Ministers
-          </Link>
-        </Button>
-        
-        <div>
-          <h1 className="text-3xl font-bold">Loading...</h1>
+      <PageContainer 
+        title="Loading..."
+        maxWidth="2xl"
+      >
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Loading minister information...</p>
         </div>
-      </div>
+      </PageContainer>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href={`/ministers/${id}`}>
-          <ArrowLeft className="h-4 w-4" />
-          Back to Minister
-        </Link>
-      </Button>
-      
-      <div>
-        <h1 className="text-3xl font-bold">Edit Minister</h1>
-        <p className="text-muted-foreground">
-          Update minister information and contact details.
-        </p>
-      </div>
-
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Minister Information</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <PageContainer 
+      title="Edit Minister"
+      description="Update minister information and contact details."
+      cardTitle="Minister Information"
+      maxWidth="2xl"
+    >
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -188,8 +170,6 @@ export default function EditMinisterPage() {
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+    </PageContainer>
   )
 }

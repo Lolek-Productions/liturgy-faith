@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { PageContainer } from "@/components/page-container"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import Link from "next/link"
-import { ArrowLeft, Save, Plus, X } from "lucide-react"
+import { Save, Plus, X } from "lucide-react"
 import { createCalendarEntry } from "@/lib/actions/calendar"
 import { useRouter } from "next/navigation"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
@@ -73,26 +73,12 @@ export default function CreateCalendarPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/calendar">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Calendar
-        </Link>
-      </Button>
-      
-      <div>
-        <h1 className="text-3xl font-bold">Add Calendar Event</h1>
-        <p className="text-muted-foreground">
-          Add a liturgical celebration or special event to the calendar.
-        </p>
-      </div>
-
-      <Card className="max-w-4xl">
-        <CardHeader>
-          <CardTitle>Event Details</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <PageContainer 
+      title="Add Calendar Event"
+      description="Add a liturgical celebration or special event to the calendar."
+      cardTitle="Event Details"
+      maxWidth="4xl"
+    >
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -244,8 +230,6 @@ export default function CreateCalendarPage() {
               </Button>
             </div>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+    </PageContainer>
   )
 }
