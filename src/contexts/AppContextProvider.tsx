@@ -171,14 +171,14 @@ export function AppContextProvider({
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabase.auth, initialSettings])
+  }, [supabase.auth, initialSettings]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // If we have initial user but haven't loaded settings yet, load them
   useEffect(() => {
     if (user && !userSettings && !initialSettings) {
       refreshSettings()
     }
-  }, [user, userSettings, initialSettings])
+  }, [user, userSettings, initialSettings]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const value: AppContextType = {
     user,

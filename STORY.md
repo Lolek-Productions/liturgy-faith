@@ -127,7 +127,8 @@ Wizard Steps
 2. First Reading - chose from the list of readings, chose the name of the reader, or chose to omit the reading.  If you do that, we will just leave the column blank.
 3. Choose the Psalm
 4. Choose the Second Reading
-5. Choose the Gospel Reading 
+5. Choose the Gospel Reading
+6. Show the final selection.  Allow any edits and allow the user to print
 
 
 

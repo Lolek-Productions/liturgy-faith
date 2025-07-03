@@ -22,9 +22,13 @@ export async function createLiturgicalReading(data: CreateLiturgicalReadingData)
         description: data.description || null,
         date: data.date || null,
         first_reading: data.first_reading || null,
+        first_reading_lector: data.first_reading_lector || null,
         responsorial_psalm: data.responsorial_psalm || null,
+        psalm_lector: data.psalm_lector || null,
         second_reading: data.second_reading || null,
+        second_reading_lector: data.second_reading_lector || null,
         gospel_reading: data.gospel_reading || null,
+        gospel_lector: data.gospel_lector || null,
       },
     ])
     .select()
@@ -82,7 +86,7 @@ export async function getLiturgicalReading(id: string): Promise<LiturgicalReadin
   return data
 }
 
-export async function updateLiturgicalReading(id: string, data: CreateLiturgicalReadingData): Promise<LiturgicalReading> {
+export async function updateLiturgicalReading(id: string, data: Partial<CreateLiturgicalReadingData>): Promise<LiturgicalReading> {
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
@@ -91,17 +95,22 @@ export async function updateLiturgicalReading(id: string, data: CreateLiturgical
     redirect('/login')
   }
 
+  const updateData: Record<string, unknown> = {}
+  if (data.title !== undefined) updateData.title = data.title
+  if (data.description !== undefined) updateData.description = data.description || null
+  if (data.date !== undefined) updateData.date = data.date || null
+  if (data.first_reading !== undefined) updateData.first_reading = data.first_reading || null
+  if (data.first_reading_lector !== undefined) updateData.first_reading_lector = data.first_reading_lector || null
+  if (data.responsorial_psalm !== undefined) updateData.responsorial_psalm = data.responsorial_psalm || null
+  if (data.psalm_lector !== undefined) updateData.psalm_lector = data.psalm_lector || null
+  if (data.second_reading !== undefined) updateData.second_reading = data.second_reading || null
+  if (data.second_reading_lector !== undefined) updateData.second_reading_lector = data.second_reading_lector || null
+  if (data.gospel_reading !== undefined) updateData.gospel_reading = data.gospel_reading || null
+  if (data.gospel_lector !== undefined) updateData.gospel_lector = data.gospel_lector || null
+
   const { data: liturgicalReading, error } = await supabase
     .from('liturgical_readings')
-    .update({
-      title: data.title,
-      description: data.description || null,
-      date: data.date || null,
-      first_reading: data.first_reading || null,
-      responsorial_psalm: data.responsorial_psalm || null,
-      second_reading: data.second_reading || null,
-      gospel_reading: data.gospel_reading || null,
-    })
+    .update(updateData)
     .eq('id', id)
     .eq('user_id', user.id)
     .select()

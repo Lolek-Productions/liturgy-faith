@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Wed Jul  2 22:28:33 UTC 2025
+**Generated on:** Thu Jul  3 02:28:29 UTC 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -33,10 +33,14 @@ The following tables are available in the database:
 | `created_at` | timestamp with time zone | NO | now() |
 | `date` | date | YES | none |
 | `description` | text | YES | none |
+| `first_reading_lector` | text | YES | none |
 | `first_reading` | text | YES | none |
+| `gospel_lector` | text | YES | none |
 | `gospel_reading` | text | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |
+| `psalm_lector` | text | YES | none |
 | `responsorial_psalm` | text | YES | none |
+| `second_reading_lector` | text | YES | none |
 | `second_reading` | text | YES | none |
 | `title` | text | YES | none |
 | `user_id` | uuid | YES | none |
@@ -132,6 +136,42 @@ The following tables are available in the database:
 
 ---
 
+### Table: `categories`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `id` | uuid | NO | gen_random_uuid() |
+| `user_id` | uuid | YES | none |
+| `name` | text | NO | none |
+| `description` | text | YES | none |
+| `sort_order` | integer | NO | 0 |
+| `created_at` | timestamp with time zone | NO | now() |
+
+**Purpose:** Normalized categories for liturgical readings classification. Supports reading types (Gospel, First Reading), ceremony types (Funeral, Wedding), liturgical seasons (Advent, Lent), and languages (Spanish, Latin).
+
+---
+
+### Table: `reading_categories`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `id` | uuid | NO | gen_random_uuid() |
+| `reading_id` | uuid | NO | none |
+| `category_id` | uuid | NO | none |
+| `created_at` | timestamp with time zone | NO | now() |
+
+**Purpose:** Junction table creating many-to-many relationships between readings and categories. Allows readings to belong to multiple categories (e.g., a reading can be both "Gospel" and "Funeral").
+
+**Foreign Keys:**
+- `reading_id` → `readings.id` (CASCADE DELETE)
+- `category_id` → `categories.id` (CASCADE DELETE)
+
+---
+
 ### Table: `translations`
 
 **Column Schema:**
@@ -183,9 +223,10 @@ The following tables are available in the database:
 
 ### Reading Management
 
-- **reading_collections**: Named collections of scripture readings
-- **individual_readings**: Individual scripture passages
-- **reading_collection_items**: Many-to-many relationship between collections and readings
+- **readings**: Individual scripture passages with categories and language support
+- **liturgical_readings**: Collections of readings for specific liturgical events
+- **categories**: Normalized categories for liturgical classification (newly added)
+- **reading_categories**: Many-to-many relationship between readings and categories
 
 ## Security
 

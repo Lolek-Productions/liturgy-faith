@@ -253,9 +253,13 @@ export interface LiturgicalReading {
   description?: string
   date?: string
   first_reading?: string
+  first_reading_lector?: string
   responsorial_psalm?: string
+  psalm_lector?: string
   second_reading?: string
+  second_reading_lector?: string
   gospel_reading?: string
+  gospel_lector?: string
   created_at: string
 }
 
@@ -264,7 +268,11 @@ export interface CreateLiturgicalReadingData {
   description?: string
   date?: string
   first_reading?: string
+  first_reading_lector?: string
   responsorial_psalm?: string
+  psalm_lector?: string
   second_reading?: string
+  second_reading_lector?: string
   gospel_reading?: string
+  gospel_lector?: string
 }

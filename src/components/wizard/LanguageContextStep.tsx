@@ -74,7 +74,7 @@ export default function LanguageContextStep({
     }
 
     loadContexts()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLanguageChange = (language: string) => {
     updateWizardData({ language })

@@ -201,6 +201,7 @@ export interface IndividualReading {
   pericope: string
   title: string
   category: string
+  language?: string
   translation_id: number
   sort_order: number
   introduction?: string
@@ -233,6 +234,7 @@ export async function getIndividualReadings(): Promise<IndividualReading[]> {
     pericope: reading.pericope || '',
     title: reading.pericope || 'Untitled Reading',
     category: reading.categories?.[0] || 'general',
+    language: reading.language || undefined,
     translation_id: 1,
     sort_order: 0,
     introduction: '',
@@ -255,6 +257,7 @@ export async function getIndividualReading(id: string): Promise<IndividualReadin
     pericope: reading.pericope || '',
     title: reading.pericope || 'Untitled Reading',
     category: reading.categories?.[0] || 'general',
+    language: reading.language || undefined,
     translation_id: 1,
     sort_order: 0,
     introduction: '',
@@ -283,6 +286,7 @@ export async function createIndividualReading(data: CreateIndividualReadingData)
     pericope: reading.pericope || '',
     title: data.title,
     category: data.category,
+    language: reading.language || undefined,
     translation_id: data.translation_id || 1,
     sort_order: data.sort_order || 0,
     introduction: data.introduction || '',

@@ -42,8 +42,8 @@ export default function CreateLiturgicalReadingsPage() {
       })
       
       toast.success('Reading collection created successfully!')
-      // Redirect to edit page to continue building the liturgical reading
-      router.push(`/liturgical-readings/${liturgicalReading.id}/edit`)
+      // Redirect to edit page (wizard) and jump to step 2 since step 1 is complete
+      router.push(`/liturgical-readings/${liturgicalReading.id}/edit?step=2`)
     } catch (error) {
       console.error('Failed to create liturgical reading:', error)
       toast.error('Failed to create reading collection. Please try again.')
@@ -54,21 +54,23 @@ export default function CreateLiturgicalReadingsPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/liturgical-readings">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Liturgical Readings
-        </Link>
-      </Button>
-      
-      <div>
-        <h1 className="text-3xl font-bold">Create Reading Collection</h1>
-        <p className="text-muted-foreground">
-          Create a new liturgical reading collection. You&apos;ll be able to add readings in the next step.
-        </p>
-      </div>
+      <div className="flex justify-center">
+        <div className="max-w-2xl w-full space-y-6">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/liturgical-readings">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Liturgical Readings
+            </Link>
+          </Button>
+          
+          <div>
+            <h1 className="text-3xl font-bold">Create Reading Collection</h1>
+            <p className="text-muted-foreground">
+              Create a new liturgical reading collection. You&apos;ll be able to add readings in the next step.
+            </p>
+          </div>
 
-      <Card className="max-w-2xl">
+          <Card className="w-full">
         <CardHeader>
           <CardTitle>Basic Information</CardTitle>
         </CardHeader>
@@ -130,7 +132,9 @@ export default function CreateLiturgicalReadingsPage() {
             </Button>
           </div>
         </CardContent>
-      </Card>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }

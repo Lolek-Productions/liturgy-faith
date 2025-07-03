@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useMemo, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import type { IndividualReading, Petition } from '@/lib/types'
 import { getIndividualReadings } from '@/lib/actions/readings'
@@ -16,7 +16,9 @@ function PrintReadingsContent() {
   const router = useRouter()
   
   const collectionId = searchParams.get('collection')
-  const readingIds = searchParams.get('readings')?.split(',').filter(Boolean) || []
+  const readingIds = useMemo(() => 
+    searchParams.get('readings')?.split(',').filter(Boolean) || []
+  , [searchParams])
   const petitionId = searchParams.get('petition')
   const title = searchParams.get('title') || 'Liturgical Readings'
   const includePetitions = searchParams.get('includePetitions') === 'true'
@@ -45,7 +47,7 @@ function PrintReadingsContent() {
           setPetition(petitionData)
         }
         
-        if (loadedReadings.length === 0 && !petition) {
+        if (loadedReadings.length === 0 && !petitionId) {
           setError('No readings or petitions found to display')
         }
       } catch (err) {
