@@ -126,6 +126,11 @@ const settingsItems = [
     icon: BookOpen,
   },
   {
+    title: "Categories",
+    url: "/settings/categories",
+    icon: FileText,
+  },
+  {
     title: "Liturgy Definitions",
     url: "/settings/liturgy-definitions",
     icon: BookOpen,
