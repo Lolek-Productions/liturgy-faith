@@ -3,9 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+import { FormField } from "@/components/ui/form-field"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { Plus, Edit, Trash2, GripVertical, Save, X } from "lucide-react"
@@ -255,25 +253,25 @@ export default function CategoriesPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Gospel, First Reading, Funeral, Advent"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Brief description of this category..."
-                rows={3}
-              />
-            </div>
+            <FormField
+              id="name"
+              label="Name"
+              description="Enter a descriptive name for this category"
+              required
+              value={formData.name}
+              onChange={(value) => setFormData(prev => ({ ...prev, name: value }))}
+              placeholder="e.g., Gospel, First Reading, Funeral, Advent"
+            />
+            <FormField
+              id="description"
+              type="textarea"
+              label="Description"
+              description="Optional description to help explain this category's purpose"
+              value={formData.description}
+              onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+              placeholder="Brief description of this category..."
+              rows={3}
+            />
             <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
