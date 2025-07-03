@@ -94,20 +94,24 @@ export async function createCategory(categoryData: CreateCategoryData): Promise<
     sortOrder = maxData && maxData.length > 0 ? maxData[0].sort_order + 1 : 0
   }
 
+  const insertData = {
+    user_id: user.id,
+    name: categoryData.name.trim(),
+    description: categoryData.description?.trim() || null,
+    sort_order: sortOrder
+  }
+
+  console.log('Creating category with data:', insertData)
+
   const { data, error } = await supabase
     .from('categories')
-    .insert({
-      user_id: user.id,
-      name: categoryData.name.trim(),
-      description: categoryData.description?.trim() || null,
-      sort_order: sortOrder
-    })
+    .insert(insertData)
     .select()
     .single()
 
   if (error) {
-    console.error('Error creating category:', error)
-    throw new Error('Failed to create category')
+    console.error('Supabase error creating category:', error)
+    throw new Error(`Failed to create category: ${error.message}`)
   }
 
   revalidatePath('/settings/categories')
@@ -134,6 +138,8 @@ export async function updateCategory(id: string, categoryData: UpdateCategoryDat
     updateData.sort_order = categoryData.sort_order
   }
 
+  console.log('Updating category with data:', { id, updateData, userId: user.id })
+
   const { data, error } = await supabase
     .from('categories')
     .update(updateData)
@@ -143,8 +149,8 @@ export async function updateCategory(id: string, categoryData: UpdateCategoryDat
     .single()
 
   if (error) {
-    console.error('Error updating category:', error)
-    throw new Error('Failed to update category')
+    console.error('Supabase error updating category:', error)
+    throw new Error(`Failed to update category: ${error.message}`)
   }
 
   revalidatePath('/settings/categories')

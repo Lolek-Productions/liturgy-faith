@@ -96,7 +96,8 @@ export default function CategoriesPage() {
       await loadCategories()
     } catch (error) {
       console.error('Failed to save category:', error)
-      toast.error('Failed to save category')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save category'
+      toast.error(errorMessage)
     } finally {
       setSaving(false)
     }
