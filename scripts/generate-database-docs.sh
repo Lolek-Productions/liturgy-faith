@@ -10,7 +10,6 @@
 # - Dynamically discovers tables from Supabase REST API
 # - Loads environment variables from .env.local automatically
 # - Shows table accessibility status from live database
-# - Includes complete migration history from supabase/migrations/ directory
 # - Sets output file to read-only to prevent accidental edits
 # - Lightweight - only requires curl, no database client tools needed
 #
@@ -25,7 +24,6 @@
 # 1. Load environment variables from .env.local
 # 2. Fetch actual table list from Supabase REST API
 # 3. Check accessibility of each discovered table
-# 4. Include migration file contents and relationships
 # 5. Generate DATABASE.md with complete documentation
 #
 # SECURITY:
@@ -273,30 +271,6 @@ fi
 
 # Add footer
 cat >> "$OUTPUT_FILE" << 'EOF'
-## Key Relationships
-
-### Core Tables
-
-- **petitions**: Main petition records with JSON context data
-- **petition_contexts**: Reusable context templates for different liturgical occasions
-- **petition_settings**: User-specific petition text templates
-
-### User Management
-
-- **user_settings**: User preferences and application settings
-- All tables include `user_id` foreign keys to `auth.users`
-
-### Ministry Management
-
-- **ministers**: Clergy and ministry team information
-- **liturgy_plans**: Liturgical planning and preparation
-
-### Reading Management
-
-- **reading_collections**: Named collections of scripture readings
-- **individual_readings**: Individual scripture passages
-- **reading_collection_items**: Many-to-many relationship between collections and readings
-
 ## Security
 
 - All tables implement Row Level Security (RLS)

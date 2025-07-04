@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Thu Jul  3 17:39:00 UTC 2025
+**Generated on:** Thu Jul  3 18:21:36 UTC 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -37,21 +37,96 @@ The following tables are available in the database:
 
 ---
 
+### Table: `event_ministry_assignments`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `event_id` | uuid | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
+| `ministry_id` | uuid | YES | none |
+
+---
+
+### Table: `event_role_assignments`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `confirmed` | boolean | YES | none |
+| `created_at` | timestamp with time zone | NO | now() |
+| `event_ministry_assignment_id` | uuid | YES | none |
+| `group_id` | uuid | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
+| `person_id` | uuid | YES | none |
+| `role_notes` | text | YES | none |
+| `updated_at` | timestamp with time zone | NO | now() |
+
+---
+
+### Table: `group_members`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `group_id` | uuid | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
+| `joined_at` | timestamp with time zone | NO | now() |
+| `person_id` | uuid | YES | none |
+| `role` | text | YES | none |
+
+---
+
+### Table: `groups`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `description` | text | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
+| `name` | text | YES | none |
+| `user_id` | uuid | YES | none |
+
+---
+
+### Table: `liturgical_event_templates`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `description` | text | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
+| `name` | text | YES | none |
+| `template_data` | jsonb | YES | none |
+| `user_id` | uuid | YES | none |
+
+---
+
 ### Table: `liturgical_events`
 
 **Column Schema:**
 
 | Column | Type | Nullable | Default |
 |--------|------|----------|---------|
-| `created_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
-| `description` | text | NO |  |
-| `id` | uuid | NO | extensions.uuid_generate_v4() |
+| `created_at` | timestamp with time zone | NO | now() |
+| `description` | text | YES | none |
+| `end_time` | time without time zone | YES | none |
+| `event_date` | date | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
 | `liturgical_readings_id` | uuid | YES | none |
-| `note` | text | YES | none |
+| `location` | text | YES | none |
+| `name` | text | YES | none |
+| `notes` | text | YES | none |
 | `petitions_id` | uuid | YES | none |
-| `start_timestamp` | timestamp with time zone | YES | none |
-| `title` | text | YES | none |
-| `updated_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
+| `start_time` | time without time zone | YES | none |
+| `status` | text | NO | draft |
+| `template_id` | uuid | YES | none |
+| `updated_at` | timestamp with time zone | NO | now() |
 | `user_id` | uuid | YES | none |
 
 ---
@@ -96,6 +171,20 @@ The following tables are available in the database:
 
 ---
 
+### Table: `ministries`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `description` | text | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
+| `name` | text | YES | none |
+| `requirements` | text | YES | none |
+| `user_id` | uuid | YES | none |
+
+---
+
 ### Table: `parish_user`
 
 **Column Schema:**
@@ -119,6 +208,22 @@ The following tables are available in the database:
 | `id` | uuid | NO | gen_random_uuid() |
 | `name` | text | YES | none |
 | `state` | text | YES | none |
+
+---
+
+### Table: `people`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `email` | text | YES | none |
+| `first_name` | text | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
+| `last_name` | text | YES | none |
+| `notes` | text | YES | none |
+| `phone` | text | YES | none |
+| `user_id` | uuid | YES | none |
 
 ---
 

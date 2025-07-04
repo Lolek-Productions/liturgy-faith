@@ -220,10 +220,9 @@ export function ReadingPickerModal({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent 
-          className="max-h-[90vh] flex flex-col"
-          style={{ width: '80vw', maxWidth: '1000px' }}
+          className="max-h-[85vh] sm:max-h-[90vh] w-[95vw] sm:w-[90vw] max-w-[1000px] flex flex-col overflow-hidden p-0"
         >
-          <DialogHeader>
+          <DialogHeader className="px-6 pt-6 pb-0">
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
               {title}
@@ -231,16 +230,16 @@ export function ReadingPickerModal({
           </DialogHeader>
 
         {/* Filters */}
-        <div className="space-y-4 border-b pb-4">
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex-1 min-w-64">
+        <div className="space-y-3 border-b pb-3 px-6 flex-shrink-0">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex-1 w-full sm:min-w-64">
               <Label htmlFor="search" className="text-sm font-medium">Search</Label>
-              <div className="relative flex gap-2">
+              <div className="relative flex gap-2 mt-1">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder="Search by pericope, text, or reference..."
+                    placeholder="Search readings..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -250,7 +249,7 @@ export function ReadingPickerModal({
                   variant="outline"
                   size="sm"
                   onClick={() => setShowAiDialog(true)}
-                  className="px-3 py-2 h-auto"
+                  className="px-3 py-2 h-auto flex-shrink-0"
                   title="AI Reading Suggestions"
                 >
                   <Sparkles className="h-4 w-4" />
@@ -258,11 +257,11 @@ export function ReadingPickerModal({
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <div className="flex-1 sm:flex-initial">
                 <Label className="text-sm font-medium">Language</Label>
                 <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-full sm:w-28">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -274,10 +273,10 @@ export function ReadingPickerModal({
                 </Select>
               </div>
 
-              <div>
-                <Label className="text-sm font-medium">Sort by</Label>
+              <div className="flex-1 sm:flex-initial">
+                <Label className="text-sm font-medium">Sort</Label>
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-full sm:w-28">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -348,16 +347,17 @@ export function ReadingPickerModal({
         </div>
 
         {/* Reading List */}
-        <ScrollArea className="flex-1">
-          <div className="space-y-4 pr-4">
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="space-y-4 px-6 pb-2">
             {/* Reading options */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {filteredReadings.slice(0, 8).map((reading) => {
                 const aiSuggestion = aiSuggestions.find(s => s.reading.id === reading.id)
                 return (
                   <div
                     key={reading.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors relative ${
+                    className={`p-3 md:p-4 border rounded-lg cursor-pointer transition-colors relative ${
                       selectedReading?.id === reading.id 
                         ? 'border-primary bg-primary/5' 
                         : aiSuggestion
@@ -420,19 +420,20 @@ export function ReadingPickerModal({
                 <div className="text-sm">Try adjusting your search or filters</div>
               </div>
             )}
-          </div>
-        </ScrollArea>
+            </div>
+          </ScrollArea>
+        </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center pt-4 border-t">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-3 px-6 pb-6 border-t flex-shrink-0">
+          <div className="text-sm text-muted-foreground truncate">
             {selectedReading ? `Selected: ${selectedReading.pericope}` : 'No reading selected'}
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose}>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={onClose} size="sm">
               Cancel
             </Button>
-            <Button onClick={() => handleSelect(selectedReading || null)}>
+            <Button onClick={() => handleSelect(selectedReading || null)} size="sm">
               Confirm Selection
             </Button>
           </div>
@@ -442,7 +443,7 @@ export function ReadingPickerModal({
 
       {/* AI Suggestion Dialog */}
       <Dialog open={showAiDialog} onOpenChange={setShowAiDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-600" />
