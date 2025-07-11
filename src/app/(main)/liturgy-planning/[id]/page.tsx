@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import type { LiturgyPlan } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { ArrowLeft, Edit } from "lucide-react"
 import { getLiturgyPlan } from "@/lib/actions/liturgy-planning"
@@ -51,7 +53,15 @@ export default function LiturgyPlanDetailPage({ params }: PageProps) {
   }, [params, setBreadcrumbs, router])
 
   if (loading) {
-    return <div className="space-y-6">Loading...</div>
+    return (
+      <PageContainer 
+        title="Liturgy Plan"
+        description="Loading liturgical plan details..."
+        maxWidth="4xl"
+      >
+        <Loading />
+      </PageContainer>
+    )
   }
 
   if (!plan) {
@@ -59,7 +69,11 @@ export default function LiturgyPlanDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer 
+      title={plan.title}
+      description={`${plan.liturgy_type} - ${new Date(plan.date).toLocaleDateString()}`}
+      maxWidth="4xl"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
@@ -144,6 +158,6 @@ export default function LiturgyPlanDetailPage({ params }: PageProps) {
           </Card>
         )}
       </div>
-    </div>
+    </PageContainer>
   )
 }

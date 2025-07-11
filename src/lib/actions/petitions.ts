@@ -6,21 +6,18 @@ import { redirect } from 'next/navigation'
 import { getPromptTemplate } from '@/lib/actions/definitions'
 import { replaceTemplateVariables, getTemplateVariables } from '@/lib/template-utils'
 import { getPetitionContext } from './petition-contexts'
+import { requireSelectedParish } from '@/lib/auth/parish'
 
 export async function createBasicPetition(data: { title: string; date: string }) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
 
   const { data: petition, error: petitionError } = await supabase
     .from('petitions')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         title: data.title,
         date: data.date,
         language: 'english', // Default, will be set in wizard
@@ -41,11 +38,7 @@ export async function createBasicPetition(data: { title: string; date: string })
 export async function createPetition(data: CreatePetitionData) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
 
   // If a context ID is provided, get the full context data
   let contextData = null
@@ -94,7 +87,7 @@ export async function createPetition(data: CreatePetitionData) {
     .from('petitions')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         title: data.title,
         date: data.date,
         language: data.language,
@@ -115,16 +108,12 @@ export async function createPetition(data: CreatePetitionData) {
 export async function getPetitions(): Promise<Petition[]> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await requireSelectedParish()
 
   const { data, error } = await supabase
     .from('petitions')
     .select('*')
-    .eq('user_id', user.id)
+    .select('*')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -137,17 +126,12 @@ export async function getPetitions(): Promise<Petition[]> {
 export async function getPetition(id: string): Promise<Petition | null> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await requireSelectedParish()
 
   const { data, error } = await supabase
     .from('petitions')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error || !data) {
@@ -160,11 +144,7 @@ export async function getPetition(id: string): Promise<Petition | null> {
 export async function getSavedContexts(): Promise<Array<{id: string, name: string, community_info: string}>> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await requireSelectedParish()
 
   const { data, error } = await supabase
     .from('petition_contexts')
@@ -177,7 +157,6 @@ export async function getSavedContexts(): Promise<Array<{id: string, name: strin
         date
       )
     `)
-    .eq('user_id', user.id)
     .neq('community_info', '')
     .not('petitions', 'is', null)
     .order('created_at', { ascending: false })
@@ -208,17 +187,12 @@ export async function getSavedContexts(): Promise<Array<{id: string, name: strin
 export async function getPetitionWithContext(id: string): Promise<{ petition: Petition; context: PetitionContext } | null> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await requireSelectedParish()
 
   const { data: petition, error: petitionError } = await supabase
     .from('petitions')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (petitionError || !petition) {
@@ -229,7 +203,6 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
     .from('petition_contexts')
     .select('*')
     .eq('petition_id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (contextError || !context) {
@@ -242,11 +215,7 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
 export async function updatePetition(id: string, data: CreatePetitionData) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await requireSelectedParish()
 
   const generatedContent = await generatePetitionContent(data)
 
@@ -260,7 +229,6 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -275,7 +243,6 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
       updated_at: new Date().toISOString(),
     })
     .eq('petition_id', id)
-    .eq('user_id', user.id)
 
   if (contextError) {
     throw new Error('Failed to update petition context')
@@ -332,17 +299,12 @@ export async function generatePetitionContent(data: CreatePetitionData): Promise
 export async function updatePetitionLanguage(petitionId: string, language: string) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await requireSelectedParish()
 
   const { error } = await supabase
     .from('petitions')
     .update({ language })
     .eq('id', petitionId)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to update petition language')
@@ -352,17 +314,12 @@ export async function updatePetitionLanguage(petitionId: string, language: strin
 export async function updatePetitionContext(petitionId: string, context: string) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await requireSelectedParish()
 
   const { error } = await supabase
     .from('petitions')
     .update({ context })
     .eq('id', petitionId)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to update petition context')
@@ -372,17 +329,12 @@ export async function updatePetitionContext(petitionId: string, context: string)
 export async function updatePetitionContent(petitionId: string, content: string) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await requireSelectedParish()
 
   const { error } = await supabase
     .from('petitions')
     .update({ generated_content: content })
     .eq('id', petitionId)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to update petition content')

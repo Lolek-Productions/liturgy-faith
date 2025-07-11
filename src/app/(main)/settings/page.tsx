@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { PageContainer } from '@/components/page-container'
 import { Settings, User, FileText, ChevronRight, BookOpen } from 'lucide-react'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import Link from 'next/link'
@@ -17,13 +18,11 @@ export default function SettingsPage() {
     ])
   }, [setBreadcrumbs])
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">
-          Configure your application preferences and manage your account
-        </p>
-      </div>
+    <PageContainer
+      title="Settings"
+      description="Configure your application preferences and manage your account"
+      maxWidth="6xl"
+    >
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card className="hover:shadow-lg transition-shadow">
@@ -118,6 +117,6 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   )
 }

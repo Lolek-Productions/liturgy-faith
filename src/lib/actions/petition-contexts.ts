@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 import { 
   DEFAULT_PETITION_CONTEXT_SUNDAY_ENGLISH,
   DEFAULT_PETITION_CONTEXT_SUNDAY_SPANISH,
@@ -17,7 +18,7 @@ export interface PetitionContextTemplate {
   title: string
   description?: string
   context: string // JSON string containing the full context data
-  user_id: string
+  parish_id: string
   created_at: string
   updated_at: string
 }
@@ -35,18 +36,13 @@ export interface UpdateContextData extends CreateContextData {
 }
 
 export async function getPetitionContexts(): Promise<PetitionContextTemplate[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('petition_contexts')
     .select('*')
-    .eq('user_id', user.id)
     .order('title', { ascending: true })
 
   if (error) {
@@ -57,19 +53,15 @@ export async function getPetitionContexts(): Promise<PetitionContextTemplate[]> 
 }
 
 export async function createPetitionContext(contextData: CreateContextData): Promise<PetitionContextTemplate> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('petition_contexts')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         title: contextData.title,
         description: contextData.description,
         context: contextData.context
@@ -86,13 +78,9 @@ export async function createPetitionContext(contextData: CreateContextData): Pro
 }
 
 export async function updatePetitionContext(contextData: UpdateContextData): Promise<PetitionContextTemplate> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('petition_contexts')
@@ -102,7 +90,6 @@ export async function updatePetitionContext(contextData: UpdateContextData): Pro
       context: contextData.context
     })
     .eq('id', contextData.id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -114,19 +101,14 @@ export async function updatePetitionContext(contextData: UpdateContextData): Pro
 }
 
 export async function deletePetitionContext(contextId: string): Promise<void> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { error } = await supabase
     .from('petition_contexts')
     .delete()
     .eq('id', contextId)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to delete petition context')
@@ -134,19 +116,14 @@ export async function deletePetitionContext(contextId: string): Promise<void> {
 }
 
 export async function getPetitionContext(contextId: string): Promise<PetitionContextTemplate | null> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('petition_contexts')
     .select('*')
     .eq('id', contextId)
-    .eq('user_id', user.id)
     .single()
 
   if (error) {
@@ -159,40 +136,30 @@ export async function getPetitionContext(contextId: string): Promise<PetitionCon
 
 // Function to clean up invalid contexts
 export async function cleanupInvalidContexts(): Promise<void> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return
-  }
 
   // Remove contexts with empty titles or invalid context data
   await supabase
     .from('petition_contexts')
     .delete()
-    .eq('user_id', user.id)
     .or('title.is.null,title.eq.,context.is.null,context.eq.')
 }
 
-// Function to ensure user has default contexts
+// Function to ensure parish has default contexts
 export async function ensureDefaultContexts(): Promise<void> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    return
-  }
 
   // First clean up any invalid contexts
   await cleanupInvalidContexts()
 
-  // Check if user already has valid contexts
+  // Check if parish already has valid contexts
   const { data: existingContexts } = await supabase
     .from('petition_contexts')
     .select('id')
-    .eq('user_id', user.id)
     .not('title', 'is', null)
     .not('title', 'eq', '')
     .not('context', 'is', null)
@@ -200,7 +167,7 @@ export async function ensureDefaultContexts(): Promise<void> {
     .limit(1)
 
   if (existingContexts && existingContexts.length > 0) {
-    return // User already has valid contexts
+    return // Parish already has valid contexts
   }
 
   // Create default contexts with simple text
@@ -247,7 +214,7 @@ export async function ensureDefaultContexts(): Promise<void> {
       .from('petition_contexts')
       .insert([
         {
-          user_id: user.id,
+          parish_id: selectedParishId,
           title: contextData.title,
           description: contextData.description,
           context: contextData.context

@@ -5,6 +5,8 @@ import type { LiturgicalCalendarEntry } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { ArrowLeft, Edit } from "lucide-react"
 import { getCalendarEntry } from "@/lib/actions/calendar"
@@ -52,7 +54,15 @@ export default function CalendarDetailPage({ params }: PageProps) {
   }, [params, setBreadcrumbs, router])
 
   if (loading) {
-    return <div className="space-y-6">Loading...</div>
+    return (
+      <PageContainer 
+        title="Calendar Event"
+        description="Loading event details..."
+        maxWidth="4xl"
+      >
+        <Loading />
+      </PageContainer>
+    )
   }
 
   if (!entry) {
@@ -82,27 +92,18 @@ export default function CalendarDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/calendar">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Calendar
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">{entry.title}</h1>
-            <p className="text-muted-foreground">
-              {new Date(entry.date).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </p>
-          </div>
-        </div>
+    <PageContainer 
+      title={entry.title}
+      description={`${entry.liturgical_rank || 'Event'} - ${new Date(entry.date).toLocaleDateString()}`}
+      maxWidth="4xl"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/calendar">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Calendar
+          </Link>
+        </Button>
         <Button asChild>
           <Link href={`/calendar/${entryId}/edit`}>
             <Edit className="h-4 w-4 mr-2" />
@@ -210,6 +211,6 @@ export default function CalendarDetailPage({ params }: PageProps) {
           </Card>
         )}
       </div>
-    </div>
+    </PageContainer>
   )
 }

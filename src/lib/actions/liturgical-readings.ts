@@ -2,22 +2,21 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 import type { LiturgicalReading, CreateLiturgicalReadingData } from '@/lib/types'
 
 export async function createLiturgicalReading(data: CreateLiturgicalReadingData): Promise<LiturgicalReading> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data: liturgicalReading, error } = await supabase
     .from('liturgical_readings')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         title: data.title,
         description: data.description || null,
         date: data.date || null,
@@ -44,16 +43,12 @@ export async function createLiturgicalReading(data: CreateLiturgicalReadingData)
 export async function getLiturgicalReadings(): Promise<LiturgicalReading[]> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('liturgical_readings')
     .select('*')
-    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -66,17 +61,13 @@ export async function getLiturgicalReadings(): Promise<LiturgicalReading[]> {
 export async function getLiturgicalReading(id: string): Promise<LiturgicalReading | null> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('liturgical_readings')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error || !data) {
@@ -89,11 +80,8 @@ export async function getLiturgicalReading(id: string): Promise<LiturgicalReadin
 export async function updateLiturgicalReading(id: string, data: Partial<CreateLiturgicalReadingData>): Promise<LiturgicalReading> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const updateData: Record<string, unknown> = {}
   if (data.title !== undefined) updateData.title = data.title
@@ -112,7 +100,6 @@ export async function updateLiturgicalReading(id: string, data: Partial<CreateLi
     .from('liturgical_readings')
     .update(updateData)
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -126,17 +113,13 @@ export async function updateLiturgicalReading(id: string, data: Partial<CreateLi
 export async function deleteLiturgicalReading(id: string): Promise<void> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { error } = await supabase
     .from('liturgical_readings')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to delete liturgical reading')

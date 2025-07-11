@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 import { getPetitionTextFromContext } from '@/lib/petition-context-utils'
 
 export interface PetitionContextSettings {
@@ -10,17 +11,12 @@ export interface PetitionContextSettings {
 
 export async function getPetitionContextSettings(): Promise<PetitionContextSettings> {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('petition_contexts')
     .select('*')
-    .eq('user_id', user.id)
 
   if (error && error.code !== 'PGRST116') {
     throw new Error('Failed to load petition contexts')
@@ -38,12 +34,8 @@ export async function getPetitionContextSettings(): Promise<PetitionContextSetti
 
 export async function updatePetitionContextSetting(contextId: string, petitionText: string) {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   // Simply store the petition text directly in the context field
   const { error } = await supabase
@@ -53,7 +45,6 @@ export async function updatePetitionContextSetting(contextId: string, petitionTe
       updated_at: new Date().toISOString()
     })
     .eq('id', contextId)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to update petition context setting')

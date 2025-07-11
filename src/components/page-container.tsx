@@ -32,12 +32,12 @@ export function PageContainer({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className={cn(maxWidthClasses[maxWidth], "mx-auto", className)}>
-        <div className="mb-6">
+        <div className="mb-8">
           <h1 className="text-3xl font-bold">{title}</h1>
           {description && (
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mt-2">
               {description}
             </p>
           )}

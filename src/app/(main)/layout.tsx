@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import { MainSidebar } from "@/components/main-sidebar";
 import { MainHeader } from "@/components/main-header";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { BreadcrumbProvider } from "@/components/breadcrumb-context";
@@ -11,10 +11,10 @@ export default function MainLayout({
   return (
     <SidebarProvider>
       <BreadcrumbProvider>
-        <AppSidebar />
+        <MainSidebar />
         <div className="flex-1">
           <MainHeader />
-          <main className="p-4">
+          <main>
             {children}
           </main>
         </div>

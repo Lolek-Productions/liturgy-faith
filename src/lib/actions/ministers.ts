@@ -2,22 +2,19 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { CreateMinisterData, Minister } from '@/lib/types'
-import { redirect } from 'next/navigation'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 
 export async function createMinister(data: CreateMinisterData) {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data: minister, error } = await supabase
     .from('ministers')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         name: data.name,
         email: data.email,
         phone: data.phone,
@@ -39,17 +36,12 @@ export async function createMinister(data: CreateMinisterData) {
 
 export async function getMinisters(): Promise<Minister[]> {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('ministers')
-    .select('*')
-    .eq('user_id', user.id)
+    .select()
     .order('name', { ascending: true })
 
   if (error) {
@@ -66,18 +58,13 @@ export async function getMinisters(): Promise<Minister[]> {
 
 export async function getMinister(id: string): Promise<Minister | null> {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('ministers')
-    .select('*')
+    .select()
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error || !data) {
@@ -89,12 +76,8 @@ export async function getMinister(id: string): Promise<Minister | null> {
 
 export async function updateMinister(id: string, data: CreateMinisterData) {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data: minister, error } = await supabase
     .from('ministers')
@@ -109,7 +92,6 @@ export async function updateMinister(id: string, data: CreateMinisterData) {
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -122,18 +104,13 @@ export async function updateMinister(id: string, data: CreateMinisterData) {
 
 export async function deleteMinister(id: string) {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { error } = await supabase
     .from('ministers')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to delete minister')

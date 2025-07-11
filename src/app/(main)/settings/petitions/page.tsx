@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import { Plus, Edit, Trash2, Save } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { 
@@ -257,23 +259,28 @@ For our deceased brothers and sisters.`
   }
 
   if (loading) {
-    return <div className="space-y-8">Loading...</div>
+    return (
+      <PageContainer 
+        title="Petition Settings"
+        description="Manage petition contexts and default text for different liturgical celebrations."
+        maxWidth="6xl"
+      >
+        <Loading variant="skeleton-list" />
+      </PageContainer>
+    )
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Petition Settings</h1>
-          <p className="text-muted-foreground">
-            Configure petition templates for your liturgical celebrations. Create custom contexts as needed.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleSaveAllSettings} disabled={saving}>
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save All Changes'}
-          </Button>
+    <PageContainer
+      title="Petition Settings"
+      description="Configure petition templates for your liturgical celebrations. Create custom contexts as needed."
+      maxWidth="6xl"
+    >
+      <div className="flex justify-end mb-6 gap-2">
+        <Button onClick={handleSaveAllSettings} disabled={saving}>
+          <Save className="h-4 w-4 mr-2" />
+          {saving ? 'Saving...' : 'Save All Changes'}
+        </Button>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" onClick={openCreateDialog}>
@@ -337,7 +344,6 @@ For our deceased brothers and sisters.`
               </div>
             </DialogContent>
           </Dialog>
-        </div>
       </div>
 
       <div className="grid gap-6">
@@ -401,6 +407,6 @@ For our deceased brothers and sisters.`
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   )
 }

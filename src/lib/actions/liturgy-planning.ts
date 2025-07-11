@@ -2,22 +2,19 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { CreateLiturgyPlanData, LiturgyPlan } from '@/lib/types'
-import { redirect } from 'next/navigation'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 
 export async function createLiturgyPlan(data: CreateLiturgyPlanData) {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data: plan, error } = await supabase
     .from('liturgy_plans')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         title: data.title,
         date: data.date,
         liturgy_type: data.liturgy_type,
@@ -38,18 +35,13 @@ export async function createLiturgyPlan(data: CreateLiturgyPlanData) {
 }
 
 export async function getLiturgyPlans(): Promise<LiturgyPlan[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('liturgy_plans')
     .select('*')
-    .eq('user_id', user.id)
     .order('date', { ascending: false })
 
   if (error) {
@@ -65,19 +57,14 @@ export async function getLiturgyPlans(): Promise<LiturgyPlan[]> {
 }
 
 export async function getLiturgyPlan(id: string): Promise<LiturgyPlan | null> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('liturgy_plans')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error || !data) {
@@ -88,13 +75,9 @@ export async function getLiturgyPlan(id: string): Promise<LiturgyPlan | null> {
 }
 
 export async function updateLiturgyPlan(id: string, data: CreateLiturgyPlanData) {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data: plan, error } = await supabase
     .from('liturgy_plans')
@@ -109,7 +92,6 @@ export async function updateLiturgyPlan(id: string, data: CreateLiturgyPlanData)
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -121,19 +103,14 @@ export async function updateLiturgyPlan(id: string, data: CreateLiturgyPlanData)
 }
 
 export async function deleteLiturgyPlan(id: string) {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
 
   const { error } = await supabase
     .from('liturgy_plans')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to delete liturgy plan')

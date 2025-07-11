@@ -3,10 +3,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 
 export interface Ministry {
   id: string
-  user_id: string
+  parish: string
   name: string
   description?: string
   requirements?: string
@@ -33,17 +35,13 @@ export interface UpdateMinistryData {
 }
 
 export async function getMinistries(): Promise<Ministry[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('ministries')
     .select('*')
-    .eq('user_id', user.id)
     .order('sort_order', { ascending: true })
     .order('name', { ascending: true })
 
@@ -56,18 +54,14 @@ export async function getMinistries(): Promise<Ministry[]> {
 }
 
 export async function getMinistry(id: string): Promise<Ministry | null> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('ministries')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error) {
@@ -82,18 +76,14 @@ export async function getMinistry(id: string): Promise<Ministry | null> {
 }
 
 export async function createMinistry(data: CreateMinistryData): Promise<Ministry> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   // Get the next sort order
   const { data: lastMinistry } = await supabase
     .from('ministries')
     .select('sort_order')
-    .eq('user_id', user.id)
     .order('sort_order', { ascending: false })
     .limit(1)
     .single()
@@ -104,7 +94,7 @@ export async function createMinistry(data: CreateMinistryData): Promise<Ministry
     .from('ministries')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         name: data.name,
         description: data.description || null,
         requirements: data.requirements || null,
@@ -125,12 +115,9 @@ export async function createMinistry(data: CreateMinistryData): Promise<Ministry
 }
 
 export async function updateMinistry(id: string, data: UpdateMinistryData): Promise<Ministry> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const updateData: Record<string, unknown> = {}
   if (data.name !== undefined) updateData.name = data.name
@@ -143,7 +130,6 @@ export async function updateMinistry(id: string, data: UpdateMinistryData): Prom
     .from('ministries')
     .update(updateData)
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -157,18 +143,14 @@ export async function updateMinistry(id: string, data: UpdateMinistryData): Prom
 }
 
 export async function deleteMinistry(id: string): Promise<void> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { error } = await supabase
     .from('ministries')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error deleting ministry:', error)
@@ -179,12 +161,9 @@ export async function deleteMinistry(id: string): Promise<void> {
 }
 
 export async function reorderMinistries(ministryIds: string[]): Promise<void> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   // Update each ministry with its new sort order
   const updates = ministryIds.map((id, index) => 
@@ -192,7 +171,6 @@ export async function reorderMinistries(ministryIds: string[]): Promise<void> {
       .from('ministries')
       .update({ sort_order: index + 1 })
       .eq('id', id)
-      .eq('user_id', user.id)
   )
 
   const results = await Promise.allSettled(updates)
@@ -207,17 +185,13 @@ export async function reorderMinistries(ministryIds: string[]): Promise<void> {
 }
 
 export async function getActiveMinistries(): Promise<Ministry[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('ministries')
     .select('*')
-    .eq('user_id', user.id)
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
     .order('name', { ascending: true })
@@ -230,24 +204,20 @@ export async function getActiveMinistries(): Promise<Ministry[]> {
   return data || []
 }
 
-// Initialize default ministries for a new user
+// Initialize default ministries for a new parish
 export async function initializeDefaultMinistries(): Promise<Ministry[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
-  // Check if user already has ministries
+  // Check if parish already has ministries
   const { data: existing } = await supabase
     .from('ministries')
     .select('id')
-    .eq('user_id', user.id)
     .limit(1)
 
   if (existing && existing.length > 0) {
-    // User already has ministries, return existing ones
+    // Parish already has ministries, return existing ones
     return getMinistries()
   }
 
@@ -268,7 +238,7 @@ export async function initializeDefaultMinistries(): Promise<Ministry[]> {
     .insert(
       defaultMinistries.map(ministry => ({
         ...ministry,
-        user_id: user.id,
+        parish_id: selectedParishId,
         is_active: true,
       }))
     )

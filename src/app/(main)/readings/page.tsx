@@ -5,6 +5,8 @@ import type { Reading } from '@/lib/actions/readings'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { Plus, BookOpen, Eye, Calendar, Search, Filter } from "lucide-react"
 import { getReadings } from "@/lib/actions/readings"
@@ -48,9 +50,6 @@ export default function ReadingsPage() {
     loadReadings()
   }, [])
 
-  if (loading) {
-    return <div className="space-y-8">Loading...</div>
-  }
 
   // Get unique languages and categories for filtering
   const languages = [...new Set(readings.map(r => r.language).filter(Boolean))] as string[]
@@ -84,14 +83,12 @@ export default function ReadingsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">My Readings</h1>
-          <p className="text-muted-foreground">
-            Manage your collection of scripture readings and liturgical texts.
-          </p>
-        </div>
+    <PageContainer 
+      title="My Readings"
+      description="Manage your collection of scripture readings and liturgical texts."
+      maxWidth="7xl"
+    >
+      <div className="flex justify-end mb-6">
         <Button asChild>
           <Link href="/readings/create">
             <Plus className="h-4 w-4 mr-2" />
@@ -273,6 +270,8 @@ export default function ReadingsPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+      
+      {loading && <Loading variant="skeleton-cards" />}
+    </PageContainer>
   )
 }

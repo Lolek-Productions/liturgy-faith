@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { PageContainer } from "@/components/page-container"
 import Link from "next/link"
 import { Plus, FileText, TrendingUp, UserCheck, ClipboardList, Calendar as CalendarIcon, Library } from "lucide-react"
 import { getPetitions } from "@/lib/actions/petitions"
@@ -30,16 +31,13 @@ export default async function DashboardPage() {
   const userReadings = readings
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here&apos;s an overview of your liturgical management platform.
-        </p>
-      </div>
-
+    <PageContainer 
+      title="Dashboard" 
+      description="Welcome back! Here's an overview of your liturgical management platform."
+      maxWidth="7xl"
+    >
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Petitions</CardTitle>
@@ -114,7 +112,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -327,6 +325,6 @@ export default async function DashboardPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   )
 }

@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import { Plus, Edit, Trash2 } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { 
@@ -123,18 +125,24 @@ export default function PetitionContextsPage() {
   }
 
   if (loading) {
-    return <div className="space-y-8">Loading...</div>
+    return (
+      <PageContainer 
+        title="Petition Contexts"
+        description="Manage reusable contexts for different types of liturgical celebrations."
+        maxWidth="6xl"
+      >
+        <Loading variant="skeleton-list" />
+      </PageContainer>
+    )
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Petition Contexts</h1>
-          <p className="text-muted-foreground">
-            Manage reusable contexts for different types of liturgical celebrations.
-          </p>
-        </div>
+    <PageContainer 
+      title="Petition Contexts"
+      description="Manage reusable contexts for different types of liturgical celebrations."
+      maxWidth="6xl"
+    >
+      <div className="flex justify-end items-center mb-6">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog}>
@@ -265,6 +273,6 @@ export default function PetitionContextsPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   )
 }

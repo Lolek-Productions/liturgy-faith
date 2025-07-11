@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageContainer } from '@/components/page-container'
 import { Save, User, Globe, Printer, BookOpen, RefreshCw } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { useAppContext } from '@/contexts/AppContextProvider'
@@ -79,24 +80,20 @@ export default function UserSettingsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">User Preferences</h1>
-          <p className="text-muted-foreground">
-            Customize your liturgical planning experience
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button onClick={refreshSettings} variant="outline" disabled={isLoading}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button onClick={handleSave} disabled={saving || !formData}>
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
-        </div>
+    <PageContainer
+      title="User Preferences"
+      description="Customize your liturgical planning experience"
+      maxWidth="4xl"
+    >
+      <div className="flex justify-end mb-6 gap-3">
+        <Button onClick={refreshSettings} variant="outline" disabled={isLoading}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
+        <Button onClick={handleSave} disabled={saving || !formData}>
+          <Save className="h-4 w-4 mr-2" />
+          {saving ? 'Saving...' : 'Save Changes'}
+        </Button>
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
@@ -146,6 +143,7 @@ export default function UserSettingsPage() {
                   </Select>
                 </div>
 
+                {/* TODO: Add default_petition_type to UserSettings interface first
                 <div>
                   <Label className="text-sm font-medium">Default Petition Type</Label>
                   <Select 
@@ -165,17 +163,14 @@ export default function UserSettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                */}
 
+                {/* TODO: Add these fields to UserSettings interface 
                 <div>
                   <Label className="text-sm font-medium">Default Font Size</Label>
-                  <Select 
-                    value={formData.default_font_size} 
-                    onValueChange={(value: 'small' | 'medium' | 'large') => 
-                      updateFormData({ default_font_size: value })
-                    }
-                  >
+                  <Select>
                     <SelectTrigger className="mt-1">
-                      <SelectValue />
+                      <SelectValue placeholder="Select font size" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="small">Small</SelectItem>
@@ -184,20 +179,17 @@ export default function UserSettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                */}
               </div>
 
+              {/* TODO: Add auto_include_petitions to UserSettings interface 
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="auto-petitions"
-                  checked={formData.auto_include_petitions}
-                  onCheckedChange={(checked) => 
-                    updateFormData({ auto_include_petitions: !!checked })
-                  }
-                />
+                <Checkbox id="auto-petitions" />
                 <Label htmlFor="auto-petitions" className="text-sm font-medium">
                   Automatically include petitions in new reading collections
                 </Label>
               </div>
+              */}
             </CardContent>
           </Card>
         </TabsContent>
@@ -208,71 +200,10 @@ export default function UserSettingsPage() {
               <CardTitle>Liturgical Preferences</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-sm font-medium">Preferred Translation</Label>
-                  <Select 
-                    value={formData.liturgical_preferences?.preferred_translation} 
-                    onValueChange={(value) => 
-                      updateFormData({ 
-                        liturgical_preferences: {
-                          ...formData.liturgical_preferences!,
-                          preferred_translation: value
-                        }
-                      })
-                    }
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NABRE">NABRE (New American Bible Revised Edition)</SelectItem>
-                      <SelectItem value="RSV">RSV (Revised Standard Version)</SelectItem>
-                      <SelectItem value="NRSV">NRSV (New Revised Standard Version)</SelectItem>
-                      <SelectItem value="NAB">NAB (New American Bible)</SelectItem>
-                      <SelectItem value="DOUAY">Douay-Rheims</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="show-pericope"
-                    checked={formData.liturgical_preferences?.show_pericope}
-                    onCheckedChange={(checked) => 
-                      updateFormData({ 
-                        liturgical_preferences: {
-                          ...formData.liturgical_preferences!,
-                          show_pericope: !!checked
-                        }
-                      })
-                    }
-                  />
-                  <Label htmlFor="show-pericope" className="text-sm font-medium">
-                    Show pericope references (e.g., &quot;Matthew 5:1-12&quot;)
-                  </Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="show-conclusion"
-                    checked={formData.liturgical_preferences?.show_conclusion}
-                    onCheckedChange={(checked) => 
-                      updateFormData({ 
-                        liturgical_preferences: {
-                          ...formData.liturgical_preferences!,
-                          show_conclusion: !!checked
-                        }
-                      })
-                    }
-                  />
-                  <Label htmlFor="show-conclusion" className="text-sm font-medium">
-                    Show conclusion text (e.g., &quot;The word of the Lord&quot;)
-                  </Label>
-                </div>
-              </div>
+              <p className="text-muted-foreground">
+                Liturgical preferences coming soon. These settings will allow you to customize
+                your preferred Bible translation, pericope display options, and conclusion text preferences.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -283,69 +214,10 @@ export default function UserSettingsPage() {
               <CardTitle>Print Preferences</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label className="text-sm font-medium">Print Margin Size</Label>
-                  <Select 
-                    value={formData.print_preferences?.margin_size} 
-                    onValueChange={(value: 'small' | 'medium' | 'large') => 
-                      updateFormData({ 
-                        print_preferences: {
-                          ...formData.print_preferences!,
-                          margin_size: value
-                        }
-                      })
-                    }
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Small (0.5 inch)</SelectItem>
-                      <SelectItem value="medium">Medium (0.75 inch)</SelectItem>
-                      <SelectItem value="large">Large (1 inch)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="include-lector-names"
-                    checked={formData.print_preferences?.include_lector_names}
-                    onCheckedChange={(checked) => 
-                      updateFormData({ 
-                        print_preferences: {
-                          ...formData.print_preferences!,
-                          include_lector_names: !!checked
-                        }
-                      })
-                    }
-                  />
-                  <Label htmlFor="include-lector-names" className="text-sm font-medium">
-                    Include lector names in print layout
-                  </Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="include-page-numbers"
-                    checked={formData.print_preferences?.include_page_numbers}
-                    onCheckedChange={(checked) => 
-                      updateFormData({ 
-                        print_preferences: {
-                          ...formData.print_preferences!,
-                          include_page_numbers: !!checked
-                        }
-                      })
-                    }
-                  />
-                  <Label htmlFor="include-page-numbers" className="text-sm font-medium">
-                    Include page numbers
-                  </Label>
-                </div>
-              </div>
+              <p className="text-muted-foreground">
+                Print preferences coming soon. These settings will allow you to customize
+                margin sizes, lector name inclusion, and page numbering for printed materials.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -381,6 +253,6 @@ export default function UserSettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   )
 }

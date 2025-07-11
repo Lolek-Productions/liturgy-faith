@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { ArrowLeft, Edit, Copy, BookOpen, Trash2, Calendar } from "lucide-react"
 import { getReading, deleteReading, type Reading } from "@/lib/actions/readings"
@@ -76,7 +78,15 @@ export default function ReadingDetailPage({ params }: PageProps) {
   }
 
   if (loading) {
-    return <div className="space-y-6">Loading...</div>
+    return (
+      <PageContainer 
+        title="Reading Details"
+        description="Loading reading information..."
+        maxWidth="4xl"
+      >
+        <Loading />
+      </PageContainer>
+    )
   }
 
   if (!reading) {
@@ -96,7 +106,11 @@ export default function ReadingDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer 
+      title={reading.pericope || 'Reading'}
+      description={reading.lectionary_id || 'Scripture reading details'}
+      maxWidth="4xl"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
@@ -299,6 +313,6 @@ export default function ReadingDetailPage({ params }: PageProps) {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   )
 }

@@ -1,6 +1,6 @@
 export interface Petition {
   id: string
-  user_id: string
+  parish_id: string
   title: string
   date: string
   language: string
@@ -14,7 +14,7 @@ export interface Petition {
 export interface PetitionContext {
   id: string
   petition_id: string
-  user_id: string
+  parish_id: string
   community_info: string
   created_at: string
   updated_at: string
@@ -30,7 +30,7 @@ export interface CreatePetitionData {
 
 export interface PetitionSettings {
   id: string
-  user_id: string
+  parish_id: string
   daily_mass: string
   sunday_mass: string
   wedding: string
@@ -41,7 +41,7 @@ export interface PetitionSettings {
 
 export interface Minister {
   id: string
-  user_id: string
+  parish_id: string
   name: string
   email?: string
   phone?: string
@@ -65,7 +65,7 @@ export interface CreateMinisterData {
 
 export interface LiturgyPlan {
   id: string
-  user_id: string
+  parish_id: string
   title: string
   date: string
   liturgy_type: string
@@ -89,7 +89,7 @@ export interface CreateLiturgyPlanData {
 
 export interface LiturgicalCalendarEntry {
   id: string
-  user_id: string
+  parish_id: string
   title: string
   date: string
   liturgical_season?: string
@@ -117,7 +117,7 @@ export interface CreateCalendarEntryData {
 
 export interface ReadingCollection {
   id: string
-  user_id: string
+  parish_id: string
   name: string
   description?: string
   occasion_type: string
@@ -135,7 +135,7 @@ export interface CreateReadingCollectionData {
 
 export interface IndividualReading {
   id: string
-  user_id?: string
+  parish_id?: string
   pericope: string
   title: string
   category: string
@@ -183,7 +183,7 @@ export interface CreateReadingCollectionItemData {
 
 export interface ReadingCollectionWithItems {
   id: string
-  user_id?: string
+  parish_id?: string
   name: string
   description?: string
   occasion_type: string
@@ -198,6 +198,30 @@ export interface ReadingCollectionWithItems {
     notes?: string
     reading: IndividualReading
   }>
+}
+
+// Parish-related interfaces
+export interface Parish {
+  id: string
+  name: string
+  city: string
+  state: string
+  created_at: string
+}
+
+export interface ParishUser {
+  user_id: string
+  parish_id: string
+  roles: string[]
+}
+
+export interface UserSettings {
+  id: string
+  user_id: string
+  selected_parish_id: string | null
+  language: string
+  created_at: string
+  updated_at: string
 }
 
 // Translation/Version definitions
@@ -248,7 +272,7 @@ export const LITURGICAL_CATEGORIES: Record<string, LiturgicalCategory[]> = {
 // Liturgical Reading types
 export interface LiturgicalReading {
   id: string
-  user_id: string
+  parish_id: string
   title: string
   description?: string
   date?: string
@@ -275,4 +299,109 @@ export interface CreateLiturgicalReadingData {
   second_reading_lector?: string
   gospel_reading?: string
   gospel_lector?: string
+}
+
+// Additional parish-based interfaces
+export interface Category {
+  id: string
+  parish_id: string
+  name: string
+  description?: string
+  sort_order: number
+  created_at: string
+}
+
+export interface CreateCategoryData {
+  name: string
+  description?: string
+  sort_order?: number
+}
+
+export interface Group {
+  id: string
+  parish_id: string
+  name: string
+  description?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface GroupMember {
+  id: string
+  group_id: string
+  person_id: string
+  role?: string
+  joined_at: string
+  person?: {
+    id: string
+    first_name: string
+    last_name: string
+    email?: string
+  }
+}
+
+export interface Person {
+  id: string
+  parish_id: string
+  first_name: string
+  last_name: string
+  email?: string
+  phone?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Ministry {
+  id: string
+  parish_id: string
+  name: string
+  description?: string
+  requirements?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface LiturgicalEventTemplate {
+  id: string
+  parish_id: string
+  name: string
+  description?: string
+  template_data: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+export interface LiturgicalEvent {
+  id: string
+  parish_id: string
+  name: string
+  description?: string
+  event_date: string
+  start_time?: string
+  end_time?: string
+  location?: string
+  status: string
+  template_id?: string
+  liturgical_readings_id?: string
+  petitions_id?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Reading {
+  id: string
+  parish_id: string
+  pericope: string
+  text: string
+  introduction?: string
+  conclusion?: string
+  language?: string
+  lectionary_id?: string
+  categories?: Record<string, unknown>
+  reading_category_ids?: string[]
+  created_at: string
+  updated_at: string
 }

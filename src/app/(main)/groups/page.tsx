@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { PageContainer } from "@/components/page-container"
+import { Loading } from '@/components/loading'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/ui/form-field"
@@ -132,9 +133,7 @@ export default function GroupsPage() {
         title="Groups"
         description="Loading groups..."
       >
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <Loading variant="skeleton-list" />
       </PageContainer>
     )
   }

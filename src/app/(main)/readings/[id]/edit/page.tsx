@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { PageContainer } from "@/components/page-container"
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { Save, Plus, X } from "lucide-react"
 import { getReading, updateReading, type CreateReadingData } from "@/lib/actions/readings"
@@ -116,7 +117,15 @@ export default function EditReadingPage({ params }: PageProps) {
   }
 
   if (pageLoading) {
-    return <div className="space-y-6">Loading...</div>
+    return (
+      <PageContainer 
+        title="Edit Reading"
+        description="Loading reading information..."
+        maxWidth="4xl"
+      >
+        <Loading />
+      </PageContainer>
+    )
   }
 
   return (

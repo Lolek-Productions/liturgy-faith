@@ -5,6 +5,8 @@ import type { Minister } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { Plus, UserCheck, Mail, Phone, Edit } from "lucide-react"
 import { getMinisters } from "@/lib/actions/ministers"
@@ -37,19 +39,14 @@ export default function MinistersPage() {
     loadMinisters()
   }, [])
 
-  if (loading) {
-    return <div className="space-y-8">Loading...</div>
-  }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Ministers Directory</h1>
-          <p className="text-muted-foreground">
-            Manage contact information for ministers, volunteers, and key personnel.
-          </p>
-        </div>
+    <PageContainer 
+      title="Ministers Directory"
+      description="Manage contact information for ministers, volunteers, and key personnel."
+      maxWidth="7xl"
+    >
+      <div className="flex justify-end mb-6">
         <Button asChild>
           <Link href="/ministers/create">
             <Plus className="h-4 w-4 mr-2" />
@@ -131,6 +128,8 @@ export default function MinistersPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+      
+      {loading && <Loading variant="skeleton-cards" />}
+    </PageContainer>
   )
 }

@@ -2,10 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireSelectedParish } from '@/lib/auth/parish'
 
 export interface Category {
   id: string
-  user_id: string
+  parish_id: string
   name: string
   description?: string
   sort_order: number
@@ -27,15 +28,12 @@ export interface UpdateCategoryData {
 export async function getCategories(): Promise<Category[]> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error('User not authenticated')
-  }
+  await requireSelectedParish()
 
   const { data, error } = await supabase
     .from('categories')
     .select('*')
-    .eq('user_id', user.id)
+    .select('*')
     .order('sort_order', { ascending: true })
     .order('name', { ascending: true })
 
@@ -59,7 +57,7 @@ export async function getCategory(id: string): Promise<Category | null> {
     .from('categories')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
+    .select('*')
     .single()
 
   if (error) {
@@ -81,13 +79,14 @@ export async function createCategory(categoryData: CreateCategoryData): Promise<
     throw new Error('User not authenticated')
   }
 
+  const selectedParishId = await requireSelectedParish()
+
   // If no sort_order provided, get the next available sort order
   let sortOrder = categoryData.sort_order
   if (sortOrder === undefined) {
     const { data: maxData } = await supabase
       .from('categories')
       .select('sort_order')
-      .eq('user_id', user.id)
       .order('sort_order', { ascending: false })
       .limit(1)
     
@@ -95,7 +94,7 @@ export async function createCategory(categoryData: CreateCategoryData): Promise<
   }
 
   const insertData = {
-    user_id: user.id,
+    parish_id: selectedParishId,
     name: categoryData.name.trim(),
     description: categoryData.description?.trim() || null,
     sort_order: sortOrder
@@ -121,10 +120,7 @@ export async function createCategory(categoryData: CreateCategoryData): Promise<
 export async function updateCategory(id: string, categoryData: UpdateCategoryData): Promise<Category> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error('User not authenticated')
-  }
+  await requireSelectedParish()
 
   const updateData: Record<string, unknown> = {}
   
@@ -138,13 +134,12 @@ export async function updateCategory(id: string, categoryData: UpdateCategoryDat
     updateData.sort_order = categoryData.sort_order
   }
 
-  console.log('Updating category with data:', { id, updateData, userId: user.id })
+  console.log('Updating category with data:', { id, updateData })
 
   const { data, error } = await supabase
     .from('categories')
     .update(updateData)
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -160,10 +155,7 @@ export async function updateCategory(id: string, categoryData: UpdateCategoryDat
 export async function deleteCategory(id: string): Promise<void> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error('User not authenticated')
-  }
+  await requireSelectedParish()
 
   // Check if category is in use by any readings
   const { data: readingCategories, error: checkError } = await supabase
@@ -185,7 +177,6 @@ export async function deleteCategory(id: string): Promise<void> {
     .from('categories')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error deleting category:', error)
@@ -198,10 +189,7 @@ export async function deleteCategory(id: string): Promise<void> {
 export async function reorderCategories(categoryIds: string[]): Promise<void> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    throw new Error('User not authenticated')
-  }
+  await requireSelectedParish()
 
   // Update sort_order for each category
   const updates = categoryIds.map((id, index) => ({
@@ -214,7 +202,6 @@ export async function reorderCategories(categoryIds: string[]): Promise<void> {
       .from('categories')
       .update({ sort_order: update.sort_order })
       .eq('id', update.id)
-      .eq('user_id', user.id)
 
     if (error) {
       console.error('Error reordering categories:', error)

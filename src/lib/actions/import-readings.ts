@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { readingsData } from '@/lib/data/readings'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 
 export interface ImportResult {
   imported: number
@@ -19,11 +21,8 @@ export interface ReadingStats {
 export async function importReadings(): Promise<ImportResult> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await ensureJWTClaims()
+  const parish_id = await requireSelectedParish()
 
   const result: ImportResult = {
     imported: 0,
@@ -36,7 +35,7 @@ export async function importReadings(): Promise<ImportResult> {
     const { data: existingReadings } = await supabase
       .from('readings')
       .select('pericope, categories')
-      .eq('user_id', user.id)
+      .eq('parish_id', parish_id)
 
     const existingSet = new Set(
       existingReadings?.map(r => `${r.pericope}-${JSON.stringify(r.categories)}`) || []
@@ -58,7 +57,7 @@ export async function importReadings(): Promise<ImportResult> {
         const { error } = await supabase
           .from('readings')
           .insert({
-            user_id: user.id,
+            parish_id: parish_id,
             pericope: reading.pericope,
             text: reading.text,
             categories: reading.categories,
@@ -87,17 +86,14 @@ export async function importReadings(): Promise<ImportResult> {
 export async function getReadingsStats(): Promise<ReadingStats> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  await ensureJWTClaims()
+  const parish_id = await requireSelectedParish()
 
   try {
     const { data: readings, error } = await supabase
       .from('readings')
       .select('categories, language')
-      .eq('user_id', user.id)
+      .eq('parish_id', parish_id)
 
     if (error) {
       throw new Error('Failed to fetch reading statistics')

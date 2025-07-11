@@ -7,21 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 interface UserSettings {
   id: string
   user_id: string
-  language: 'en' | 'es' | 'fr' | 'la'
-  default_petition_type: 'daily' | 'sunday' | 'wedding' | 'funeral'
-  auto_include_petitions: boolean
-  default_font_size: 'small' | 'medium' | 'large'
-  print_preferences: {
-    include_lector_names: boolean
-    include_page_numbers: boolean
-    margin_size: 'small' | 'medium' | 'large'
-  }
-  liturgical_preferences: {
-    preferred_translation: string
-    show_pericope: boolean
-    show_conclusion: boolean
-  }
-  petitions_definition: string
+  selected_parish_id: string | null
+  language: string
   created_at: string
   updated_at: string
 }
@@ -52,24 +39,11 @@ export function AppContextProvider({
   const [isLoading, setIsLoading] = useState(!initialUser)
   const supabase = createClient()
 
-  // Default settings for new users
-  const getDefaultSettings = (userId: string): Omit<UserSettings, 'id' | 'created_at' | 'updated_at'> => ({
+  // Default settings for new users (only use columns that exist in database)
+  const getDefaultSettings = (userId: string) => ({
     user_id: userId,
-    language: 'en',
-    default_petition_type: 'sunday',
-    auto_include_petitions: true,
-    default_font_size: 'medium',
-    print_preferences: {
-      include_lector_names: true,
-      include_page_numbers: true,
-      margin_size: 'medium'
-    },
-    liturgical_preferences: {
-      preferred_translation: 'NABRE',
-      show_pericope: true,
-      show_conclusion: true
-    },
-    petitions_definition: 'For the Church and her ministers... For those who serve in government... For the sick and suffering... For our parish community... For the faithful departed...'
+    selected_parish_id: null,
+    language: 'en'
   })
 
   const refreshSettings = async () => {

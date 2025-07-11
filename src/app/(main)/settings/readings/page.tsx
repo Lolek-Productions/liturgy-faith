@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { PageContainer } from '@/components/page-container'
 import { ArrowLeft, Download, BookOpen, Database, AlertCircle, CheckCircle } from 'lucide-react'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import Link from 'next/link'
@@ -91,7 +92,11 @@ export default function ReadingSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer 
+      title="Reading Settings"
+      description="Import liturgical readings and manage your reading collections."
+      maxWidth="4xl"
+    >
       <Button variant="ghost" size="sm" asChild>
         <Link href="/settings">
           <ArrowLeft className="h-4 w-4" />
@@ -245,6 +250,6 @@ export default function ReadingSettingsPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   )
 }

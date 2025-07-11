@@ -3,10 +3,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 
 export interface Group {
   id: string
-  user_id: string
+  parish_id: string
   name: string
   description?: string
   is_active: boolean
@@ -45,17 +47,14 @@ export interface UpdateGroupData {
 }
 
 export async function getGroups(): Promise<Group[]> {
-  const supabase = await createClient()
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('groups')
     .select('*')
-    .eq('user_id', user.id)
     .order('name', { ascending: true })
 
   if (error) {
@@ -67,18 +66,15 @@ export async function getGroups(): Promise<Group[]> {
 }
 
 export async function getGroup(id: string): Promise<GroupWithMembers | null> {
-  const supabase = await createClient()
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const supabase = await createClient()
 
   const { data: group, error: groupError } = await supabase
     .from('groups')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (groupError) {
@@ -120,18 +116,16 @@ export async function getGroup(id: string): Promise<GroupWithMembers | null> {
 }
 
 export async function createGroup(data: CreateGroupData): Promise<Group> {
-  const supabase = await createClient()
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const supabase = await createClient()
 
   const { data: group, error } = await supabase
     .from('groups')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         name: data.name,
         description: data.description || null,
         is_active: data.is_active ?? true,
@@ -150,12 +144,10 @@ export async function createGroup(data: CreateGroupData): Promise<Group> {
 }
 
 export async function updateGroup(id: string, data: UpdateGroupData): Promise<Group> {
-  const supabase = await createClient()
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const supabase = await createClient()
 
   const updateData: Record<string, unknown> = {}
   if (data.name !== undefined) updateData.name = data.name
@@ -166,7 +158,6 @@ export async function updateGroup(id: string, data: UpdateGroupData): Promise<Gr
     .from('groups')
     .update(updateData)
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -180,18 +171,15 @@ export async function updateGroup(id: string, data: UpdateGroupData): Promise<Gr
 }
 
 export async function deleteGroup(id: string): Promise<void> {
-  const supabase = await createClient()
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const supabase = await createClient()
 
   const { error } = await supabase
     .from('groups')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error deleting group:', error)
@@ -202,19 +190,16 @@ export async function deleteGroup(id: string): Promise<void> {
 }
 
 export async function addGroupMember(groupId: string, personId: string, role?: string): Promise<GroupMember> {
-  const supabase = await createClient()
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const supabase = await createClient()
 
-  // Verify group ownership
+  // Verify group exists (RLS will handle access control)
   const { data: group, error: groupError } = await supabase
     .from('groups')
     .select('id')
     .eq('id', groupId)
-    .eq('user_id', user.id)
     .single()
 
   if (groupError || !group) {
@@ -246,19 +231,16 @@ export async function addGroupMember(groupId: string, personId: string, role?: s
 }
 
 export async function removeGroupMember(groupId: string, personId: string): Promise<void> {
-  const supabase = await createClient()
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const supabase = await createClient()
 
-  // Verify group ownership
+  // Verify group exists (RLS will handle access control)
   const { data: group, error: groupError } = await supabase
     .from('groups')
     .select('id')
     .eq('id', groupId)
-    .eq('user_id', user.id)
     .single()
 
   if (groupError || !group) {
@@ -280,19 +262,16 @@ export async function removeGroupMember(groupId: string, personId: string): Prom
 }
 
 export async function updateGroupMemberRole(groupId: string, personId: string, role?: string): Promise<GroupMember> {
-  const supabase = await createClient()
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const supabase = await createClient()
 
-  // Verify group ownership
+  // Verify group exists (RLS will handle access control)
   const { data: group, error: groupError } = await supabase
     .from('groups')
     .select('id')
     .eq('id', groupId)
-    .eq('user_id', user.id)
     .single()
 
   if (groupError || !group) {
@@ -317,17 +296,14 @@ export async function updateGroupMemberRole(groupId: string, personId: string, r
 }
 
 export async function getActiveGroups(): Promise<Group[]> {
-  const supabase = await createClient()
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
+  const supabase = await createClient()
 
   const { data, error } = await supabase
     .from('groups')
     .select('*')
-    .eq('user_id', user.id)
     .eq('is_active', true)
     .order('name', { ascending: true })
 

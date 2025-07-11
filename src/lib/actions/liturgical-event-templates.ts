@@ -3,10 +3,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 
 export interface LiturgicalEventTemplate {
   id: string
-  user_id: string
+  parish_id: string
   name: string
   description?: string
   template_data: TemplateData
@@ -46,17 +48,13 @@ export interface UpdateTemplateData {
 }
 
 export async function getTemplates(): Promise<LiturgicalEventTemplate[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('liturgical_event_templates')
     .select('*')
-    .eq('user_id', user.id)
     .order('name', { ascending: true })
 
   if (error) {
@@ -68,18 +66,14 @@ export async function getTemplates(): Promise<LiturgicalEventTemplate[]> {
 }
 
 export async function getTemplate(id: string): Promise<LiturgicalEventTemplate | null> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('liturgical_event_templates')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error) {
@@ -94,18 +88,15 @@ export async function getTemplate(id: string): Promise<LiturgicalEventTemplate |
 }
 
 export async function createTemplate(data: CreateTemplateData): Promise<LiturgicalEventTemplate> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data: template, error } = await supabase
     .from('liturgical_event_templates')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         name: data.name,
         description: data.description || null,
         template_data: data.template_data,
@@ -125,12 +116,9 @@ export async function createTemplate(data: CreateTemplateData): Promise<Liturgic
 }
 
 export async function updateTemplate(id: string, data: UpdateTemplateData): Promise<LiturgicalEventTemplate> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const updateData: Record<string, unknown> = {}
   if (data.name !== undefined) updateData.name = data.name
@@ -142,7 +130,6 @@ export async function updateTemplate(id: string, data: UpdateTemplateData): Prom
     .from('liturgical_event_templates')
     .update(updateData)
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -156,18 +143,14 @@ export async function updateTemplate(id: string, data: UpdateTemplateData): Prom
 }
 
 export async function deleteTemplate(id: string): Promise<void> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { error } = await supabase
     .from('liturgical_event_templates')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error deleting template:', error)
@@ -178,17 +161,13 @@ export async function deleteTemplate(id: string): Promise<void> {
 }
 
 export async function getActiveTemplates(): Promise<LiturgicalEventTemplate[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('liturgical_event_templates')
     .select('*')
-    .eq('user_id', user.id)
     .eq('is_active', true)
     .order('name', { ascending: true })
 
@@ -202,30 +181,25 @@ export async function getActiveTemplates(): Promise<LiturgicalEventTemplate[]> {
 
 // Initialize default templates for common liturgical events
 export async function initializeDefaultTemplates(): Promise<LiturgicalEventTemplate[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
-  // Check if user already has templates
+  // Check if parish already has templates
   const { data: existing } = await supabase
     .from('liturgical_event_templates')
     .select('id')
-    .eq('user_id', user.id)
     .limit(1)
 
   if (existing && existing.length > 0) {
-    // User already has templates, return existing ones
+    // Parish already has templates, return existing ones
     return getTemplates()
   }
 
-  // Get user's ministries to create template requirements
+  // Get parish's ministries to create template requirements
   const { data: ministries } = await supabase
     .from('ministries')
     .select('id, name')
-    .eq('user_id', user.id)
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
 
@@ -289,7 +263,7 @@ export async function initializeDefaultTemplates(): Promise<LiturgicalEventTempl
     .insert(
       defaultTemplates.map(template => ({
         ...template,
-        user_id: user.id,
+        parish_id: selectedParishId,
         is_active: true,
       }))
     )

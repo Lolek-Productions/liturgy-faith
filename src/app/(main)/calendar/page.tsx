@@ -5,6 +5,8 @@ import type { LiturgicalCalendarEntry } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { Plus, Calendar as CalendarIcon, Edit } from "lucide-react"
 import { getCalendarEntries } from "@/lib/actions/calendar"
@@ -38,7 +40,15 @@ export default function CalendarPage() {
   }, [])
 
   if (loading) {
-    return <div className="space-y-8">Loading...</div>
+    return (
+      <PageContainer
+        title="Liturgical Calendar"
+        description="Manage liturgical seasons, feast days, and special celebrations."
+        maxWidth="7xl"
+      >
+        <Loading variant="skeleton-cards" />
+      </PageContainer>
+    )
   }
   
   // Group entries by month for better organization
@@ -74,14 +84,12 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Liturgical Calendar</h1>
-          <p className="text-muted-foreground">
-            Manage liturgical seasons, feast days, and special celebrations.
-          </p>
-        </div>
+    <PageContainer
+      title="Liturgical Calendar"
+      description="Manage liturgical seasons, feast days, and special celebrations."
+      maxWidth="7xl"
+    >
+      <div className="flex justify-end mb-6">
         <Button asChild>
           <Link href="/calendar/create">
             <Plus className="h-4 w-4 mr-2" />
@@ -189,6 +197,6 @@ export default function CalendarPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PageContainer>
   )
 }

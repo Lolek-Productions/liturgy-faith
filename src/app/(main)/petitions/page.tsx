@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { getPetitions } from '@/lib/actions/petitions'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { FileText, Plus, Calendar, Eye } from 'lucide-react'
@@ -38,18 +40,24 @@ export default function PetitionsPage() {
   }, [])
 
   if (loading) {
-    return <div className="space-y-6">Loading...</div>
+    return (
+      <PageContainer 
+        title="My Petitions" 
+        description="Manage your created petitions"
+        maxWidth="4xl"
+      >
+        <Loading variant="skeleton-list" />
+      </PageContainer>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">My Petitions</h1>
-          <p className="text-muted-foreground">
-            Manage your created petitions
-          </p>
-        </div>
+    <PageContainer 
+      title="My Petitions" 
+      description="Manage your created petitions"
+      maxWidth="4xl"
+    >
+      <div className="flex justify-end mb-6">
         <Button asChild>
           <Link href="/petitions/create">
             <Plus className="h-4 w-4 mr-2" />
@@ -113,6 +121,6 @@ export default function PetitionsPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   )
 }

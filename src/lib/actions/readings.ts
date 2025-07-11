@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 
 export interface Reading {
   id: string
@@ -13,7 +15,7 @@ export interface Reading {
   lectionary_id: string | null
   pericope: string | null
   text: string | null
-  user_id: string | null
+  parish_id: string | null
 }
 
 export interface CreateReadingData {
@@ -30,18 +32,15 @@ export interface CreateReadingData {
 export async function createReading(data: CreateReadingData): Promise<Reading> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   // Create the reading first
   const { data: reading, error } = await supabase
     .from('readings')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         categories: data.categories || null, // Keep legacy support
         conclusion: data.conclusion || null,
         introduction: data.introduction || null,
@@ -81,16 +80,12 @@ export async function createReading(data: CreateReadingData): Promise<Reading> {
 export async function getReadings(): Promise<Reading[]> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('readings')
     .select('*')
-    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -103,17 +98,13 @@ export async function getReadings(): Promise<Reading[]> {
 export async function getReading(id: string): Promise<Reading | null> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('readings')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error || !data) {
@@ -126,11 +117,8 @@ export async function getReading(id: string): Promise<Reading | null> {
 export async function updateReading(id: string, data: CreateReadingData): Promise<Reading> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data: reading, error } = await supabase
     .from('readings')
@@ -144,7 +132,6 @@ export async function updateReading(id: string, data: CreateReadingData): Promis
       text: data.text,
     })
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -158,17 +145,13 @@ export async function updateReading(id: string, data: CreateReadingData): Promis
 export async function deleteReading(id: string): Promise<void> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { error } = await supabase
     .from('readings')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to delete reading')
@@ -178,16 +161,12 @@ export async function deleteReading(id: string): Promise<void> {
 export async function getReadingsByCategory(category: string): Promise<Reading[]> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('readings')
     .select('*')
-    .eq('user_id', user.id)
     .contains('categories', [category])
     .order('created_at', { ascending: false })
 
@@ -201,16 +180,12 @@ export async function getReadingsByCategory(category: string): Promise<Reading[]
 export async function getReadingsByLanguage(language: string): Promise<Reading[]> {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('readings')
     .select('*')
-    .eq('user_id', user.id)
     .eq('language', language)
     .order('created_at', { ascending: false })
 
@@ -224,7 +199,7 @@ export async function getReadingsByLanguage(language: string): Promise<Reading[]
 // Legacy type definition for compatibility
 export interface IndividualReading {
   id: string
-  user_id?: string
+  parish_id?: string
   pericope: string
   title: string
   category: string
@@ -257,7 +232,7 @@ export async function getIndividualReadings(): Promise<IndividualReading[]> {
   // Transform Reading to IndividualReading format
   return readings.map(reading => ({
     id: reading.id,
-    user_id: reading.user_id || undefined,
+    parish_id: reading.parish_id || undefined,
     pericope: reading.pericope || '',
     title: reading.pericope || 'Untitled Reading',
     category: reading.categories?.[0] || 'general',
@@ -280,7 +255,7 @@ export async function getIndividualReading(id: string): Promise<IndividualReadin
   // Transform Reading to IndividualReading format
   return {
     id: reading.id,
-    user_id: reading.user_id || undefined,
+    parish_id: reading.parish_id || undefined,
     pericope: reading.pericope || '',
     title: reading.pericope || 'Untitled Reading',
     category: reading.categories?.[0] || 'general',
@@ -309,7 +284,7 @@ export async function createIndividualReading(data: CreateIndividualReadingData)
   // Transform Reading to IndividualReading format
   return {
     id: reading.id,
-    user_id: reading.user_id || undefined,
+    parish_id: reading.parish_id || undefined,
     pericope: reading.pericope || '',
     title: data.title,
     category: data.category,

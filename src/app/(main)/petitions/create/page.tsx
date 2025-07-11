@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { CenteredFormCard } from '@/components/centered-form-card'
+import { PageContainer } from '@/components/page-container'
 import { FormField } from '@/components/ui/form-field'
 import { createBasicPetition } from '@/lib/actions/petitions'
 import { useRouter } from 'next/navigation'
@@ -47,14 +47,13 @@ export default function CreatePetitionPage() {
   }
 
   return (
-    <CenteredFormCard 
+    <PageContainer 
       title="Create New Petitions" 
+      description="Start by providing basic information. You'll configure language and context details in the next step."
+      cardTitle="Petition Details"
       maxWidth="2xl"
     >
-      <p className="text-muted-foreground mb-6">
-        Start by providing basic information. You&apos;ll configure language and context details in the next step.
-      </p>
-          <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 id="title"
@@ -88,6 +87,6 @@ export default function CreatePetitionPage() {
               {loading ? 'Creating...' : 'Continue to Petition Wizard'}
             </Button>
           </form>
-    </CenteredFormCard>
+    </PageContainer>
   )
 }

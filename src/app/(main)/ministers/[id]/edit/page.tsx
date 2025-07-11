@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { PageContainer } from "@/components/page-container"
+import { Loading } from '@/components/loading'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -80,12 +81,11 @@ export default function EditMinisterPage() {
   if (isLoadingData) {
     return (
       <PageContainer 
-        title="Loading..."
+        title="Edit Minister"
+        description="Loading minister information..."
         maxWidth="2xl"
       >
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Loading minister information...</p>
-        </div>
+        <Loading />
       </PageContainer>
     )
   }

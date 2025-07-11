@@ -5,6 +5,8 @@ import type { Minister } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { ArrowLeft, Edit, Mail, Phone, User } from "lucide-react"
 import { getMinister } from "@/lib/actions/ministers"
@@ -52,7 +54,15 @@ export default function MinisterDetailPage({ params }: PageProps) {
   }, [params, setBreadcrumbs, router])
 
   if (loading) {
-    return <div className="space-y-6">Loading...</div>
+    return (
+      <PageContainer 
+        title="Minister Details"
+        description="View minister information and contact details."
+        maxWidth="4xl"
+      >
+        <Loading />
+      </PageContainer>
+    )
   }
 
   if (!minister) {
@@ -60,7 +70,11 @@ export default function MinisterDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <PageContainer 
+      title={minister.name}
+      description={`${minister.role} - Contact information and details`}
+      maxWidth="4xl"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
@@ -200,6 +214,6 @@ export default function MinisterDetailPage({ params }: PageProps) {
           </Card>
         </div>
       </div>
-    </div>
+    </PageContainer>
   )
 }

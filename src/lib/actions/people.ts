@@ -3,10 +3,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 
 export interface Person {
   id: string
-  user_id: string
+  parish_id: string
   first_name: string
   last_name: string
   email?: string
@@ -39,17 +41,13 @@ export interface UpdatePersonData {
 }
 
 export async function getPeople(): Promise<Person[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('people')
     .select('*')
-    .eq('user_id', user.id)
     .order('last_name', { ascending: true })
     .order('first_name', { ascending: true })
 
@@ -62,18 +60,14 @@ export async function getPeople(): Promise<Person[]> {
 }
 
 export async function getPerson(id: string): Promise<Person | null> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('people')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error) {
@@ -88,18 +82,15 @@ export async function getPerson(id: string): Promise<Person | null> {
 }
 
 export async function createPerson(data: CreatePersonData): Promise<Person> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data: person, error } = await supabase
     .from('people')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         first_name: data.first_name,
         last_name: data.last_name,
         email: data.email || null,
@@ -122,12 +113,9 @@ export async function createPerson(data: CreatePersonData): Promise<Person> {
 }
 
 export async function updatePerson(id: string, data: UpdatePersonData): Promise<Person> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const updateData: Record<string, unknown> = {}
   if (data.first_name !== undefined) updateData.first_name = data.first_name
@@ -142,7 +130,6 @@ export async function updatePerson(id: string, data: UpdatePersonData): Promise<
     .from('people')
     .update(updateData)
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -156,18 +143,14 @@ export async function updatePerson(id: string, data: UpdatePersonData): Promise<
 }
 
 export async function deletePerson(id: string): Promise<void> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { error } = await supabase
     .from('people')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     console.error('Error deleting person:', error)
@@ -178,17 +161,13 @@ export async function deletePerson(id: string): Promise<void> {
 }
 
 export async function getActivePeople(): Promise<Person[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
-  }
 
   const { data, error } = await supabase
     .from('people')
     .select('*')
-    .eq('user_id', user.id)
     .eq('is_active', true)
     .order('last_name', { ascending: true })
     .order('first_name', { ascending: true })

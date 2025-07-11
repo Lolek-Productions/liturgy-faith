@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { FormField } from '@/components/ui/form-field'
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import { Info, Save, RotateCcw } from 'lucide-react'
 import { savePromptTemplate, getPromptTemplate } from '@/lib/actions/definitions'
 import { getDefaultPromptTemplate } from '@/lib/template-utils'
@@ -71,17 +73,22 @@ export default function DefinitionsPage() {
 
   if (initialLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Petition Definitions</h1>
-          <p className="text-muted-foreground mt-2">Loading...</p>
-        </div>
-      </div>
+      <PageContainer 
+        title="Petition Definitions"
+        description="Customize the AI prompt template used to generate liturgical petitions."
+        maxWidth="4xl"
+      >
+        <Loading />
+      </PageContainer>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <PageContainer 
+      title="Petition Definitions"
+      description="Customize the AI prompt template used to generate liturgical petitions."
+      maxWidth="4xl"
+    >
       <div>
         <h1 className="text-3xl font-bold">Petition Definitions</h1>
         <p className="text-muted-foreground mt-2">
@@ -144,6 +151,6 @@ export default function DefinitionsPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   )
 }

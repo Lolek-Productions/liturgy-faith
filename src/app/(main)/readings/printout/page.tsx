@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import { Printer, Download, Eye } from "lucide-react"
 import { getReadingCollections, getIndividualReadings } from "@/lib/actions/readings"
 import { getPetitions } from "@/lib/actions/petitions"
@@ -151,21 +153,27 @@ export default function ReadingsPrintoutPage() {
   }
 
   if (loading) {
-    return <div className="space-y-8">Loading...</div>
+    return (
+      <PageContainer 
+        title="Readings Printout"
+        description="Create formatted printouts of readings and petitions for liturgical use."
+        maxWidth="6xl"
+      >
+        <Loading />
+      </PageContainer>
+    )
   }
 
   const readingsData = getSelectedReadingsData()
   const petitionData = getSelectedPetitionData()
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Readings Printout</h1>
-          <p className="text-muted-foreground">
-            Create a printable document with readings and optional petitions.
-          </p>
-        </div>
+    <PageContainer 
+      title="Readings Printout"
+      description="Create formatted printouts of readings and petitions for liturgical use."
+      maxWidth="6xl"
+    >
+      <div className="flex justify-end items-center mb-6">
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => setShowPreview(!showPreview)}>
             <Eye className="h-4 w-4 mr-2" />
@@ -360,6 +368,6 @@ export default function ReadingsPrintoutPage() {
           }
         }
       `}</style>
-    </div>
+    </PageContainer>
   )
 }

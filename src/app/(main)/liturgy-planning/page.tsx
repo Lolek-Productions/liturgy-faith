@@ -5,6 +5,8 @@ import type { LiturgyPlan } from '@/lib/types'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { Plus, ClipboardList, Calendar, Edit } from "lucide-react"
 import { getLiturgyPlans } from "@/lib/actions/liturgy-planning"
@@ -37,9 +39,6 @@ export default function LiturgyPlanningPage() {
     loadLiturgyPlans()
   }, [])
 
-  if (loading) {
-    return <div className="space-y-8">Loading...</div>
-  }
 
   const getLiturgyTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
@@ -52,14 +51,12 @@ export default function LiturgyPlanningPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Liturgy Planning</h1>
-          <p className="text-muted-foreground">
-            Plan complete liturgical celebrations with prayers, prefaces, and readings.
-          </p>
-        </div>
+    <PageContainer
+      title="Liturgy Planning"
+      description="Plan complete liturgical celebrations with prayers, prefaces, and readings."
+      maxWidth="7xl"
+    >
+      <div className="flex justify-end mb-6">
         <Button asChild>
           <Link href="/liturgy-planning/create">
             <Plus className="h-4 w-4 mr-2" />
@@ -149,6 +146,8 @@ export default function LiturgyPlanningPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+      
+      {loading && <Loading variant="skeleton-cards" />}
+    </PageContainer>
   )
 }

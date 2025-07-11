@@ -5,6 +5,8 @@ import { getPetitionWithContext } from '@/lib/actions/petitions'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Edit, Calendar, Printer } from 'lucide-react'
@@ -58,7 +60,15 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
   }, [params, setBreadcrumbs])
 
   if (loading) {
-    return <div className="max-w-4xl mx-auto space-y-6">Loading...</div>
+    return (
+      <PageContainer 
+        title="Petition Details"
+        description="View petition content and context."
+        maxWidth="4xl"
+      >
+        <Loading />
+      </PageContainer>
+    )
   }
 
   if (!petition || !context) {
@@ -67,17 +77,18 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{petition.title}</h1>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+    <PageContainer 
+      title={petition.title}
+      description={`Petition for ${new Date(petition.date).toLocaleDateString()}`}
+      maxWidth="4xl"
+    >
+      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
           <div className="flex items-center gap-1">
             <Calendar className="h-4 w-4" />
             {new Date(petition.date).toLocaleDateString()}
           </div>
           <Badge variant="secondary">{petition.language}</Badge>
         </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -141,6 +152,6 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
           </Card>
         </div>
       </div>
-    </div>
+    </PageContainer>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { PageContainer } from "@/components/page-container"
+import { Loading } from '@/components/loading'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -140,12 +141,10 @@ export default function GroupDetailPage({ params }: PageProps) {
   if (loading) {
     return (
       <PageContainer 
-        title="Loading..."
-        description="Loading group details..."
+        title="Group Details"
+        description="Loading group information..."
       >
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <Loading />
       </PageContainer>
     )
   }

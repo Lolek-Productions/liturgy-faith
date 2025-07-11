@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Thu Jul  3 18:21:36 UTC 2025
+**Generated on:** Tue Jul  8 15:56:45 CDT 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -33,7 +33,7 @@ The following tables are available in the database:
 | `created_at` | timestamp with time zone | NO | now() |
 | `id` | uuid | NO | gen_random_uuid() |
 | `name` | text | YES | none |
-| `user_id` | uuid | YES | none |
+| `parish_id` | uuid | YES | none |
 
 ---
 
@@ -89,7 +89,7 @@ The following tables are available in the database:
 | `description` | text | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |
 | `name` | text | YES | none |
-| `user_id` | uuid | YES | none |
+| `parish_id` | uuid | YES | none |
 
 ---
 
@@ -102,8 +102,8 @@ The following tables are available in the database:
 | `description` | text | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |
 | `name` | text | YES | none |
+| `parish_id` | uuid | YES | none |
 | `template_data` | jsonb | YES | none |
-| `user_id` | uuid | YES | none |
 
 ---
 
@@ -122,12 +122,12 @@ The following tables are available in the database:
 | `location` | text | YES | none |
 | `name` | text | YES | none |
 | `notes` | text | YES | none |
+| `parish_id` | uuid | YES | none |
 | `petitions_id` | uuid | YES | none |
 | `start_time` | time without time zone | YES | none |
 | `status` | text | NO | draft |
 | `template_id` | uuid | YES | none |
 | `updated_at` | timestamp with time zone | NO | now() |
-| `user_id` | uuid | YES | none |
 
 ---
 
@@ -145,12 +145,12 @@ The following tables are available in the database:
 | `gospel_lector` | text | YES | none |
 | `gospel_reading` | text | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |
+| `parish_id` | uuid | YES | none |
 | `psalm_lector` | text | YES | none |
 | `responsorial_psalm` | text | YES | none |
 | `second_reading_lector` | text | YES | none |
 | `second_reading` | text | YES | none |
 | `title` | text | YES | none |
-| `user_id` | uuid | YES | none |
 
 ---
 
@@ -165,9 +165,9 @@ The following tables are available in the database:
 | `id` | uuid | NO | extensions.uuid_generate_v4() |
 | `name` | text | YES | none |
 | `notes` | text | YES | none |
+| `parish_id` | uuid | YES | none |
 | `phone` | text | YES | none |
 | `role` | text | YES | none |
-| `user_id` | uuid | YES | none |
 
 ---
 
@@ -180,8 +180,8 @@ The following tables are available in the database:
 | `description` | text | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |
 | `name` | text | YES | none |
+| `parish` | uuid | YES | none |
 | `requirements` | text | YES | none |
-| `user_id` | uuid | YES | none |
 
 ---
 
@@ -222,8 +222,8 @@ The following tables are available in the database:
 | `id` | uuid | NO | gen_random_uuid() |
 | `last_name` | text | YES | none |
 | `notes` | text | YES | none |
+| `parish_id` | uuid | YES | none |
 | `phone` | text | YES | none |
-| `user_id` | uuid | YES | none |
 
 ---
 
@@ -237,9 +237,9 @@ The following tables are available in the database:
 | `created_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
 | `description` | text | YES | none |
 | `id` | uuid | NO | extensions.uuid_generate_v4() |
+| `parish_id` | uuid | YES | none |
 | `title` | text | YES | none |
 | `updated_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
-| `user_id` | uuid | YES | none |
 
 ---
 
@@ -255,9 +255,9 @@ The following tables are available in the database:
 | `generated_content` | text | YES | none |
 | `id` | uuid | NO | extensions.uuid_generate_v4() |
 | `language` | text | NO | english |
+| `parish_id` | uuid | YES | none |
 | `title` | text | YES | none |
 | `updated_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
-| `user_id` | uuid | YES | none |
 
 ---
 
@@ -270,6 +270,7 @@ The following tables are available in the database:
 | `category_id` | uuid | YES | none |
 | `created_at` | timestamp with time zone | NO | now() |
 | `id` | uuid | NO | gen_random_uuid() |
+| `parish_id` | uuid | YES | none |
 | `reading_id` | uuid | YES | none |
 
 ---
@@ -287,10 +288,10 @@ The following tables are available in the database:
 | `introduction` | text | YES | none |
 | `language` | text | YES | none |
 | `lectionary_id` | text | YES | none |
+| `parish_id` | uuid | YES | none |
 | `pericope` | text | YES | none |
 | `reading_category_ids` | jsonb | YES | none |
 | `text` | text | YES | none |
-| `user_id` | uuid | YES | none |
 
 ---
 
@@ -305,7 +306,7 @@ The following tables are available in the database:
 | `id` | uuid | NO | gen_random_uuid() |
 | `language` | text | YES | none |
 | `name` | text | YES | none |
-| `user_id` | uuid | YES | none |
+| `parish_id` | uuid | YES | none |
 
 ---
 
@@ -318,34 +319,11 @@ The following tables are available in the database:
 | `created_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
 | `id` | uuid | NO | gen_random_uuid() |
 | `language` | text | NO | en |
+| `selected_parish_id` | uuid | YES | none |
 | `updated_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
 | `user_id` | uuid | YES | none |
 
 ---
-
-## Key Relationships
-
-### Core Tables
-
-- **petitions**: Main petition records with JSON context data
-- **petition_contexts**: Reusable context templates for different liturgical occasions
-- **petition_settings**: User-specific petition text templates
-
-### User Management
-
-- **user_settings**: User preferences and application settings
-- All tables include `user_id` foreign keys to `auth.users`
-
-### Ministry Management
-
-- **ministers**: Clergy and ministry team information
-- **liturgy_plans**: Liturgical planning and preparation
-
-### Reading Management
-
-- **reading_collections**: Named collections of scripture readings
-- **individual_readings**: Individual scripture passages
-- **reading_collection_items**: Many-to-many relationship between collections and readings
 
 ## Security
 

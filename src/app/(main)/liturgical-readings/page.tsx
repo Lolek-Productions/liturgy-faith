@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import Link from "next/link"
 import { Plus, BookOpen, Edit, Eye, Calendar, Sparkles } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
@@ -64,33 +66,26 @@ export default function LiturgicalReadingsPage() {
     loadReadings()
   }, [])
 
-  if (loading) {
-    return <div className="space-y-8">Loading...</div>
-  }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">My Liturgical Readings</h1>
-          <p className="text-muted-foreground">
-            Manage your liturgical reading collections created with the wizard or manual entry.
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Button asChild variant="outline">
-            <Link href="/liturgical-readings/wizard">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Readings Wizard
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link href="/liturgical-readings/create">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Manually
-            </Link>
-          </Button>
-        </div>
+    <PageContainer 
+      title="My Liturgical Readings"
+      description="Manage your liturgical reading collections created with the wizard or manual entry."
+      maxWidth="7xl"
+    >
+      <div className="flex justify-end mb-6 gap-3">
+        <Button asChild variant="outline">
+          <Link href="/liturgical-readings/wizard">
+            <Sparkles className="h-4 w-4 mr-2" />
+            Readings Wizard
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link href="/liturgical-readings/create">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Manually
+          </Link>
+        </Button>
       </div>
 
       {readings.length > 0 ? (
@@ -171,6 +166,8 @@ export default function LiturgicalReadingsPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+      
+      {loading && <Loading variant="skeleton-cards" />}
+    </PageContainer>
   )
 }

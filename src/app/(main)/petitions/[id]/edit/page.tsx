@@ -7,6 +7,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { PageContainer } from '@/components/page-container'
+import { Loading } from '@/components/loading'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -85,14 +87,22 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
 
   if (loadingData) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center py-8">Loading...</div>
-      </div>
+      <PageContainer 
+        title="Edit Petition"
+        description="Loading petition information..."
+        maxWidth="2xl"
+      >
+        <Loading />
+      </PageContainer>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <PageContainer 
+      title="Edit Petition"
+      description="Modify petition details and content"
+      maxWidth="2xl"
+    >
       <div className="mb-6">
         <Button variant="outline" size="sm" asChild>
           <Link href={`/petitions/${id}`}>
@@ -181,6 +191,6 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   )
 }

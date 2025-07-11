@@ -2,22 +2,19 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { CreateCalendarEntryData, LiturgicalCalendarEntry } from '@/lib/types'
-import { redirect } from 'next/navigation'
+import { requireSelectedParish } from '@/lib/auth/parish'
+import { ensureJWTClaims } from '@/lib/auth/jwt-claims'
 
 export async function createCalendarEntry(data: CreateCalendarEntryData) {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data: entry, error } = await supabase
     .from('liturgical_calendar')
     .insert([
       {
-        user_id: user.id,
+        parish_id: selectedParishId,
         title: data.title,
         date: data.date,
         liturgical_season: data.liturgical_season,
@@ -41,17 +38,12 @@ export async function createCalendarEntry(data: CreateCalendarEntryData) {
 
 export async function getCalendarEntries(): Promise<LiturgicalCalendarEntry[]> {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('liturgical_calendar')
     .select('*')
-    .eq('user_id', user.id)
     .order('date', { ascending: true })
 
   if (error) {
@@ -68,18 +60,13 @@ export async function getCalendarEntries(): Promise<LiturgicalCalendarEntry[]> {
 
 export async function getCalendarEntry(id: string): Promise<LiturgicalCalendarEntry | null> {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data, error } = await supabase
     .from('liturgical_calendar')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()
 
   if (error || !data) {
@@ -91,12 +78,8 @@ export async function getCalendarEntry(id: string): Promise<LiturgicalCalendarEn
 
 export async function updateCalendarEntry(id: string, data: CreateCalendarEntryData) {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { data: entry, error } = await supabase
     .from('liturgical_calendar')
@@ -113,7 +96,6 @@ export async function updateCalendarEntry(id: string, data: CreateCalendarEntryD
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
-    .eq('user_id', user.id)
     .select()
     .single()
 
@@ -126,18 +108,13 @@ export async function updateCalendarEntry(id: string, data: CreateCalendarEntryD
 
 export async function deleteCalendarEntry(id: string) {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const { error } = await supabase
     .from('liturgical_calendar')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
 
   if (error) {
     throw new Error('Failed to delete calendar entry')
@@ -146,19 +123,14 @@ export async function deleteCalendarEntry(id: string) {
 
 export async function getUpcomingEvents(limit = 10): Promise<LiturgicalCalendarEntry[]> {
   const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
 
   const today = new Date().toISOString().split('T')[0]
 
   const { data, error } = await supabase
     .from('liturgical_calendar')
     .select('*')
-    .eq('user_id', user.id)
     .gte('date', today)
     .order('date', { ascending: true })
     .limit(limit)
