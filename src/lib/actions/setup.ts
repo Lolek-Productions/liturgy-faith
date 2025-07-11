@@ -115,3 +115,51 @@ export async function createParish(data: {
     throw error
   }
 }
+
+export async function updateParish(parishId: string, data: {
+  name: string
+  city: string
+  state: string
+}) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Check if user has admin rights for this parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('roles')
+      .eq('user_id', user.id)
+      .eq('parish_id', parishId)
+      .single()
+
+    if (userParishError || !userParish || !userParish.roles.includes('admin')) {
+      throw new Error('You do not have permission to update this parish')
+    }
+
+    // Update the parish
+    const { data: parish, error: parishError } = await supabase
+      .from('parishes')
+      .update({
+        name: data.name.trim(),
+        city: data.city.trim(),
+        state: data.state.trim()
+      })
+      .eq('id', parishId)
+      .select()
+      .single()
+
+    if (parishError) {
+      throw new Error(`Failed to update parish: ${parishError.message}`)
+    }
+
+    return { success: true, parish }
+  } catch (error) {
+    console.error('Error updating parish:', error)
+    throw error
+  }
+}

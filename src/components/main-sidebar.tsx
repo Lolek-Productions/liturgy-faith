@@ -27,8 +27,7 @@ import {
   Church
 } from "lucide-react"
 import Link from "next/link"
-import { UserProfile } from "@/components/user-profile"
-import { ParishSwitcher } from "@/components/parish-switcher"
+import { ParishUserMenu } from "@/components/parish-user-menu"
 import { CollapsibleNavSection } from "@/components/collapsible-nav-section"
 
 export function MainSidebar() {
@@ -58,11 +57,6 @@ export function MainSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        
-        {/* Parish Switcher */}
-        <div className="px-2 py-1">
-          <ParishSwitcher />
-        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -232,7 +226,7 @@ export function MainSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t p-2">
-        <UserProfile />
+        <ParishUserMenu />
       </SidebarFooter>
     </Sidebar>
   )
