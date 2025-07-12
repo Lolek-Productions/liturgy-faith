@@ -126,9 +126,7 @@ export function ParishUserMenu() {
   }
 
   function handleEditParish() {
-    if (currentParish) {
-      router.push(`/parishes/${currentParish.id}/edit`)
-    }
+    router.push('/settings/parish')
   }
 
   const handleLogout = async () => {
