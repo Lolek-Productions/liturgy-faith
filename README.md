@@ -70,6 +70,14 @@ A Next.js application for creating and managing church petitions, built with Sup
 - Users can only access their own data
 - Policies enforce user_id isolation
 
+## Testing
+
+Run all tests with `npm test` or run a specific test file with `npm test filename` (e.g., `npm test invitation-flow`). Tests are written in Jest and located in `src/__tests__/`.
+
+### Writing New Tests
+
+When adding features, create test files in `src/__tests__/` following the pattern `feature-name.test.ts`. Mock external dependencies like Supabase and AWS SES, and test both success and error scenarios.
+
 ## Usage
 
 1. **Sign Up/Login**: Create an account or log in with existing credentials

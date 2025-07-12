@@ -178,11 +178,6 @@ export async function setSelectedParish(parishId: string): Promise<void> {
   } else {
     console.log('Successfully updated user settings')
   }
-
-  // Store in localStorage for persistence
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('selected_parish_id', parishId)
-  }
   
   // Force a cache refresh by revalidating the path
   try {

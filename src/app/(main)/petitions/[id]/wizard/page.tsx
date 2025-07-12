@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Check } from 'lucide-react'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { PageContainer } from '@/components/page-container'
 import { getPetition } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
 
@@ -106,19 +107,27 @@ export default function PetitionWizardPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <PageContainer
+        title="Petition Wizard"
+        description="Configure and generate your petitions"
+        maxWidth="4xl"
+      >
         <Card>
           <CardContent className="p-8 text-center">
             <p>Loading petition wizard...</p>
           </CardContent>
         </Card>
-      </div>
+      </PageContainer>
     )
   }
 
   if (error || !petition) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <PageContainer
+        title="Petition Wizard"
+        description="Configure and generate your petitions"
+        maxWidth="4xl"
+      >
         <Card>
           <CardContent className="p-8 text-center">
             <p className="text-red-600">{error || 'Petition not found'}</p>
@@ -127,7 +136,7 @@ export default function PetitionWizardPage() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </PageContainer>
     )
   }
 
@@ -177,69 +186,67 @@ export default function PetitionWizardPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Petition Wizard: {petition.title}</span>
-            <Badge variant="outline">
-              {new Date(petition.date).toLocaleDateString()}
-            </Badge>
-          </CardTitle>
-          <p className="text-muted-foreground">
-            Follow the steps below to configure and generate your petitions.
-          </p>
-        </CardHeader>
-      </Card>
+    <PageContainer
+      title={`Petition Wizard: ${petition.title}`}
+      description="Follow the steps below to configure and generate your petitions"
+      maxWidth="4xl"
+    >
+      <div className="space-y-6">
+        {/* Header with Date Badge */}
+        <div className="flex justify-end">
+          <Badge variant="outline">
+            {new Date(petition.date).toLocaleDateString()}
+          </Badge>
+        </div>
 
-      {/* Progress Steps */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            {STEPS.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className="flex flex-col items-center">
-                  <button
-                    onClick={() => handleStepClick(step.id)}
-                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                      step.id < currentStep
-                        ? 'bg-green-500 border-green-500 text-white'
-                        : step.id === currentStep
-                        ? 'bg-blue-500 border-blue-500 text-white'
-                        : 'border-gray-300 text-gray-500'
-                    } ${step.id <= currentStep ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-                  >
-                    {step.id < currentStep ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      step.id
-                    )}
-                  </button>
+        {/* Progress Steps */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center">
+              {STEPS.map((step, index) => (
+                <div key={step.id} className="flex items-center">
+                  <div className="flex flex-col items-center">
+                    <button
+                      onClick={() => handleStepClick(step.id)}
+                      className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
+                        step.id < currentStep
+                          ? 'bg-green-500 border-green-500 text-white'
+                          : step.id === currentStep
+                          ? 'bg-blue-500 border-blue-500 text-white'
+                          : 'border-gray-300 text-gray-500'
+                      } ${step.id <= currentStep ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+                    >
+                      {step.id < currentStep ? (
+                        <Check className="w-5 h-5" />
+                      ) : (
+                        step.id
+                      )}
+                    </button>
+                  </div>
+                  
+                  {index < STEPS.length - 1 && (
+                    <div 
+                      className={`w-16 h-0.5 mx-4 ${
+                        step.id < currentStep ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
+                    />
+                  )}
                 </div>
-                
-                {index < STEPS.length - 1 && (
-                  <div 
-                    className={`w-16 h-0.5 mx-4 ${
-                      step.id < currentStep ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-4 text-center">
-            <h3 className="font-medium">{STEPS[currentStep - 1]?.title}</h3>
-            <p className="text-sm text-muted-foreground">
-              {STEPS[currentStep - 1]?.description}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+            
+            <div className="mt-4 text-center">
+              <h3 className="font-medium">{STEPS[currentStep - 1]?.title}</h3>
+              <p className="text-sm text-muted-foreground">
+                {STEPS[currentStep - 1]?.description}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Step Content */}
-      {renderStepContent()}
-    </div>
+        {/* Step Content */}
+        {renderStepContent()}
+      </div>
+    </PageContainer>
   )
 }

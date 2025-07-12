@@ -12,6 +12,7 @@ import { ArrowLeft, Save, Plus, X } from "lucide-react"
 import { createLiturgyPlan } from "@/lib/actions/liturgy-planning"
 import { useRouter } from "next/navigation"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { PageContainer } from '@/components/page-container'
 
 export default function CreateLiturgyPlanPage() {
   const router = useRouter()
@@ -70,22 +71,20 @@ export default function CreateLiturgyPlanPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/liturgy-planning">
-          <ArrowLeft className="h-4 w-4" />
-          Back to Plans
-        </Link>
-      </Button>
-      
-      <div>
-        <h1 className="text-3xl font-bold">Create Liturgy Plan</h1>
-        <p className="text-muted-foreground">
-          Plan a complete liturgical celebration with prayers, readings, and instructions.
-        </p>
-      </div>
+    <PageContainer
+      title="Create Liturgy Plan"
+      description="Plan a complete liturgical celebration with prayers, readings, and instructions"
+      maxWidth="4xl"
+    >
+      <div className="space-y-6">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/liturgy-planning">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Plans
+          </Link>
+        </Button>
 
-      <Card className="max-w-4xl">
+        <Card>
         <CardHeader>
           <CardTitle>Liturgy Plan Details</CardTitle>
         </CardHeader>
@@ -211,7 +210,8 @@ export default function CreateLiturgyPlanPage() {
             </div>
           </form>
         </CardContent>
-      </Card>
-    </div>
+        </Card>
+      </div>
+    </PageContainer>
   )
 }

@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Tue Jul  8 15:56:45 CDT 2025
+**Generated on:** Sat Jul 12 10:27:19 CDT 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -23,6 +23,34 @@ This PostgreSQL database supports a liturgical management application with the f
 The following tables are available in the database:
 
 ## Table Schemas
+
+### Table: `announcement_templates`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `created_at` | timestamp with time zone | NO | now() |
+| `id` | bigint | YES | none |
+| `parish_id` | uuid | NO | gen_random_uuid() |
+| `text` | text | YES | none |
+| `title` | text | YES | none |
+
+---
+
+### Table: `announcements`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `created_at` | timestamp with time zone | NO | now() |
+| `id` | bigint | YES | none |
+| `liturgical_event_id` | uuid | YES | none |
+| `parish_id` | uuid | NO | gen_random_uuid() |
+| `text` | text | YES | none |
+
+---
 
 ### Table: `categories`
 
@@ -180,8 +208,26 @@ The following tables are available in the database:
 | `description` | text | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |
 | `name` | text | YES | none |
-| `parish` | uuid | YES | none |
+| `parish_id` | uuid | YES | none |
 | `requirements` | text | YES | none |
+
+---
+
+### Table: `parish_invitations`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `accepted_at` | timestamp with time zone | YES | none |
+| `created_at` | timestamp with time zone | NO | now() |
+| `email` | text | YES | none |
+| `expires_at` | timestamp with time zone | NO | (now() + '7 days'::interval) |
+| `id` | uuid | NO | gen_random_uuid() |
+| `invited_by` | uuid | YES | none |
+| `parish_id` | uuid | YES | none |
+| `roles` | jsonb | YES | none |
+| `token` | uuid | NO | gen_random_uuid() |
 
 ---
 
@@ -316,7 +362,9 @@ The following tables are available in the database:
 
 | Column | Type | Nullable | Default |
 |--------|------|----------|---------|
+| `avatar_url` | text | YES | none |
 | `created_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
+| `full_name` | text | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |
 | `language` | text | NO | en |
 | `selected_parish_id` | uuid | YES | none |

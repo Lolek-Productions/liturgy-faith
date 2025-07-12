@@ -304,6 +304,16 @@ Required environment variables:
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# App Configuration
+NEXT_PUBLIC_APP_URL=https://liturgy.faith
+
+# AWS SES Configuration for Email Invitations
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_SES_FROM_EMAIL=noreply@liturgy.faith
+AWS_SES_REPLY_TO_EMAIL=support@liturgy.faith
 ```
 
 ### Build Process

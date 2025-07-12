@@ -24,7 +24,8 @@ import {
   Sparkles,
   Users,
   User,
-  Church
+  Church,
+  Megaphone
 } from "lucide-react"
 import Link from "next/link"
 import { ParishUserMenu } from "@/components/parish-user-menu"
@@ -72,6 +73,24 @@ export function MainSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
+              <CollapsibleNavSection
+                name="Announcements"
+                icon={Megaphone}
+                items={[
+                  {
+                    title: "View Announcements",
+                    url: "/announcements",
+                    icon: Megaphone,
+                  },
+                  {
+                    title: "Create Announcement",
+                    url: "/announcements?create=true",
+                    icon: Sparkles,
+                  },
+                ]}
+                defaultOpen={false}
+              />
               
               <CollapsibleNavSection
                 name="Petitions"

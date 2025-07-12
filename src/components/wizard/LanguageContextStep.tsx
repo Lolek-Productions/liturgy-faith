@@ -203,7 +203,7 @@ export default function LanguageContextStep({
             <SelectTrigger>
               <SelectValue placeholder="Select a language" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent align="start" side="bottom">
               <SelectItem value="english">English</SelectItem>
               <SelectItem value="spanish">Spanish</SelectItem>
               <SelectItem value="french">French</SelectItem>

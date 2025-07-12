@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { Save, Printer, BookOpen, Plus } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { PageContainer } from '@/components/page-container'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getIndividualReadings } from '@/lib/actions/readings'
 import { getLiturgicalReading, updateLiturgicalReading } from '@/lib/actions/liturgical-readings'
@@ -759,17 +760,23 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
   }
 
   if (loading) {
-    return <div className="space-y-8">Loading...</div>
+    return (
+      <PageContainer
+        title="Loading..."
+        description="Loading liturgical readings wizard"
+        maxWidth="4xl"
+      >
+        <div>Loading...</div>
+      </PageContainer>
+    )
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Liturgical Readings Wizard</h1>
-        <p className="text-muted-foreground">
-          Create your liturgical reading collection step by step
-        </p>
-      </div>
+    <PageContainer
+      title="Liturgical Readings Wizard"
+      description="Create your liturgical reading collection step by step"
+      maxWidth="4xl"
+    >
       
       <WizardContainer
         navigation={
@@ -828,7 +835,7 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
         title="Select Gospel Reading"
         readingType="gospel"
       />
-    </div>
+    </PageContainer>
   )
 }
 

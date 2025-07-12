@@ -13,6 +13,7 @@ import { ArrowLeft, Save, Plus, X } from "lucide-react"
 import { getCalendarEntry, updateCalendarEntry } from "@/lib/actions/calendar"
 import { useRouter, useParams } from "next/navigation"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { PageContainer } from '@/components/page-container'
 
 export default function EditCalendarPage() {
   const router = useRouter()
@@ -106,7 +107,11 @@ export default function EditCalendarPage() {
 
   if (isLoadingData) {
     return (
-      <div className="space-y-6">
+      <PageContainer
+        title="Loading..."
+        description="Loading calendar event details"
+        maxWidth="4xl"
+      >
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/calendar">
@@ -114,32 +119,27 @@ export default function EditCalendarPage() {
               Back to Calendar
             </Link>
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Loading...</h1>
-          </div>
         </div>
-      </div>
+      </PageContainer>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
+    <PageContainer
+      title="Edit Calendar Event"
+      description="Update liturgical celebration details"
+      maxWidth="4xl"
+    >
+      <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="sm" asChild>
           <Link href={`/calendar/${id}`}>
             <ArrowLeft className="h-4 w-4" />
             Back to Event
           </Link>
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Edit Calendar Event</h1>
-          <p className="text-muted-foreground">
-            Update liturgical celebration details.
-          </p>
-        </div>
       </div>
 
-      <Card className="max-w-4xl">
+      <Card>
         <CardHeader>
           <CardTitle>Event Details</CardTitle>
         </CardHeader>
@@ -298,6 +298,6 @@ export default function EditCalendarPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   )
 }

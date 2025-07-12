@@ -18,6 +18,7 @@ import {
   Save
 } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { PageContainer } from '@/components/page-container'
 import { getIndividualReadings } from '@/lib/actions/readings'
 import type { IndividualReading } from '@/lib/types'
 
@@ -166,22 +167,23 @@ export default function ReadingsWizardPage() {
   ]
 
   if (loading) {
-    return <div className="space-y-8">Loading readings...</div>
+    return (
+      <PageContainer
+        title="Loading..."
+        description="Loading readings wizard"
+        maxWidth="6xl"
+      >
+        <div>Loading readings...</div>
+      </PageContainer>
+    )
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Sparkles className="h-8 w-8 text-primary" />
-            Readings Wizard
-          </h1>
-          <p className="text-muted-foreground">
-            Create a complete liturgical reading plan step by step
-          </p>
-        </div>
-      </div>
+    <PageContainer
+      title="Readings Wizard"
+      description="Create a complete liturgical reading plan step by step"
+      maxWidth="6xl"
+    >
 
       {/* Progress Steps */}
       <div className="flex items-center justify-between">
@@ -478,7 +480,7 @@ export default function ReadingsWizardPage() {
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
-    </div>
+    </PageContainer>
   )
 }
 

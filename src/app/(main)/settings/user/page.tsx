@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -12,6 +13,7 @@ import { Save, User, Globe, Printer, BookOpen, RefreshCw } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { useAppContext } from '@/contexts/AppContextProvider'
 import type { UserSettings } from '@/contexts/AppContextProvider'
+import { toast } from 'sonner'
 
 export default function UserSettingsPage() {
   const { user, userSettings, isLoading, refreshSettings, updateSettings } = useAppContext()
@@ -41,11 +43,19 @@ export default function UserSettingsPage() {
 
     setSaving(true)
     try {
-      await updateSettings(formData)
-      alert('Settings saved successfully!')
+      // Only send the fields that are managed by this form
+      // Don't send selected_parish_id since it's not part of this form
+      const updateData = {
+        language: formData.language || userSettings.language,
+        full_name: formData.full_name,
+        avatar_url: formData.avatar_url
+      }
+      
+      await updateSettings(updateData)
+      toast.success('Settings saved successfully!')
     } catch (error) {
       console.error('Error saving settings:', error)
-      alert('Failed to save settings. Please try again.')
+      toast.error('Failed to save settings. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -124,6 +134,16 @@ export default function UserSettingsPage() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
+                  <Label className="text-sm font-medium">Full Name</Label>
+                  <Input
+                    className="mt-1"
+                    placeholder="Enter your full name"
+                    value={formData.full_name || ''}
+                    onChange={(e) => updateFormData({ full_name: e.target.value })}
+                  />
+                </div>
+
+                <div>
                   <Label className="text-sm font-medium">Preferred Language</Label>
                   <Select 
                     value={formData.language} 
@@ -201,8 +221,8 @@ export default function UserSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-muted-foreground">
-                Liturgical preferences coming soon. These settings will allow you to customize
-                your preferred Bible translation, pericope display options, and conclusion text preferences.
+                Additional liturgical preferences will be available here in future updates.
+                Currently, your language preference controls the liturgical content language.
               </p>
             </CardContent>
           </Card>
@@ -215,8 +235,8 @@ export default function UserSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-muted-foreground">
-                Print preferences coming soon. These settings will allow you to customize
-                margin sizes, lector name inclusion, and page numbering for printed materials.
+                Print customization options will be available here in future updates.
+                Current print pages use optimized layouts for liturgical materials.
               </p>
             </CardContent>
           </Card>
@@ -228,6 +248,11 @@ export default function UserSettingsPage() {
               <CardTitle>Account Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Full Name</Label>
+                <p className="mt-1 font-medium">{userSettings?.full_name || 'Not set'}</p>
+              </div>
+
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Email</Label>
                 <p className="mt-1 font-medium">{user.email}</p>

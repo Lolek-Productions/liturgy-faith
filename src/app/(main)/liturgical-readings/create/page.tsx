@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { ArrowLeft, Save } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { PageContainer } from '@/components/page-container'
 import { createLiturgicalReading } from '@/lib/actions/liturgical-readings'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -53,24 +54,20 @@ export default function CreateLiturgicalReadingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-center">
-        <div className="max-w-2xl w-full space-y-6">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/liturgical-readings">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Liturgical Readings
-            </Link>
-          </Button>
-          
-          <div>
-            <h1 className="text-3xl font-bold">Create Reading Collection</h1>
-            <p className="text-muted-foreground">
-              Create a new liturgical reading collection. You&apos;ll be able to add readings in the next step.
-            </p>
-          </div>
+    <PageContainer
+      title="Create Reading Collection"
+      description="Create a new liturgical reading collection. You'll be able to add readings in the next step."
+      maxWidth="2xl"
+    >
+      <div className="space-y-6">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/liturgical-readings">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Liturgical Readings
+          </Link>
+        </Button>
 
-          <Card className="w-full">
+        <Card>
         <CardHeader>
           <CardTitle>Basic Information</CardTitle>
         </CardHeader>
@@ -132,9 +129,8 @@ export default function CreateLiturgicalReadingsPage() {
             </Button>
           </div>
         </CardContent>
-          </Card>
-        </div>
+        </Card>
       </div>
-    </div>
+    </PageContainer>
   )
 }

@@ -106,37 +106,6 @@ export default function SettingsPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-3">
-            <Settings className="h-5 w-5" />
-            Additional Settings
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="border rounded-lg p-4 bg-muted/30">
-              <h4 className="font-medium mb-2">Account Management</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                View account information, export data, or manage your subscription.
-              </p>
-              <Button variant="outline" disabled>
-                Coming Soon
-              </Button>
-            </div>
-            
-            <div className="border rounded-lg p-4 bg-muted/30">
-              <h4 className="font-medium mb-2">Integration Settings</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Connect with external liturgical calendars and planning tools.
-              </p>
-              <Button variant="outline" disabled>
-                Coming Soon
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </PageContainer>
   )
 }

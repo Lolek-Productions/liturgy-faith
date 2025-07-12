@@ -9,6 +9,7 @@ interface BaseFormFieldProps {
   label: string
   description?: string
   required?: boolean
+  disabled?: boolean
   className?: string
   formFieldClassName?: string
 }
@@ -43,7 +44,7 @@ interface SelectFieldProps extends BaseFormFieldProps {
 type FormFieldProps = InputFieldProps | TextareaFieldProps | SelectFieldProps
 
 export function FormField(props: FormFieldProps) {
-  const { id, label, description, required = false, className = '' } = props
+  const { id, label, description, required = false, disabled = false, className = '' } = props
 
   const renderInput = () => {
     switch (props.inputType) {
@@ -57,11 +58,12 @@ export function FormField(props: FormFieldProps) {
             rows={(props as TextareaFieldProps).rows || 12}
             className={`min-h-[200px] ${(props as TextareaFieldProps).resize ? 'resize-y' : 'resize-none'}`}
             required={required}
+            disabled={disabled}
           />
         )
       case 'select':
         return (
-          <Select value={props.value} onValueChange={props.onChange}>
+          <Select value={props.value} onValueChange={props.onChange} disabled={disabled}>
             <SelectTrigger>
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
@@ -90,6 +92,7 @@ export function FormField(props: FormFieldProps) {
             max={(props as InputFieldProps).max}
             step={(props as InputFieldProps).step}
             required={required}
+            disabled={disabled}
           />
         )
     }

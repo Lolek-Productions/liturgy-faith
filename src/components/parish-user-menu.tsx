@@ -109,6 +109,10 @@ export function ParishUserMenu() {
     
     try {
       await setSelectedParish(parishId)
+      
+      // Store in localStorage for persistence (client-side only)
+      localStorage.setItem('selected_parish_id', parishId)
+      
       toast.success('Parish switched successfully!')
       
       // Refresh the page to update all data

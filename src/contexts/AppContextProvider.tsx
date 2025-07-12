@@ -9,6 +9,8 @@ interface UserSettings {
   user_id: string
   selected_parish_id: string | null
   language: string
+  full_name: string | null
+  avatar_url: string | null
   created_at: string
   updated_at: string
 }
@@ -43,7 +45,9 @@ export function AppContextProvider({
   const getDefaultSettings = (userId: string) => ({
     user_id: userId,
     selected_parish_id: null,
-    language: 'en'
+    language: 'en',
+    full_name: null,
+    avatar_url: null
   })
 
   const refreshSettings = async () => {

@@ -163,3 +163,284 @@ export async function updateParish(parishId: string, data: {
     throw error
   }
 }
+
+export async function getParishMembers(parishId: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Check if user has access to this parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('roles')
+      .eq('user_id', user.id)
+      .eq('parish_id', parishId)
+      .single()
+
+    if (userParishError || !userParish) {
+      throw new Error('You do not have access to this parish')
+    }
+
+    // Get all members of the parish with their user settings and email from auth
+    const { data: parishMembers, error: parishMembersError } = await supabase
+      .from('parish_user')
+      .select(`
+        user_id,
+        roles,
+        user_settings (
+          user_id,
+          full_name,
+          created_at
+        )
+      `)
+      .eq('parish_id', parishId)
+
+    if (parishMembersError) {
+      throw new Error(`Failed to fetch parish members: ${parishMembersError.message}`)
+    }
+
+    // Get user emails from auth for each member
+    const members = await Promise.all(
+      (parishMembers || []).map(async (parishMember) => {
+        let userEmail = null
+        try {
+          // Get email from auth.users using admin API
+          const { data: authUser } = await supabase.auth.admin.getUserById(parishMember.user_id)
+          userEmail = authUser.user?.email || null
+        } catch (error) {
+          console.error(`Error fetching email for user ${parishMember.user_id}:`, error)
+        }
+
+        const userSettings = Array.isArray(parishMember.user_settings) 
+          ? parishMember.user_settings[0] 
+          : parishMember.user_settings
+        
+        return {
+          user_id: parishMember.user_id,
+          roles: parishMember.roles,
+          users: userSettings ? {
+            id: userSettings.user_id,
+            email: userEmail,
+            full_name: userSettings.full_name,
+            created_at: userSettings.created_at
+          } : {
+            id: parishMember.user_id,
+            email: userEmail,
+            full_name: null,
+            created_at: null
+          }
+        }
+      })
+    )
+
+    return { success: true, members }
+  } catch (error) {
+    console.error('Error fetching parish members:', error)
+    throw error
+  }
+}
+
+export async function inviteParishMember(parishId: string, email: string, roles: string[] = ['member']) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Check if user has admin rights for this parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('roles')
+      .eq('user_id', user.id)
+      .eq('parish_id', parishId)
+      .single()
+
+    if (userParishError || !userParish || !userParish.roles.includes('admin')) {
+      throw new Error('You do not have permission to invite members to this parish')
+    }
+
+    // Check if there's already a pending invitation for this email
+    const { data: existingInvitation, error: invitationCheckError } = await supabase
+      .from('parish_invitations')
+      .select('id, expires_at, accepted_at')
+      .eq('email', email.toLowerCase().trim())
+      .eq('parish_id', parishId)
+      .single()
+
+    if (invitationCheckError && invitationCheckError.code !== 'PGRST116') {
+      throw new Error(`Error checking existing invitations: ${invitationCheckError.message}`)
+    }
+
+    if (existingInvitation) {
+      // Check if invitation is still valid
+      const now = new Date()
+      const expiresAt = new Date(existingInvitation.expires_at)
+      
+      if (existingInvitation.accepted_at) {
+        throw new Error('This user has already been invited and joined the parish')
+      } else if (now < expiresAt) {
+        throw new Error('A pending invitation already exists for this email address')
+      } else {
+        // Delete expired invitation
+        await supabase
+          .from('parish_invitations')
+          .delete()
+          .eq('id', existingInvitation.id)
+      }
+    }
+
+    // Create invitation and send email
+    
+    // First, get parish and user details for the email
+    const { data: parish } = await supabase
+      .from('parishes')
+      .select('name')
+      .eq('id', parishId)
+      .single()
+      
+    // Get inviter email from current user session
+    const inviterEmail = user.email
+
+    // Create invitation token
+    const { data: invitation, error: invitationError } = await supabase
+      .from('parish_invitations')
+      .insert({
+        parish_id: parishId,
+        email: email.toLowerCase().trim(),
+        roles,
+        invited_by: user.id,
+      })
+      .select('token')
+      .single()
+
+    if (invitationError) {
+      throw new Error(`Failed to create invitation: ${invitationError.message}`)
+    }
+
+    // Generate invitation link
+    const invitationLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://liturgy.faith'}/accept-invitation?token=${invitation.token}`
+
+    // Send invitation email
+    const { sendParishInvitationEmail } = await import('@/lib/email/ses-client')
+    
+    const emailResult = await sendParishInvitationEmail(
+      email,
+      parish?.name || 'Unknown Parish',
+      inviterEmail || 'A parish administrator',
+      invitationLink
+    )
+
+    if (!emailResult.success) {
+      // Clean up the invitation if email fails
+      await supabase
+        .from('parish_invitations')
+        .delete()
+        .eq('token', invitation.token)
+        
+      throw new Error(`Failed to send invitation email: ${emailResult.error}`)
+    }
+
+    return { 
+      success: true, 
+      message: `Invitation sent to ${email}`,
+      userExists: false 
+    }
+  } catch (error) {
+    console.error('Error inviting parish member:', error)
+    throw error
+  }
+}
+
+export async function removeParishMember(parishId: string, userId: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Check if user has admin rights for this parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('roles')
+      .eq('user_id', user.id)
+      .eq('parish_id', parishId)
+      .single()
+
+    if (userParishError || !userParish || !userParish.roles.includes('admin')) {
+      throw new Error('You do not have permission to remove members from this parish')
+    }
+
+    // Don't allow removing yourself
+    if (userId === user.id) {
+      throw new Error('You cannot remove yourself from the parish')
+    }
+
+    // Remove the user from the parish
+    const { error: removeError } = await supabase
+      .from('parish_user')
+      .delete()
+      .eq('user_id', userId)
+      .eq('parish_id', parishId)
+
+    if (removeError) {
+      throw new Error(`Failed to remove member: ${removeError.message}`)
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error removing parish member:', error)
+    throw error
+  }
+}
+
+export async function updateMemberRole(parishId: string, userId: string, roles: string[]) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Check if user has admin rights for this parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('roles')
+      .eq('user_id', user.id)
+      .eq('parish_id', parishId)
+      .single()
+
+    if (userParishError || !userParish || !userParish.roles.includes('admin')) {
+      throw new Error('You do not have permission to update member roles')
+    }
+
+    // Don't allow removing admin role from yourself
+    if (userId === user.id && !roles.includes('admin')) {
+      throw new Error('You cannot remove your own admin role')
+    }
+
+    // Update the member's roles
+    const { error: updateError } = await supabase
+      .from('parish_user')
+      .update({ roles })
+      .eq('user_id', userId)
+      .eq('parish_id', parishId)
+
+    if (updateError) {
+      throw new Error(`Failed to update member role: ${updateError.message}`)
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating member role:', error)
+    throw error
+  }
+}
