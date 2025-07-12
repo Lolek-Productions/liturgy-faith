@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { FormField } from '@/components/form-field'
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
@@ -276,47 +276,34 @@ export default function ParishSettingsPage() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2">
-                  <Label htmlFor="name" className="text-sm font-medium">
-                    Parish Name
-                  </Label>
-                  <Input
+                  <FormField
                     id="name"
-                    type="text"
+                    label="Parish Name"
                     value={formData.name}
-                    onChange={(e) => handleChange('name', e.target.value)}
+                    onChange={(value) => handleChange('name', value)}
                     placeholder="St. Mary's Catholic Church"
-                    className="mt-1"
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="city" className="text-sm font-medium">
-                    City
-                  </Label>
-                  <Input
+                  <FormField
                     id="city"
-                    type="text"
+                    label="City"
                     value={formData.city}
-                    onChange={(e) => handleChange('city', e.target.value)}
+                    onChange={(value) => handleChange('city', value)}
                     placeholder="New York"
-                    className="mt-1"
                     required
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="state" className="text-sm font-medium">
-                    State
-                  </Label>
-                  <Input
+                  <FormField
                     id="state"
-                    type="text"
+                    label="State"
                     value={formData.state}
-                    onChange={(e) => handleChange('state', e.target.value)}
+                    onChange={(value) => handleChange('state', value)}
                     placeholder="NY"
-                    maxLength={2}
-                    className="mt-1"
                     required
                   />
                 </div>
@@ -429,16 +416,13 @@ export default function ParishSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="invite-email" className="text-sm font-medium">
-                  Email Address
-                </Label>
-                <Input
+                <FormField
                   id="invite-email"
-                  type="email"
+                  label="Email Address"
+                  inputType="email"
                   value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
+                  onChange={(value) => setInviteEmail(value)}
                   placeholder="member@example.com"
-                  className="mt-1"
                   required
                 />
               </div>

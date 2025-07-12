@@ -3,11 +3,10 @@
 import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { FormField } from '@/components/form-field'
 import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
 import { Plus, Edit, Trash2 } from "lucide-react"
@@ -157,37 +156,34 @@ export default function PetitionContextsPage() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g., Christmas Mass, Easter Vigil"
-                />
-              </div>
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Brief description of when to use this context"
-                />
-              </div>
-              <div>
-                <Label htmlFor="context">Default Petition Text</Label>
-                <Textarea
-                  id="context"
-                  value={formData.context}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    context: e.target.value
-                  })}
-                  placeholder="Enter the default petition text for this context..."
-                  className="min-h-[200px] font-mono text-sm"
-                />
-              </div>
+              <FormField
+                id="title"
+                label="Title"
+                value={formData.title}
+                onChange={(value) => setFormData({ ...formData, title: value })}
+                placeholder="e.g., Christmas Mass, Easter Vigil"
+                required
+              />
+              <FormField
+                id="description"
+                label="Description"
+                value={formData.description || ''}
+                onChange={(value) => setFormData({ ...formData, description: value })}
+                placeholder="Brief description of when to use this context"
+              />
+              <FormField
+                id="context"
+                label="Default Petition Text"
+                inputType="textarea"
+                value={formData.context || ''}
+                onChange={(value) => setFormData({ 
+                  ...formData, 
+                  context: value
+                })}
+                placeholder="Enter the default petition text for this context..."
+                rows={12}
+                className="font-mono text-sm"
+              />
               <div className="flex gap-4">
                 <Button 
                   onClick={editingContext ? handleUpdateContext : handleCreateContext}

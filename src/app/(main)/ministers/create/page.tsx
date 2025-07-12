@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react"
 import { PageContainer } from "@/components/page-container"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
+import { FormField } from '@/components/form-field'
 import Link from "next/link"
 import { Save } from "lucide-react"
 import { createMinister } from "@/lib/actions/ministers"
@@ -57,21 +56,21 @@ export default function CreateMinisterPage() {
     >
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
+              <div>
+                <FormField
                   id="name"
+                  label="Name"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(value) => setFormData({...formData, name: value})}
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="role">Role *</Label>
-                <Input
+              <div>
+                <FormField
                   id="role"
+                  label="Role"
                   value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  onChange={(value) => setFormData({...formData, role: value})}
                   placeholder="e.g., Priest, Deacon, Lector, etc."
                   required
                 />
@@ -79,35 +78,34 @@ export default function CreateMinisterPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
+              <div>
+                <FormField
                   id="email"
-                  type="email"
+                  label="Email"
+                  inputType="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(value) => setFormData({...formData, email: value})}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
+              <div>
+                <FormField
                   id="phone"
+                  label="Phone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  onChange={(value) => setFormData({...formData, phone: value})}
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                placeholder="Additional information, availability, special notes..."
-                rows={3}
-              />
-            </div>
+            <FormField
+              id="notes"
+              label="Notes"
+              inputType="textarea"
+              value={formData.notes}
+              onChange={(value) => setFormData({...formData, notes: value})}
+              placeholder="Additional information, availability, special notes..."
+              rows={3}
+            />
 
             <div className="flex items-center space-x-2">
               <Switch
