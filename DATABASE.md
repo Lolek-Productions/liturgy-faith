@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Sat Jul 12 10:27:19 CDT 2025
+**Generated on:** Sat Jul 12 21:22:26 CDT 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -228,6 +228,22 @@ The following tables are available in the database:
 | `parish_id` | uuid | YES | none |
 | `roles` | jsonb | YES | none |
 | `token` | uuid | NO | gen_random_uuid() |
+
+---
+
+### Table: `parish_members_view`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `avatar_url` | text | YES | none |
+| `created_at` | timestamp with time zone | YES | none |
+| `full_name` | text | YES | none |
+| `parish_id` | uuid | YES | none |
+| `roles` | jsonb | YES | none |
+| `updated_at` | timestamp with time zone | YES | none |
+| `user_id` | uuid | YES | none |
 
 ---
 

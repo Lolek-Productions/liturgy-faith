@@ -185,18 +185,10 @@ export async function getParishMembers(parishId: string) {
       throw new Error('You do not have access to this parish')
     }
 
-    // Get all members of the parish with their user settings and email from auth
+    // Get all members of the parish using the view
     const { data: parishMembers, error: parishMembersError } = await supabase
-      .from('parish_user')
-      .select(`
-        user_id,
-        roles,
-        user_settings (
-          user_id,
-          full_name,
-          created_at
-        )
-      `)
+      .from('parish_members_view')
+      .select('*')
       .eq('parish_id', parishId)
 
     if (parishMembersError) {
@@ -214,24 +206,15 @@ export async function getParishMembers(parishId: string) {
         } catch (error) {
           console.error(`Error fetching email for user ${parishMember.user_id}:`, error)
         }
-
-        const userSettings = Array.isArray(parishMember.user_settings) 
-          ? parishMember.user_settings[0] 
-          : parishMember.user_settings
         
         return {
           user_id: parishMember.user_id,
           roles: parishMember.roles,
-          users: userSettings ? {
-            id: userSettings.user_id,
-            email: userEmail,
-            full_name: userSettings.full_name,
-            created_at: userSettings.created_at
-          } : {
+          users: {
             id: parishMember.user_id,
             email: userEmail,
-            full_name: null,
-            created_at: null
+            full_name: parishMember.full_name,
+            created_at: parishMember.created_at
           }
         }
       })

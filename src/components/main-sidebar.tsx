@@ -107,7 +107,7 @@ export function MainSidebar() {
                     icon: Sparkles,
                   },
                 ]}
-                defaultOpen={true}
+                defaultOpen={false}
               />
 
               <CollapsibleNavSection
@@ -125,7 +125,7 @@ export function MainSidebar() {
                     icon: Sparkles,
                   },
                 ]}
-                defaultOpen={true}
+                defaultOpen={false}
               />
 
               <CollapsibleNavSection
