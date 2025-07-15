@@ -133,6 +133,10 @@ export async function getPetitionContext(contextId: string): Promise<PetitionCon
   return data
 }
 
+export async function getPetitionContextById(contextId: string): Promise<PetitionContextTemplate | null> {
+  return getPetitionContext(contextId)
+}
+
 
 // Function to clean up invalid contexts
 export async function cleanupInvalidContexts(): Promise<void> {
