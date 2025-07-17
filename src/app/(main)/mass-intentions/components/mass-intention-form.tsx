@@ -11,27 +11,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { PageContainer } from '@/components/page-container'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
-import { Church, Save, X, Calendar, User, DollarSign, Clock } from 'lucide-react'
+import { Church, Save, X, Calendar, User, DollarSign, Clock, UserSearch } from 'lucide-react'
 import { toast } from 'sonner'
 import { 
   getMassIntentionById,
   createMassIntention,
   updateMassIntention,
   getAvailableLiturgicalEvents,
-  getPeople,
   getMinistersByRole,
   type MassIntentionWithDetails 
 } from '@/lib/actions/mass-intentions'
+import { PeoplePicker, usePeoplePicker } from '@/components/people-picker'
+import { type Person } from '@/lib/actions/people'
 
 interface MassIntentionFormProps {
   intentionId?: string
-}
-
-interface Person {
-  id: string
-  first_name: string
-  last_name: string
-  email: string
 }
 
 interface Minister {
@@ -53,7 +47,6 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
   const router = useRouter()
   const { setBreadcrumbs } = useBreadcrumbs()
   const [, setIntention] = useState<MassIntentionWithDetails | null>(null)
-  const [people, setPeople] = useState<Person[]>([])
   const [ministers, setMinisters] = useState<Minister[]>([])
   const [liturgicalEvents, setLiturgicalEvents] = useState<LiturgicalEvent[]>([])
   const [loading, setLoading] = useState(false)
@@ -69,6 +62,12 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
     note: '',
     status: 'unscheduled'
   })
+
+  // People picker hooks
+  const donorPicker = usePeoplePicker()
+  const celebrantPicker = usePeoplePicker()
+  const [selectedDonor, setSelectedDonor] = useState<Person | null>(null)
+  const [selectedCelebrant, setSelectedCelebrant] = useState<Person | null>(null)
 
   const isEditing = Boolean(intentionId)
 
@@ -89,13 +88,8 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
     try {
       setLoading(true)
       
-      // Load people and ministers in parallel
-      const [peopleResult, ministersResult] = await Promise.all([
-        getPeople(),
-        getMinistersByRole('priest')
-      ])
-
-      setPeople(peopleResult)
+      // Load ministers
+      const ministersResult = await getMinistersByRole('priest')
       setMinisters(ministersResult)
 
       // Load liturgical events for next 3 months
@@ -125,6 +119,43 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
             note: intentionData.note || '',
             status: intentionData.status || 'unscheduled'
           })
+
+          // Set selected people based on loaded data - we'll load the specific people if needed
+          if (intentionData.donor_id) {
+            // For now, we'll create a minimal person object and let the picker handle loading details
+            // In a real implementation, you might want to load the specific person data
+            setSelectedDonor({
+              id: intentionData.donor_id,
+              parish_id: '',
+              first_name: 'Selected',
+              last_name: 'Donor',
+              email: '',
+              phone: '',
+              notes: '',
+              is_active: true,
+              created_at: '',
+              updated_at: ''
+            })
+          }
+          
+          if (intentionData.offered_by_id) {
+            const celebrant = ministersResult.find(m => m.id === intentionData.offered_by_id)
+            if (celebrant) {
+              // Convert minister to person-like object for consistency
+              setSelectedCelebrant({
+                id: celebrant.id,
+                parish_id: '', // Ministers don't have parish_id in this context
+                first_name: celebrant.name.split(' ')[0] || '',
+                last_name: celebrant.name.split(' ').slice(1).join(' ') || '',
+                email: '',
+                phone: '',
+                notes: '',
+                is_active: true,
+                created_at: '',
+                updated_at: ''
+              })
+            }
+          }
         }
       } else {
         // Set default date_requested to today for new intentions
@@ -139,6 +170,26 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDonorSelect = (person: Person) => {
+    setSelectedDonor(person)
+    setFormData(prev => ({ ...prev, donor_id: person.id }))
+  }
+
+  const handleCelebrantSelect = (person: Person) => {
+    setSelectedCelebrant(person)
+    setFormData(prev => ({ ...prev, offered_by_id: person.id }))
+  }
+
+  const clearDonorSelection = () => {
+    setSelectedDonor(null)
+    setFormData(prev => ({ ...prev, donor_id: '' }))
+  }
+
+  const clearCelebrantSelection = () => {
+    setSelectedCelebrant(null)
+    setFormData(prev => ({ ...prev, offered_by_id: '' }))
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -207,10 +258,6 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
     return `${event.name} - ${date} at ${time}`
   }
 
-  const getPersonDisplayName = (person: Person) => {
-    return `${person.first_name} ${person.last_name}`.trim()
-  }
-
   if (loading) {
     return (
       <PageContainer
@@ -255,22 +302,45 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
 
             {/* Donor */}
             <div className="space-y-2">
-              <Label htmlFor="donor_id" className="text-sm font-medium flex items-center gap-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Donor/Requestor
               </Label>
-              <Select value={formData.donor_id} onValueChange={(value) => handleInputChange('donor_id', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select donor (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {people.map((person) => (
-                    <SelectItem key={person.id} value={person.id}>
-                      {getPersonDisplayName(person)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                {selectedDonor ? (
+                  <div className="flex-1 flex items-center justify-between p-3 border border-input rounded-md">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">
+                        {selectedDonor.first_name} {selectedDonor.last_name}
+                      </span>
+                      {selectedDonor.email && (
+                        <span className="text-sm text-muted-foreground">
+                          ({selectedDonor.email})
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearDonorSelection}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 justify-start"
+                    onClick={donorPicker.openPicker}
+                  >
+                    <UserSearch className="h-4 w-4 mr-2" />
+                    Select donor (optional)
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Date Requested */}
@@ -316,21 +386,44 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
 
             {/* Celebrant */}
             <div className="space-y-2">
-              <Label htmlFor="offered_by_id" className="text-sm font-medium">
+              <Label className="text-sm font-medium">
                 Celebrant
               </Label>
-              <Select value={formData.offered_by_id} onValueChange={(value) => handleInputChange('offered_by_id', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select celebrant (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ministers.map((minister) => (
-                    <SelectItem key={minister.id} value={minister.id}>
-                      {minister.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                {selectedCelebrant ? (
+                  <div className="flex-1 flex items-center justify-between p-3 border border-input rounded-md">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">
+                        {selectedCelebrant.first_name} {selectedCelebrant.last_name}
+                      </span>
+                      {selectedCelebrant.email && (
+                        <span className="text-sm text-muted-foreground">
+                          ({selectedCelebrant.email})
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearCelebrantSelection}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 justify-start"
+                    onClick={celebrantPicker.openPicker}
+                  >
+                    <UserSearch className="h-4 w-4 mr-2" />
+                    Select celebrant (optional)
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Amount Donated */}
@@ -402,6 +495,25 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
           </form>
         </CardContent>
       </Card>
+
+      {/* People Pickers */}
+      <PeoplePicker
+        open={donorPicker.open}
+        onOpenChange={donorPicker.setOpen}
+        onSelect={handleDonorSelect}
+        placeholder="Search for a donor..."
+        emptyMessage="No people found. You can add a new person."
+        selectedPersonId={selectedDonor?.id}
+      />
+
+      <PeoplePicker
+        open={celebrantPicker.open}
+        onOpenChange={celebrantPicker.setOpen}
+        onSelect={handleCelebrantSelect}
+        placeholder="Search for a celebrant..."
+        emptyMessage="No people found. You can add a new person."
+        selectedPersonId={selectedCelebrant?.id}
+      />
     </PageContainer>
   )
 }

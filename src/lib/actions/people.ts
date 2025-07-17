@@ -179,3 +179,29 @@ export async function getActivePeople(): Promise<Person[]> {
 
   return data || []
 }
+
+export async function searchPeople(query: string): Promise<Person[]> {
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
+  const supabase = await createClient()
+
+  if (!query.trim()) {
+    return getActivePeople()
+  }
+
+  const { data, error } = await supabase
+    .from('people')
+    .select('*')
+    .eq('is_active', true)
+    .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%`)
+    .order('last_name', { ascending: true })
+    .order('first_name', { ascending: true })
+    .limit(20)
+
+  if (error) {
+    console.error('Error searching people:', error)
+    throw new Error('Failed to search people')
+  }
+
+  return data || []
+}
