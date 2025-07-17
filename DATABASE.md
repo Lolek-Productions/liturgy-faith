@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Sat Jul 12 21:22:26 CDT 2025
+**Generated on:** Thu Jul 17 09:42:49 CDT 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -179,6 +179,58 @@ The following tables are available in the database:
 | `second_reading_lector` | text | YES | none |
 | `second_reading` | text | YES | none |
 | `title` | text | YES | none |
+
+---
+
+### Table: `mass_intentions`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `amount_donated` | bigint | YES | none |
+| `created_at` | timestamp with time zone | NO | now() |
+| `date_requested` | date | YES | none |
+| `donor_id` | uuid | YES | none |
+| `id` | uuid | NO | gen_random_uuid() |
+| `liturgical_event_id` | uuid | YES | none |
+| `mass_offered_for` | text | YES | none |
+| `note` | text | YES | none |
+| `offered_by_id` | uuid | YES | none |
+| `parish_id` | uuid | NO | gen_random_uuid() |
+| `received_at` | timestamp with time zone | YES | none |
+| `scheduled_at` | timestamp with time zone | YES | none |
+| `status` | text | NO | unscheduled |
+
+---
+
+### Table: `mass_intentions_with_events`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `amount_donated` | bigint | YES | none |
+| `celebrant_name` | text | YES | none |
+| `created_at` | timestamp with time zone | YES | none |
+| `date_requested` | date | YES | none |
+| `donor_id` | uuid | YES | none |
+| `donor_name` | text | YES | none |
+| `end_time` | time without time zone | YES | none |
+| `event_date` | date | YES | none |
+| `event_description` | text | YES | none |
+| `event_name` | text | YES | none |
+| `id` | uuid | YES | none |
+| `liturgical_event_id` | uuid | YES | none |
+| `location` | text | YES | none |
+| `mass_offered_for` | text | YES | none |
+| `note` | text | YES | none |
+| `offered_by_id` | uuid | YES | none |
+| `parish_id` | uuid | YES | none |
+| `received_at` | timestamp with time zone | YES | none |
+| `scheduled_at` | timestamp with time zone | YES | none |
+| `start_time` | time without time zone | YES | none |
+| `status` | text | YES | none |
 
 ---
 

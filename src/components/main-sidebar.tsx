@@ -25,7 +25,8 @@ import {
   Users,
   User,
   Church,
-  Megaphone
+  Megaphone,
+  Heart
 } from "lucide-react"
 import Link from "next/link"
 import { ParishUserMenu } from "@/components/parish-user-menu"
@@ -87,6 +88,39 @@ export function MainSidebar() {
                     title: "Create Announcement",
                     url: "/announcements?create=true",
                     icon: Sparkles,
+                  },
+                ]}
+                defaultOpen={false}
+              />
+
+              <CollapsibleNavSection
+                name="Mass Intentions"
+                icon={Heart}
+                items={[
+                  {
+                    title: "All Mass Intentions",
+                    url: "/mass-intentions",
+                    icon: Heart,
+                  },
+                  {
+                    title: "Create Mass Intention",
+                    url: "/mass-intentions/create",
+                    icon: Sparkles,
+                  },
+                  {
+                    title: "Calendar View",
+                    url: "/mass-intentions/calendar",
+                    icon: Calendar,
+                  },
+                  {
+                    title: "Admin View",
+                    url: "/mass-intentions/admin",
+                    icon: Settings,
+                  },
+                  {
+                    title: "Print Report",
+                    url: "/mass-intentions-print",
+                    icon: FileText,
                   },
                 ]}
                 defaultOpen={false}
