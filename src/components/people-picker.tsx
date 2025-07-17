@@ -30,7 +30,6 @@ import {
   UserPlus, 
   Mail, 
   Phone, 
-  Search,
   X,
   Save
 } from 'lucide-react'
@@ -201,9 +200,9 @@ export function PeoplePicker({
   return (
     <>
       <CommandDialog open={open} onOpenChange={onOpenChange}>
+        <DialogTitle className="sr-only">Select Person</DialogTitle>
       <Command className={cn("rounded-lg border shadow-md", className)}>
         <div className="flex items-center border-b px-3">
-          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           <CommandInput
             placeholder={placeholder}
             value={searchQuery}
