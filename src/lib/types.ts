@@ -209,6 +209,15 @@ export interface Parish {
   created_at: string
 }
 
+export interface ParishSettings {
+  id: string
+  parish_id: string
+  mass_intention_offering_quick_amounts: Array<{amount: number, label: string}>
+  donations_quick_amounts: Array<{amount: number, label: string}>
+  created_at: string
+  updated_at: string
+}
+
 export interface ParishUser {
   user_id: string
   parish_id: string

@@ -30,7 +30,6 @@ import {
   UserPlus, 
   Mail, 
   Phone, 
-  X,
   Save
 } from 'lucide-react'
 import { searchPeople, createPerson, type Person } from '@/lib/actions/people'
@@ -202,23 +201,13 @@ export function PeoplePicker({
       <CommandDialog open={open} onOpenChange={onOpenChange}>
         <DialogTitle className="sr-only">Select Person</DialogTitle>
       <Command className={cn("rounded-lg border shadow-md", className)}>
-        <div className="flex items-center border-b px-3">
+        <div className="flex items-center border-b px-3" onClick={(e) => e.stopPropagation()}>
           <CommandInput
             placeholder={placeholder}
             value={searchQuery}
             onValueChange={setSearchQuery}
             className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
           />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-auto p-1"
-              onClick={() => setSearchQuery('')}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
         </div>
 
         <CommandList className="max-h-[400px]">

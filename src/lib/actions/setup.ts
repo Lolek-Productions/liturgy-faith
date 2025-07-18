@@ -164,6 +164,128 @@ export async function updateParish(parishId: string, data: {
   }
 }
 
+export async function getParishSettings(parishId: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Check if user has access to this parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('roles')
+      .eq('user_id', user.id)
+      .eq('parish_id', parishId)
+      .single()
+
+    if (userParishError || !userParish) {
+      throw new Error('You do not have access to this parish')
+    }
+
+    // Get parish settings
+    const { data: settings, error: settingsError } = await supabase
+      .from('parish_settings')
+      .select('*')
+      .eq('parish_id', parishId)
+      .single()
+
+    if (settingsError) {
+      // If settings don't exist, create default settings
+      if (settingsError.code === 'PGRST116') {
+        const { data: newSettings, error: createError } = await supabase
+          .from('parish_settings')
+          .insert({
+            parish_id: parishId,
+            mass_intention_offering_quick_amounts: [
+              { amount: 100, label: '$1' },
+              { amount: 200, label: '$2' },
+              { amount: 500, label: '$5' }
+            ],
+            donations_quick_amounts: [
+              { amount: 500, label: '$5' },
+              { amount: 1000, label: '$10' },
+              { amount: 2500, label: '$25' },
+              { amount: 5000, label: '$50' }
+            ]
+          })
+          .select()
+          .single()
+
+        if (createError) {
+          throw new Error(`Failed to create parish settings: ${createError.message}`)
+        }
+
+        return { success: true, settings: newSettings }
+      }
+      throw new Error(`Failed to fetch parish settings: ${settingsError.message}`)
+    }
+
+    return { success: true, settings }
+  } catch (error) {
+    console.error('Error getting parish settings:', error)
+    throw error
+  }
+}
+
+export async function updateParishSettings(parishId: string, data: {
+  mass_intention_offering_quick_amounts?: Array<{amount: number, label: string}>
+  donations_quick_amounts?: Array<{amount: number, label: string}>
+}) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Check if user has admin rights for this parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('roles')
+      .eq('user_id', user.id)
+      .eq('parish_id', parishId)
+      .single()
+
+    if (userParishError || !userParish || !userParish.roles.includes('admin')) {
+      throw new Error('You do not have permission to update parish settings')
+    }
+
+    // Prepare update data
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    }
+
+    if (data.mass_intention_offering_quick_amounts !== undefined) {
+      updateData.mass_intention_offering_quick_amounts = data.mass_intention_offering_quick_amounts
+    }
+
+    if (data.donations_quick_amounts !== undefined) {
+      updateData.donations_quick_amounts = data.donations_quick_amounts
+    }
+
+    // Update parish settings
+    const { data: settings, error: settingsError } = await supabase
+      .from('parish_settings')
+      .update(updateData)
+      .eq('parish_id', parishId)
+      .select()
+      .single()
+
+    if (settingsError) {
+      throw new Error(`Failed to update parish settings: ${settingsError.message}`)
+    }
+
+    return { success: true, settings }
+  } catch (error) {
+    console.error('Error updating parish settings:', error)
+    throw error
+  }
+}
+
 export async function getParishMembers(parishId: string) {
   const supabase = await createClient()
   

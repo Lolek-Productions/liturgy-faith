@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Thu Jul 17 09:42:49 CDT 2025
+**Generated on:** Thu Jul 17 20:08:24 CDT 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -296,6 +296,20 @@ The following tables are available in the database:
 | `roles` | jsonb | YES | none |
 | `updated_at` | timestamp with time zone | YES | none |
 | `user_id` | uuid | YES | none |
+
+---
+
+### Table: `parish_settings`
+
+**Column Schema:**
+
+| Column | Type | Nullable | Default |
+|--------|------|----------|---------|
+| `created_at` | timestamp with time zone | NO | now() |
+| `id` | uuid | NO | gen_random_uuid() |
+| `mass_intention_offering_quick_amounts` | jsonb | YES | none |
+| `parish_id` | uuid | YES | none |
+| `updated_at` | timestamp with time zone | NO | now() |
 
 ---
 

@@ -22,6 +22,9 @@ import {
   type MassIntentionWithDetails 
 } from '@/lib/actions/mass-intentions'
 import { PeoplePicker, usePeoplePicker } from '@/components/people-picker'
+import { OfferingAmountInput, useOfferingAmount } from '@/components/offering-amount-input'
+import { useParishSettings } from '@/hooks/use-parish-settings'
+import { getCurrentParish } from '@/lib/auth/parish'
 import { type Person } from '@/lib/actions/people'
 
 interface MassIntentionFormProps {
@@ -49,6 +52,7 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
   const [, setIntention] = useState<MassIntentionWithDetails | null>(null)
   const [ministers, setMinisters] = useState<Minister[]>([])
   const [liturgicalEvents, setLiturgicalEvents] = useState<LiturgicalEvent[]>([])
+  const [currentParishId, setCurrentParishId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
@@ -58,10 +62,21 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
     date_requested: '',
     scheduled_at: '',
     liturgical_event_id: '',
-    amount_donated: '',
     note: '',
     status: 'unscheduled'
   })
+
+  // Use the offering amount hook for proper cents handling
+  const offeringAmount = useOfferingAmount(0)
+  
+  // Get parish settings for quick amounts
+  const { quickAmounts, settings } = useParishSettings(currentParishId)
+  const [localQuickAmounts, setLocalQuickAmounts] = useState<Array<{amount: number, label: string}>>([])
+  
+  // Initialize local quick amounts when quickAmounts from settings change
+  useEffect(() => {
+    setLocalQuickAmounts(quickAmounts)
+  }, [quickAmounts.length]) // Only update when length changes to avoid infinite loops
 
   // People picker hooks
   const donorPicker = usePeoplePicker()
@@ -87,6 +102,12 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
   async function loadInitialData() {
     try {
       setLoading(true)
+      
+      // Get current parish
+      const parish = await getCurrentParish()
+      if (parish) {
+        setCurrentParishId(parish.id)
+      }
       
       // Load ministers
       const ministersResult = await getMinistersByRole('priest')
@@ -115,10 +136,14 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
             date_requested: intentionData.date_requested || '',
             scheduled_at: intentionData.scheduled_at || '',
             liturgical_event_id: intentionData.liturgical_event_id || '',
-            amount_donated: intentionData.amount_donated ? (intentionData.amount_donated / 100).toString() : '',
             note: intentionData.note || '',
             status: intentionData.status || 'unscheduled'
           })
+
+          // Set offering amount if exists
+          if (intentionData.amount_donated) {
+            offeringAmount.setValueFromCents(intentionData.amount_donated)
+          }
 
           // Set selected people based on loaded data - we'll load the specific people if needed
           if (intentionData.donor_id) {
@@ -192,6 +217,10 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
     setFormData(prev => ({ ...prev, offered_by_id: '' }))
   }
 
+  const handleQuickAmountAdded = (newQuickAmount: {amount: number, label: string}) => {
+    setLocalQuickAmounts(prev => [...prev, newQuickAmount])
+  }
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     
@@ -223,7 +252,7 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
       submitData.append('date_requested', formData.date_requested)
       submitData.append('scheduled_at', formData.scheduled_at)
       submitData.append('liturgical_event_id', formData.liturgical_event_id)
-      submitData.append('amount_donated', formData.amount_donated ? (parseFloat(formData.amount_donated) * 100).toString() : '0')
+      submitData.append('amount_donated', offeringAmount.getValueInCents().toString())
       submitData.append('note', formData.note)
       submitData.append('status', formData.status)
       
@@ -427,21 +456,16 @@ export function MassIntentionForm({ intentionId }: MassIntentionFormProps) {
             </div>
 
             {/* Amount Donated */}
-            <div className="space-y-2">
-              <Label htmlFor="amount_donated" className="text-sm font-medium flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Offering Amount
-              </Label>
-              <Input
-                id="amount_donated"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={formData.amount_donated}
-                onChange={(e) => handleInputChange('amount_donated', e.target.value)}
-              />
-            </div>
+            <OfferingAmountInput
+              id="amount_donated"
+              label="Offering Amount"
+              value={offeringAmount.dollarValue}
+              onChange={offeringAmount.setDollarValue}
+              quickAmounts={localQuickAmounts}
+              placeholder="0.00"
+              parishId={currentParishId || undefined}
+              onQuickAmountAdded={handleQuickAmountAdded}
+            />
 
             {/* Note */}
             <div className="space-y-2">
