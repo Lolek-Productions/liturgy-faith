@@ -27,7 +27,7 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
 
   const handlePrint = () => {
     if (petitionId) {
-      const printUrl = `/print/petitions-print?id=${petitionId}&title=Petitions`
+      const printUrl = `/print/petitions/${petitionId}`
       window.open(printUrl, '_blank')
     }
   }
@@ -78,7 +78,7 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
 
   return (
     <PageContainer 
-      title={petition.title}
+      title="Petition Details"
       description={`Petition for ${new Date(petition.date).toLocaleDateString()}`}
       maxWidth="4xl"
     >

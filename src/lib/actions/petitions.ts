@@ -199,13 +199,28 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
     return null
   }
 
-  const { data: context, error: contextError } = await supabase
-    .from('petition_contexts')
-    .select('*')
-    .eq('petition_id', id)
-    .single()
+  // Parse the context from the petition's context field
+  let context: PetitionContext | null = null
+  if (petition.context) {
+    try {
+      const parsedContext = JSON.parse(petition.context)
+      context = {
+        id: petition.id,
+        parish_id: petition.parish_id,
+        title: parsedContext.name || petition.title,
+        description: parsedContext.description || '',
+        context: petition.context,
+        community_info: parsedContext.community_info || '',
+        created_at: petition.created_at,
+        updated_at: petition.updated_at
+      }
+    } catch (e) {
+      console.error('Failed to parse petition context:', e)
+      return null
+    }
+  }
 
-  if (contextError || !context) {
+  if (!context) {
     return null
   }
 

@@ -75,23 +75,7 @@ export function MainSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <CollapsibleNavSection
-                name="Announcements"
-                icon={Megaphone}
-                items={[
-                  {
-                    title: "View Announcements",
-                    url: "/announcements",
-                    icon: Megaphone,
-                  },
-                  {
-                    title: "Create Announcement",
-                    url: "/announcements?create=true",
-                    icon: Sparkles,
-                  },
-                ]}
-                defaultOpen={false}
-              />
+              
 
               <CollapsibleNavSection
                 name="Mass Intentions"
@@ -231,6 +215,24 @@ export function MainSidebar() {
                     title: "Event Templates",
                     url: "/liturgical-event-templates",
                     icon: FileText,
+                  },
+                ]}
+                defaultOpen={false}
+              />
+
+              <CollapsibleNavSection
+                name="Announcements"
+                icon={Megaphone}
+                items={[
+                  {
+                    title: "View Announcements",
+                    url: "/announcements",
+                    icon: Megaphone,
+                  },
+                  {
+                    title: "Create Announcement",
+                    url: "/announcements?create=true",
+                    icon: Sparkles,
                   },
                 ]}
                 defaultOpen={false}

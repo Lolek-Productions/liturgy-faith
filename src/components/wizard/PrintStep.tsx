@@ -26,7 +26,7 @@ export default function PrintStep({
 }: PrintStepProps) {
   
   const handlePrint = () => {
-    window.open(`/petitions-print?id=${petition.id}`, '_blank')
+    window.open(`/print/petitions/${petition.id}`, '_blank')
   }
 
   const handleViewPetition = () => {

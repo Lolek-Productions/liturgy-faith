@@ -220,7 +220,7 @@ This is a Next.js 15 application with TypeScript, featuring:
 - `src/app/` - Next.js App Router pages and layouts
   - `(main)/` - Authenticated user pages
   - `(public)/` - Public pages (landing, login, etc.)
-  - `(print)/` - Print-optimized pages
+  - `print/` - Print-optimized pages
 - `src/components/` - Reusable UI components
 - `src/lib/` - Utility functions and configurations
 - `src/hooks/` - Custom React hooks

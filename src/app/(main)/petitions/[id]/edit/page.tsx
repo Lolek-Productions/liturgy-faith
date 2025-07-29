@@ -2,11 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import { FormField } from '@/components/ui/form-field'
 import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
 import { ArrowLeft } from 'lucide-react'
@@ -119,45 +116,42 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter title for these petitions"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
-              </div>
+              <FormField
+                id="title"
+                label="Title"
+                description="A descriptive name for this set of petitions"
+                value={title}
+                onChange={setTitle}
+                placeholder="Enter title for these petitions"
+                required
+              />
+              <FormField
+                id="date"
+                label="Date"
+                description="The date when these petitions will be used"
+                inputType="date"
+                value={date}
+                onChange={setDate}
+                required
+              />
             </div>
 
-            <div>
-              <Label htmlFor="language">Language</Label>
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="english">English</SelectItem>
-                  <SelectItem value="spanish">Spanish</SelectItem>
-                  <SelectItem value="french">French</SelectItem>
-                  <SelectItem value="latin">Latin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <FormField
+              id="language"
+              label="Language"
+              description="Select the language for the petitions"
+              inputType="select"
+              value={language}
+              onChange={setLanguage}
+              options={[
+                { value: 'english', label: 'English' },
+                { value: 'spanish', label: 'Spanish' },
+                { value: 'french', label: 'French' },
+                { value: 'latin', label: 'Latin' }
+              ]}
+            />
 
             <div className="space-y-3">
-              <Label htmlFor="communityInfo">Community Information</Label>
               <div className="bg-muted p-4 rounded-md text-sm">
                 <p className="font-medium mb-2">Please provide information about your community this week:</p>
                 <ul className="space-y-1 text-muted-foreground">
@@ -171,13 +165,15 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
                   Include any relevant details. This information will be used to regenerate appropriate liturgical petitions.
                 </p>
               </div>
-              <Textarea
+              <FormField
                 id="communityInfo"
+                label="Community Information"
+                description="Enter your community information below"
+                inputType="textarea"
                 value={communityInfo}
-                onChange={(e) => setCommunityInfo(e.target.value)}
+                onChange={setCommunityInfo}
                 placeholder="Enter your community information here..."
                 rows={8}
-                className="resize-none"
               />
             </div>
 
