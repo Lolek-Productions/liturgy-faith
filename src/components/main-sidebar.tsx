@@ -251,6 +251,11 @@ export function MainSidebar() {
                 icon={Settings}
                 items={[
                   {
+                    title: "Parish Settings",
+                    url: "/settings/parish",
+                    icon: Church,
+                  },
+                  {
                     title: "Petitions",
                     url: "/settings/petitions",
                     icon: FileText,
@@ -264,11 +269,6 @@ export function MainSidebar() {
                     title: "Categories",
                     url: "/settings/categories",
                     icon: FileText,
-                  },
-                  {
-                    title: "Liturgy Definitions",
-                    url: "/settings/liturgy-definitions",
-                    icon: BookOpen,
                   },
                 ]}
                 defaultOpen={false}

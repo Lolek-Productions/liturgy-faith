@@ -86,6 +86,15 @@ export function OfferingAmountInput({
   const [customAmount, setCustomAmount] = useState('')
   const [customLabel, setCustomLabel] = useState('')
   const [savingCustomAmount, setSavingCustomAmount] = useState(false)
+  const [optimisticQuickAmounts, setOptimisticQuickAmounts] = useState<QuickAmount[]>([])
+  const [pendingQuickAmount, setPendingQuickAmount] = useState<QuickAmount | null>(null)
+
+  // Clear optimistic quick amounts when parent updates the quickAmounts prop
+  // This prevents duplicates when the parent re-renders with the new quick amounts
+  useEffect(() => {
+    setOptimisticQuickAmounts([])
+    setPendingQuickAmount(null)
+  }, [quickAmounts])
 
   const handleInputChange = (inputValue: string) => {
     const formatted = formatDollarInput(inputValue)
@@ -111,8 +120,12 @@ export function OfferingAmountInput({
     const label = customLabel.trim() || `$${parseFloat(customAmount).toFixed(2)}`
     const newQuickAmount = { amount: amountInCents, label }
     
-    // Use the custom amount immediately
+    // Use the custom amount immediately (optimistic update)
     onChange(customAmount)
+    
+    // Add to optimistic quick amounts immediately for UI responsiveness
+    setOptimisticQuickAmounts(prev => [...prev, newQuickAmount])
+    setPendingQuickAmount(newQuickAmount)
     
     // Save to database if parishId is provided
     if (parishId) {
@@ -128,10 +141,17 @@ export function OfferingAmountInput({
         // Notify parent component about the new quick amount
         onQuickAmountAdded?.(newQuickAmount)
         
+        // Clear pending state since save succeeded
+        setPendingQuickAmount(null)
+        
         toast.success(`Added ${label} to quick amounts`)
       } catch (error) {
         console.error('Error saving quick amount:', error)
         toast.error('Failed to save quick amount')
+        
+        // Remove from optimistic quick amounts if database save failed
+        setOptimisticQuickAmounts(prev => prev.filter(qa => qa.amount !== newQuickAmount.amount || qa.label !== newQuickAmount.label))
+        setPendingQuickAmount(null)
       } finally {
         setSavingCustomAmount(false)
       }
@@ -154,6 +174,9 @@ export function OfferingAmountInput({
   const getCurrentValueInCents = (): number => {
     return dollarsToCents(value)
   }
+
+  // Combine original quick amounts with optimistic ones for UI
+  const allQuickAmounts = [...quickAmounts, ...optimisticQuickAmounts]
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -180,7 +203,7 @@ export function OfferingAmountInput({
           />
         </div>
         
-        {quickAmounts.length > 0 && (
+        {allQuickAmounts.length > 0 && (
           <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -199,18 +222,31 @@ export function OfferingAmountInput({
                     Quick Amounts
                   </p>
                   <div className="grid grid-cols-3 gap-2">
-                    {quickAmounts.map((quickAmount, index) => (
-                      <Button
-                        key={index}
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-9 px-2 text-xs"
-                        onClick={() => handleQuickAmountSelect(quickAmount)}
-                      >
-                        {quickAmount.label}
-                      </Button>
-                    ))}
+                    {allQuickAmounts.map((quickAmount, index) => {
+                      const isPending = pendingQuickAmount && 
+                        pendingQuickAmount.amount === quickAmount.amount && 
+                        pendingQuickAmount.label === quickAmount.label
+                      
+                      return (
+                        <Button
+                          key={`${quickAmount.amount}-${quickAmount.label}-${index}`}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "h-9 px-2 text-xs",
+                            isPending && "opacity-60 cursor-not-allowed"
+                          )}
+                          onClick={() => handleQuickAmountSelect(quickAmount)}
+                          disabled={isPending}
+                        >
+                          {quickAmount.label}
+                          {isPending && (
+                            <div className="h-2 w-2 animate-spin rounded-full border border-background border-t-transparent ml-1" />
+                          )}
+                        </Button>
+                      )
+                    })}
                   </div>
                   <div className="pt-2 border-t">
                     <Button

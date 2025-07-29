@@ -47,12 +47,6 @@ export default function ParishSettingsPage() {
     { amount: 200, label: '$2' },
     { amount: 500, label: '$5' }
   ])
-  const [donationsQuickAmountsData, setDonationsQuickAmountsData] = useState([
-    { amount: 500, label: '$5' },
-    { amount: 1000, label: '$10' },
-    { amount: 2500, label: '$25' },
-    { amount: 5000, label: '$50' }
-  ])
   const [members, setMembers] = useState<ParishMember[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('member')
@@ -92,9 +86,6 @@ export default function ParishSettingsPage() {
         if (settingsResult.success) {
           setParishSettings(settingsResult.settings)
           setQuickAmountsData(settingsResult.settings.mass_intention_offering_quick_amounts)
-          if (settingsResult.settings.donations_quick_amounts) {
-            setDonationsQuickAmountsData(settingsResult.settings.donations_quick_amounts)
-          }
         }
         
         await loadMembers(parish.id)
@@ -187,42 +178,6 @@ export default function ParishSettingsPage() {
     }
   }
 
-  const handleDonationsQuickAmountChange = (index: number, field: 'amount' | 'label', value: string | number) => {
-    setDonationsQuickAmountsData(prev => prev.map((item, i) => 
-      i === index ? { ...item, [field]: field === 'amount' ? Number(value) : value } : item
-    ))
-  }
-
-  const addDonationsQuickAmount = () => {
-    setDonationsQuickAmountsData(prev => [
-      ...prev,
-      { amount: 10000, label: '$100' }
-    ])
-  }
-
-  const removeDonationsQuickAmount = (index: number) => {
-    setDonationsQuickAmountsData(prev => prev.filter((_, i) => i !== index))
-  }
-
-  const handleSaveDonationsQuickAmounts = async () => {
-    if (!currentParish) {
-      toast.error('No parish selected')
-      return
-    }
-
-    setSaving(true)
-    try {
-      await updateParishSettings(currentParish.id, {
-        donations_quick_amounts: donationsQuickAmountsData
-      })
-      toast.success('Donations quick amounts saved successfully!')
-    } catch (error) {
-      console.error('Error saving donations quick amounts:', error)
-      toast.error('Failed to save donations quick amounts')
-    } finally {
-      setSaving(false)
-    }
-  }
 
   const handleRefresh = () => {
     loadParishData()
@@ -524,96 +479,6 @@ export default function ParishSettingsPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-3">
-                  <DollarSign className="h-5 w-5" />
-                  General Donations Quick Amounts
-                </CardTitle>
-                <Button onClick={handleSaveDonationsQuickAmounts} disabled={saving} size="sm">
-                  <Save className="h-4 w-4 mr-2" />
-                  {saving ? 'Saving...' : 'Save Donations'}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <p className="text-sm text-muted-foreground">
-                Configure quick amount buttons for general donations (not Mass intentions). 
-                These amounts typically have higher values than Mass intention offerings.
-              </p>
-
-              <div className="space-y-4">
-                {donationsQuickAmountsData.map((quickAmount, index) => (
-                  <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
-                    <div className="flex-1 grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor={`donation-amount-${index}`} className="text-sm font-medium">
-                          Amount (cents)
-                        </Label>
-                        <Input
-                          id={`donation-amount-${index}`}
-                          type="number"
-                          min="1"
-                          step="1"
-                          value={quickAmount.amount}
-                          onChange={(e) => handleDonationsQuickAmountChange(index, 'amount', parseInt(e.target.value) || 0)}
-                          placeholder="500"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          ${(quickAmount.amount / 100).toFixed(2)}
-                        </p>
-                      </div>
-                      <div>
-                        <Label htmlFor={`donation-label-${index}`} className="text-sm font-medium">
-                          Display Label
-                        </Label>
-                        <Input
-                          id={`donation-label-${index}`}
-                          type="text"
-                          value={quickAmount.label}
-                          onChange={(e) => handleDonationsQuickAmountChange(index, 'label', e.target.value)}
-                          placeholder="$5"
-                        />
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeDonationsQuickAmount(index)}
-                      disabled={donationsQuickAmountsData.length <= 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex justify-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={addDonationsQuickAmount}
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Donation Amount
-                </Button>
-              </div>
-
-              <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                <h4 className="font-medium mb-2">Preview:</h4>
-                <div className="flex gap-2 flex-wrap">
-                  {donationsQuickAmountsData.map((quickAmount, index) => (
-                    <Badge key={index} variant="outline">
-                      {quickAmount.label}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="members" className="space-y-6">
