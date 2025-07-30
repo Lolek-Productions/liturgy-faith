@@ -1,18 +1,20 @@
 'use client'
 
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { searchPetitions } from '@/lib/actions/petitions'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import Link from 'next/link'
-import { formatDistanceToNow } from 'date-fns'
-import { FileText, Plus, Eye, Printer, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { FileText, Plus, Eye, Printer, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { Petition } from '@/lib/types'
+import {
+  DataTable,
+  DataTableColumn,
+  DataTableHeader,
+  DataTableRowActions,
+} from '@/components/data-table'
 
 export default function PetitionsPage() {
   const [petitions, setPetitions] = useState<Petition[]>([])
@@ -21,8 +23,6 @@ export default function PetitionsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [total, setTotal] = useState(0)
-  const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'date' | 'language'>('created_at')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [itemsPerPage] = useState(10)
   const { setBreadcrumbs } = useBreadcrumbs()
 
@@ -39,9 +39,7 @@ export default function PetitionsPage() {
       const result = await searchPetitions({
         query: searchTerm,
         page: currentPage,
-        limit: itemsPerPage,
-        sortBy,
-        sortOrder
+        limit: itemsPerPage
       })
       
       setPetitions(result.petitions)
@@ -52,37 +50,71 @@ export default function PetitionsPage() {
     } finally {
       setLoading(false)
     }
-  }, [searchTerm, currentPage, itemsPerPage, sortBy, sortOrder])
+  }, [searchTerm, currentPage, itemsPerPage])
 
   useEffect(() => {
     loadPetitions()
   }, [loadPetitions])
 
-  // Reset to first page when search or sort changes
+  // Reset to first page when search changes
   useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1)
     }
-  }, [searchTerm, sortBy, sortOrder])
+  }, [searchTerm])
 
-  const handleSort = (e: React.MouseEvent, column: 'created_at' | 'title' | 'date' | 'language') => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortBy(column)
-      setSortOrder('asc')
-    }
-  }
-
-  const getSortIcon = (column: 'created_at' | 'title' | 'date' | 'language') => {
-    if (sortBy !== column) {
-      return <ArrowUpDown className="h-4 w-4" />
-    }
-    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
-  }
+  const columns: DataTableColumn<Petition>[] = [
+    {
+      key: "title",
+      header: "Title",
+      sortable: true,
+      accessorFn: (petition) => petition.title,
+      cell: (petition) => (
+        <span className="font-medium">{petition.title}</span>
+      ),
+    },
+    {
+      key: "language",
+      header: "Language",
+      sortable: true,
+      accessorFn: (petition) => petition.language,
+      cell: (petition) => (
+        <span className="capitalize">{petition.language}</span>
+      ),
+    },
+    {
+      key: "date",
+      header: "Date",
+      sortable: true,
+      accessorFn: (petition) => new Date(petition.date),
+      cell: (petition) => new Date(petition.date).toLocaleDateString(),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
+      cell: (petition) => (
+        <DataTableRowActions
+          row={petition}
+          customActions={[
+            {
+              label: "View",
+              icon: <Eye className="h-4 w-4" />,
+              onClick: (row) => window.location.href = `/petitions/${row.id}`,
+              variant: "outline",
+            },
+            {
+              label: "Print",
+              icon: <Printer className="h-4 w-4" />,
+              onClick: (row) => window.open(`/print/petitions/${row.id}`, '_blank'),
+              variant: "outline",
+            },
+          ]}
+        />
+      ),
+    },
+  ]
 
   if (loading) {
     return (
@@ -102,119 +134,39 @@ export default function PetitionsPage() {
       description="Manage your created petitions"
       maxWidth="6xl"
     >
-      {/* Search and Create Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-6">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            type="text"
-            placeholder="Search petitions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button asChild>
-            <Link href="/petitions/create">
-              <Plus className="h-4 w-4 mr-2" />
-              Create New
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <div className="space-y-4">
+        <DataTableHeader
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search petitions..."
+          actions={
+            <Button asChild>
+              <Link href="/petitions/create">
+                <Plus className="h-4 w-4 mr-2" />
+                Create New
+              </Link>
+            </Button>
+          }
+        />
 
-      {petitions.length === 0 && !loading ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">
-              {searchTerm ? "No petitions found" : "No petitions yet"}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm 
-                ? "No petitions found matching your search. Try different keywords." 
-                : "Get started by creating your first petition"
-              }
-            </p>
-            {!searchTerm && (
+        <DataTable
+          data={petitions}
+          columns={columns}
+          keyExtractor={(petition) => petition.id}
+          emptyState={{
+            icon: <FileText className="h-12 w-12 mx-auto text-muted-foreground" />,
+            title: searchTerm ? "No petitions found" : "No petitions yet",
+            description: searchTerm 
+              ? "No petitions found matching your search. Try different keywords." 
+              : "Get started by creating your first petition",
+            action: !searchTerm && (
               <Button asChild>
                 <Link href="/petitions/create">Create Petition</Link>
               </Button>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead 
-                    className="cursor-pointer select-none hover:bg-muted/50"
-                    onClick={(e) => handleSort(e, 'title')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Title
-                      {getSortIcon('title')}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="cursor-pointer select-none hover:bg-muted/50"
-                    onClick={(e) => handleSort(e, 'language')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Language
-                      {getSortIcon('language')}
-                    </div>
-                  </TableHead>
-                  <TableHead 
-                    className="cursor-pointer select-none hover:bg-muted/50"
-                    onClick={(e) => handleSort(e, 'date')}
-                  >
-                    <div className="flex items-center gap-2">
-                      Date
-                      {getSortIcon('date')}
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {petitions.map((petition) => (
-                  <TableRow key={petition.id}>
-                    <TableCell className="font-medium">
-                      {petition.title}
-                    </TableCell>
-                    <TableCell className="capitalize">
-                      {petition.language}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(petition.date).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/petitions/${petition.id}`}>
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Link>
-                        </Button>
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/print/petitions/${petition.id}`} target="_blank">
-                            <Printer className="h-4 w-4 mr-1" />
-                            Print
-                          </Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+            ),
+          }}
+        />
+      </div>
 
       {/* Pagination */}
       {total > 0 && totalPages > 1 && (

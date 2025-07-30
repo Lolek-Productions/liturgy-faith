@@ -83,12 +83,13 @@ export default function PetitionTemplateForm({ template, templateSettings }: Pet
           
           <FormField
             id="context"
-            label="Context Information"
+            label="Default Petition Content"
             inputType="textarea"
             value={formData.context}
             onChange={(value) => setFormData({ ...formData, context: value })}
-            placeholder="Any additional context or instructions for using this template..."
-            rows={4}
+            placeholder="Enter the default petitions for this template (one per line)..."
+            rows={10}
+            description="These are the default petitions that will be used when creating a new petition with this template. Users can edit them later."
           />
         </CardContent>
       </Card>

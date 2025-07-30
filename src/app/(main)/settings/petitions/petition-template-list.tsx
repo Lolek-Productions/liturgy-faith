@@ -1,14 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useState, useMemo, useEffect } from "react";
-import { Trash2, Search, FileText, Edit, Plus } from "lucide-react";
+import { FileText, Edit, Plus } from "lucide-react";
 import { deletePetitionContext, PetitionContextTemplate } from '@/lib/actions/petition-contexts';
 import { toast } from 'sonner';
 import { useRouter } from "next/navigation";
 import { useBreadcrumbs } from '@/components/breadcrumb-context';
+import {
+  DataTable,
+  DataTableColumn,
+  DataTableHeader,
+  DataTableRowActions,
+} from '@/components/data-table';
 import {
   Dialog,
   DialogContent,
@@ -96,114 +101,111 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
     return templates.find(t => t.id === templateId);
   };
 
+  const columns: DataTableColumn<PetitionContextTemplate>[] = [
+    {
+      key: "title",
+      header: "Title",
+      sortable: true,
+      accessorFn: (template) => template.title,
+      cell: (template) => (
+        <div className="flex flex-col">
+          <span className="font-medium">{template.title}</span>
+          <span className="text-sm text-muted-foreground md:hidden">
+            {template.description}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "description",
+      header: "Description",
+      hiddenOn: "md",
+      cell: (template) => (
+        <span className="text-sm text-muted-foreground">
+          {template.description || "No description"}
+        </span>
+      ),
+    },
+    {
+      key: "created_at",
+      header: "Created",
+      hiddenOn: "lg",
+      sortable: true,
+      accessorFn: (template) => new Date(template.created_at),
+      cell: (template) => (
+        <span className="text-sm text-muted-foreground">
+          {formatDate(template.created_at)}
+        </span>
+      ),
+    },
+    {
+      key: "updated_at", 
+      header: "Updated",
+      hiddenOn: "lg",
+      sortable: true,
+      accessorFn: (template) => new Date(template.updated_at),
+      cell: (template) => (
+        <span className="text-sm text-muted-foreground">
+          {formatDate(template.updated_at)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClassName: "text-center",
+      className: "text-center",
+      cell: (template) => (
+        <DataTableRowActions
+          row={template}
+          onEdit={(row) => router.push(`/settings/petitions/${row.id}`)}
+          onDelete={(row) => openDeleteDialog(row.id)}
+        />
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4">
-      {/* Search and Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            type="text"
-            placeholder="Search templates..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button asChild size="sm" variant="outline">
-            <Link href="/settings/petitions/default">
-              <FileText className="h-4 w-4 mr-2" />
-              Default Petitions
-            </Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/settings/petitions/create">
-              <Plus className="h-4 w-4 mr-2" />
-              New Template
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <DataTableHeader
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search templates..."
+        actions={
+          <>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/settings/petitions/default">
+                <FileText className="h-4 w-4 mr-2" />
+                Default Petitions
+              </Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/settings/petitions/create">
+                <Plus className="h-4 w-4 mr-2" />
+                New Template
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
-      {/* Templates Table */}
-      {filteredTemplates.length === 0 ? (
-        <div className="text-center py-12">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-gray-400">
-            {searchTerm ? "No templates found matching your search." : "No templates yet. Create your first template!"}
-          </p>
-          {!searchTerm && (
-            <Button asChild className="mt-4">
+      <DataTable
+        data={filteredTemplates}
+        columns={columns}
+        keyExtractor={(template) => template.id}
+        emptyState={{
+          icon: <FileText className="h-12 w-12 text-gray-400" />,
+          title: searchTerm ? "No templates found" : "No templates yet",
+          description: searchTerm 
+            ? "No templates found matching your search." 
+            : "No templates yet. Create your first template!",
+          action: !searchTerm && (
+            <Button asChild>
               <Link href="/settings/petitions/create">Create Template</Link>
             </Button>
-          )}
-        </div>
-      ) : (
-        <div className="border rounded-lg">
-          <table className="w-full">
-            <thead className="border-b bg-muted/50">
-              <tr>
-                <th className="text-left p-4 font-medium">Title</th>
-                <th className="text-left p-4 font-medium hidden md:table-cell">Description</th>
-                <th className="text-left p-4 font-medium hidden lg:table-cell">Created</th>
-                <th className="text-left p-4 font-medium hidden lg:table-cell">Updated</th>
-                <th className="text-center p-4 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTemplates.map((template) => (
-                <tr key={template.id} className="border-b hover:bg-muted/25 transition-colors">
-                  <td className="p-4">
-                    <div className="flex flex-col">
-                      <span className="font-medium">{template.title}</span>
-                      <span className="text-sm text-muted-foreground md:hidden">
-                        {template.description}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-4 hidden md:table-cell">
-                    <span className="text-sm text-muted-foreground">
-                      {template.description || "No description"}
-                    </span>
-                  </td>
-                  <td className="p-4 hidden lg:table-cell">
-                    <span className="text-sm text-muted-foreground">
-                      {formatDate(template.created_at)}
-                    </span>
-                  </td>
-                  <td className="p-4 hidden lg:table-cell">
-                    <span className="text-sm text-muted-foreground">
-                      {formatDate(template.updated_at)}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex gap-2 justify-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        asChild
-                      >
-                        <Link href={`/settings/petitions/${template.id}`}>
-                          <Edit className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openDeleteDialog(template.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+          ),
+        }}
+      />
     
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
