@@ -108,12 +108,12 @@ export async function createPetition(data: CreatePetitionData) {
 export async function getPetitions(): Promise<Petition[]> {
   const supabase = await createClient()
   
-  await requireSelectedParish()
+  const selectedParishId = await requireSelectedParish()
 
   const { data, error } = await supabase
     .from('petitions')
     .select('*')
-    .select('*')
+    .eq('parish_id', selectedParishId)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -123,15 +123,75 @@ export async function getPetitions(): Promise<Petition[]> {
   return data || []
 }
 
+export async function searchPetitions(params: {
+  query?: string
+  page?: number
+  limit?: number
+  sortBy?: 'created_at' | 'title' | 'date' | 'language'
+  sortOrder?: 'asc' | 'desc'
+}): Promise<{
+  petitions: Petition[]
+  total: number
+  totalPages: number
+  currentPage: number
+}> {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+  
+  const {
+    query = '',
+    page = 1,
+    limit = 10,
+    sortBy = 'created_at',
+    sortOrder = 'desc'
+  } = params
+
+  // Build the query
+  let queryBuilder = supabase
+    .from('petitions')
+    .select('*', { count: 'exact' })
+    .eq('parish_id', selectedParishId)
+
+  // Add search filter
+  if (query) {
+    queryBuilder = queryBuilder.or(`title.ilike.%${query}%,language.ilike.%${query}%`)
+  }
+
+  // Add sorting
+  queryBuilder = queryBuilder.order(sortBy, { ascending: sortOrder === 'asc' })
+
+  // Add pagination
+  const from = (page - 1) * limit
+  queryBuilder = queryBuilder.range(from, from + limit - 1)
+
+  const { data, error, count } = await queryBuilder
+
+  if (error) {
+    throw new Error('Failed to fetch petitions')
+  }
+
+  const total = count || 0
+  const totalPages = Math.ceil(total / limit)
+
+  return {
+    petitions: data || [],
+    total,
+    totalPages,
+    currentPage: page
+  }
+}
+
 export async function getPetition(id: string): Promise<Petition | null> {
   const supabase = await createClient()
   
-  await requireSelectedParish()
+  const selectedParishId = await requireSelectedParish()
 
   const { data, error } = await supabase
     .from('petitions')
     .select('*')
     .eq('id', id)
+    .eq('parish_id', selectedParishId)
     .single()
 
   if (error || !data) {
@@ -187,12 +247,13 @@ export async function getSavedContexts(): Promise<Array<{id: string, name: strin
 export async function getPetitionWithContext(id: string): Promise<{ petition: Petition; context: PetitionContext } | null> {
   const supabase = await createClient()
   
-  await requireSelectedParish()
+  const selectedParishId = await requireSelectedParish()
 
   const { data: petition, error: petitionError } = await supabase
     .from('petitions')
     .select('*')
     .eq('id', id)
+    .eq('parish_id', selectedParishId)
     .single()
 
   if (petitionError || !petition) {
@@ -214,12 +275,20 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
       }
     } catch (e) {
       console.error('Failed to parse petition context:', e)
-      return null
+      // Don't return null - just continue with empty context
     }
   }
-
+  
+  // Create a basic context if none exists or parsing failed
   if (!context) {
-    return null
+    context = {
+      id: petition.id,
+      petition_id: petition.id,
+      parish_id: petition.parish_id,
+      community_info: '',
+      created_at: petition.created_at,
+      updated_at: petition.updated_at
+    }
   }
 
   return { petition, context }
@@ -228,7 +297,7 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
 export async function updatePetition(id: string, data: CreatePetitionData) {
   const supabase = await createClient()
   
-  await requireSelectedParish()
+  const selectedParishId = await requireSelectedParish()
 
   const generatedContent = await generatePetitionContent(data)
 
@@ -237,6 +306,7 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
     .from('petitions')
     .select('context')
     .eq('id', id)
+    .eq('parish_id', selectedParishId)
     .single()
 
   if (fetchError) {
@@ -274,6 +344,7 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
+    .eq('parish_id', selectedParishId)
     .select()
     .single()
 
@@ -333,12 +404,13 @@ export async function generatePetitionContent(data: CreatePetitionData): Promise
 export async function updatePetitionLanguage(petitionId: string, language: string) {
   const supabase = await createClient()
   
-  await requireSelectedParish()
+  const selectedParishId = await requireSelectedParish()
 
   const { error } = await supabase
     .from('petitions')
     .update({ language })
     .eq('id', petitionId)
+    .eq('parish_id', selectedParishId)
 
   if (error) {
     throw new Error('Failed to update petition language')
@@ -348,12 +420,13 @@ export async function updatePetitionLanguage(petitionId: string, language: strin
 export async function updatePetitionContext(petitionId: string, context: string) {
   const supabase = await createClient()
   
-  await requireSelectedParish()
+  const selectedParishId = await requireSelectedParish()
 
   const { error } = await supabase
     .from('petitions')
     .update({ context })
     .eq('id', petitionId)
+    .eq('parish_id', selectedParishId)
 
   if (error) {
     throw new Error('Failed to update petition context')
@@ -363,15 +436,82 @@ export async function updatePetitionContext(petitionId: string, context: string)
 export async function updatePetitionContent(petitionId: string, content: string) {
   const supabase = await createClient()
   
-  await requireSelectedParish()
+  const selectedParishId = await requireSelectedParish()
 
   const { error } = await supabase
     .from('petitions')
     .update({ generated_content: content })
     .eq('id', petitionId)
+    .eq('parish_id', selectedParishId)
 
   if (error) {
     throw new Error('Failed to update petition content')
   }
+}
+
+export async function updatePetitionDetails(id: string, data: { title: string; date: string; language: string; generated_content: string }) {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+
+  const { data: petition, error: petitionError } = await supabase
+    .from('petitions')
+    .update({
+      title: data.title,
+      date: data.date,
+      language: data.language,
+      generated_content: data.generated_content,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('parish_id', selectedParishId)
+    .select()
+    .single()
+
+  if (petitionError) {
+    console.error('Petition update error:', petitionError)
+    throw new Error('Failed to update petition')
+  }
+
+  return petition
+}
+
+export async function regeneratePetitionContent(id: string, data: { title: string; date: string; language: string; contextId?: string; community_info?: string }) {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+
+  // Generate new content
+  const petitionData: CreatePetitionData = {
+    title: data.title,
+    date: data.date,
+    language: data.language,
+    community_info: data.community_info || '',
+    contextId: data.contextId
+  }
+
+  const generatedContent = await generatePetitionContent(petitionData)
+
+  // Update the petition with new content
+  const { data: petition, error: petitionError } = await supabase
+    .from('petitions')
+    .update({
+      title: data.title,
+      date: data.date,
+      language: data.language,
+      generated_content: generatedContent,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('parish_id', selectedParishId)
+    .select()
+    .single()
+
+  if (petitionError) {
+    console.error('Petition regeneration error:', petitionError)
+    throw new Error('Failed to regenerate petition')
+  }
+
+  return petition
 }
 

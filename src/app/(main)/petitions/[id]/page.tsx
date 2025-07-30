@@ -34,26 +34,36 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
 
   useEffect(() => {
     const loadPetition = async () => {
-      const { id } = await params
-      setPetitionId(id)
-      const result = await getPetitionWithContext(id)
-      
-      if (!result) {
-        notFound()
-        return
-      }
+      try {
+        const { id } = await params
+        setPetitionId(id)
+        console.log('Loading petition with ID:', id) // Debug log
+        
+        const result = await getPetitionWithContext(id)
+        console.log('Petition result:', result) // Debug log
+        
+        if (!result) {
+          console.log('No petition result found, calling notFound()') // Debug log
+          notFound()
+          return
+        }
 
-      setPetition(result.petition)
-      setContext(result.context)
-      
-      // Set breadcrumbs
-      setBreadcrumbs([
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Petitions", href: "/petitions" },
-        { label: result.petition.title }
-      ])
-      
-      setLoading(false)
+        setPetition(result.petition)
+        setContext(result.context)
+        
+        // Set breadcrumbs
+        setBreadcrumbs([
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Petitions", href: "/petitions" },
+          { label: result.petition.title }
+        ])
+        
+        setLoading(false)
+      } catch (error) {
+        console.error('Error loading petition:', error) // Debug log
+        setLoading(false)
+        notFound()
+      }
     }
 
     loadPetition()
@@ -101,9 +111,16 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
             </CardHeader>
             <CardContent>
               <div className="bg-muted p-6 rounded-md">
-                <pre className="whitespace-pre-wrap text-sm font-mono">
-                  {petition.generated_content}
-                </pre>
+                {petition.generated_content ? (
+                  <pre className="whitespace-pre-wrap text-sm font-mono">
+                    {petition.generated_content}
+                  </pre>
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    <p className="text-sm">No petition content has been generated yet.</p>
+                    <p className="text-xs mt-2">Use the wizard to generate petition content.</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

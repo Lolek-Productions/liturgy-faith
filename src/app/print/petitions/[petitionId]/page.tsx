@@ -57,9 +57,12 @@ export default function PrintPetitionPage({ params }: PrintPetitionPageProps) {
 
   if (loading) {
     return (
-      <div>
-        <div className="print-preview-notice hide-on-print">
-          Loading petition for printing...
+      <div className="hide-on-print">
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <span className="text-gray-600">Loading petition for printing...</span>
+          </div>
         </div>
       </div>
     )

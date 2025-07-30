@@ -6,11 +6,14 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { FormField } from '@/components/ui/form-field'
 import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
-import { ArrowLeft } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { ArrowLeft, RefreshCw, Sparkles, Printer } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { getPetitionWithContext, updatePetition } from '@/lib/actions/petitions'
+import { getPetitionWithContext, updatePetitionDetails, regeneratePetitionContent } from '@/lib/actions/petitions'
+import { getPetitionContexts, type PetitionContextTemplate } from '@/lib/actions/petition-contexts'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
+import { toast } from 'sonner'
 
 interface EditPetitionPageProps {
   params: Promise<{ id: string }>
@@ -21,10 +24,15 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
   const [language, setLanguage] = useState('english')
-  const [communityInfo, setCommunityInfo] = useState('')
+  const [generatedContent, setGeneratedContent] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
   const [error, setError] = useState('')
+  const [showRegenerateModal, setShowRegenerateModal] = useState(false)
+  const [contexts, setContexts] = useState<PetitionContextTemplate[]>([])
+  const [selectedContextId, setSelectedContextId] = useState('none')
+  const [communityInfo, setCommunityInfo] = useState('')
+  const [regenerating, setRegenerating] = useState(false)
   const router = useRouter()
   const { setBreadcrumbs } = useBreadcrumbs()
 
@@ -40,7 +48,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
           setTitle(petition.title)
           setDate(petition.date)
           setLanguage(petition.language)
-          setCommunityInfo(context.community_info)
+          setGeneratedContent(petition.generated_content || '')
           
           // Set breadcrumbs with petition title
           setBreadcrumbs([
@@ -60,6 +68,22 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
     loadPetition()
   }, [params, setBreadcrumbs])
 
+  // Load contexts when modal opens
+  useEffect(() => {
+    const loadContexts = async () => {
+      if (showRegenerateModal) {
+        try {
+          const contextsData = await getPetitionContexts()
+          setContexts(contextsData)
+        } catch (error) {
+          console.error('Failed to load contexts:', error)
+          toast.error('Failed to load petition contexts')
+        }
+      }
+    }
+    loadContexts()
+  }, [showRegenerateModal])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -70,15 +94,54 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
         title,
         date,
         language,
-        community_info: communityInfo.trim(),
+        generated_content: generatedContent.trim(),
       }
 
-      await updatePetition(id, petitionData)
-      router.push(`/petitions/${id}`)
+      await updatePetitionDetails(id, petitionData)
+      toast.success('Petition updated successfully!')
+      setError('')
     } catch {
       setError('Failed to update petition. Please try again.')
+      toast.error('Failed to update petition')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRegenerate = async () => {
+    if (selectedContextId === 'none' && !communityInfo.trim()) {
+      toast.error('Please select a context or provide community information')
+      return
+    }
+
+    setRegenerating(true)
+    try {
+      const regenerationData = {
+        title,
+        date,
+        language,
+        contextId: selectedContextId === 'none' ? undefined : selectedContextId,
+        community_info: communityInfo.trim()
+      }
+
+      const updatedPetition = await regeneratePetitionContent(id, regenerationData)
+      setGeneratedContent(updatedPetition.generated_content || '')
+      setShowRegenerateModal(false)
+      setSelectedContextId('none')
+      setCommunityInfo('')
+      toast.success('Petition content regenerated successfully!')
+    } catch (error) {
+      console.error('Failed to regenerate petition:', error)
+      toast.error('Failed to regenerate petition content')
+    } finally {
+      setRegenerating(false)
+    }
+  }
+
+  const handlePrint = () => {
+    if (id) {
+      const printUrl = `/print/petitions/${id}`
+      window.open(printUrl, '_blank')
     }
   }
 
@@ -100,14 +163,6 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
       description="Modify petition details and content"
       maxWidth="2xl"
     >
-      <div className="mb-6">
-        <Button variant="outline" size="sm" asChild>
-          <Link href={`/petitions/${id}`}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Petition
-          </Link>
-        </Button>
-      </div>
       
       <Card>
         <CardHeader>
@@ -152,28 +207,87 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
             />
 
             <div className="space-y-3">
-              <div className="bg-muted p-4 rounded-md text-sm">
-                <p className="font-medium mb-2">Please provide information about your community this week:</p>
-                <ul className="space-y-1 text-muted-foreground">
-                  <li>• Who died this week? (include names if appropriate)</li>
-                  <li>• Who received sacraments this week? (baptisms, confirmations, marriages, etc.)</li>
-                  <li>• Who is sick and needs prayers?</li>
-                  <li>• Any special petitions or prayer requests?</li>
-                  <li>• Other community needs or celebrations?</li>
-                </ul>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Include any relevant details. This information will be used to regenerate appropriate liturgical petitions.
-                </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium">Petition Content</label>
+                  <p className="text-xs text-muted-foreground">Edit the petition content directly</p>
+                </div>
+                <Dialog open={showRegenerateModal} onOpenChange={setShowRegenerateModal}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Regenerate
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Regenerate Petition Content</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <FormField
+                        id="contextSelect"
+                        label="Select Context Template (Optional)"
+                        description="Choose a pre-defined context template"
+                        inputType="select"
+                        value={selectedContextId}
+                        onChange={setSelectedContextId}
+                        options={[
+                          { value: 'none', label: 'No template - use community info only' },
+                          ...contexts.map(context => ({
+                            value: context.id,
+                            label: context.title
+                          }))
+                        ]}
+                      />
+                      
+                      <FormField
+                        id="communityInfo"
+                        label="Community Information (Optional)"
+                        description="Additional context about your community this week"
+                        inputType="textarea"
+                        value={communityInfo}
+                        onChange={setCommunityInfo}
+                        placeholder="Enter community information..."
+                        rows={4}
+                      />
+
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowRegenerateModal(false)}
+                          disabled={regenerating}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleRegenerate}
+                          disabled={regenerating}
+                        >
+                          {regenerating ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Regenerate
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
-              <FormField
-                id="communityInfo"
-                label="Community Information"
-                description="Enter your community information below"
-                inputType="textarea"
-                value={communityInfo}
-                onChange={setCommunityInfo}
-                placeholder="Enter your community information here..."
-                rows={8}
+              
+              <textarea
+                id="generatedContent"
+                value={generatedContent}
+                onChange={(e) => setGeneratedContent(e.target.value)}
+                placeholder="Enter your petition content here..."
+                rows={12}
+                className="min-h-0 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 
@@ -181,9 +295,15 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
               <div className="text-red-500 text-sm">{error}</div>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Updating...' : 'Update Petitions'}
-            </Button>
+            <div className="flex gap-3">
+              <Button type="submit" className="flex-1" disabled={loading}>
+                {loading ? 'Updating...' : 'Update Petitions'}
+              </Button>
+              <Button type="button" variant="outline" onClick={handlePrint}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
