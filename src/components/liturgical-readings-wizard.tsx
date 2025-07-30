@@ -21,6 +21,7 @@ interface WizardNavigationProps {
   onPrevious: () => void
   nextLabel?: string
   previousLabel?: string
+  title?: string
 }
 
 export function WizardNavigation({
@@ -32,7 +33,8 @@ export function WizardNavigation({
   onNext,
   onPrevious,
   nextLabel = "Next",
-  previousLabel = "Previous"
+  previousLabel = "Previous",
+  title
 }: WizardNavigationProps) {
   const progress = ((currentStep) / (steps.length - 1)) * 100
 
@@ -40,11 +42,16 @@ export function WizardNavigation({
     <Card>
       <CardHeader>
         <div className="space-y-4">
+          {title && (
+            <div>
+              <CardTitle className="text-xl mb-1">{title}</CardTitle>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">
+              <div className="text-lg font-semibold">
                 Step {currentStep + 1} of {steps.length}
-              </CardTitle>
+              </div>
               <p className="text-sm text-muted-foreground mt-1">
                 {steps[currentStep]?.title}
               </p>
@@ -56,12 +63,12 @@ export function WizardNavigation({
           
           <Progress value={progress} className="w-full" />
           
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             {steps.map((step, index) => (
               <button
                 key={step.id}
                 onClick={() => onStepChange(index)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
                   index === currentStep
                     ? 'bg-primary text-primary-foreground'
                     : index < currentStep
@@ -70,7 +77,8 @@ export function WizardNavigation({
                 }`}
                 disabled={index > currentStep}
               >
-                {index + 1}. {step.title}
+                <div className="font-semibold">{index + 1}</div>
+                <div className="truncate">{step.title}</div>
               </button>
             ))}
           </div>

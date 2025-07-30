@@ -97,49 +97,55 @@ export default function ReadingsPage() {
         </Button>
       </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search readings by pericope, text, or lectionary ID..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+      <div className="space-y-6">
+        {/* Search and Filters */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search readings by pericope, text, or lectionary ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Languages</SelectItem>
+                    {languages.map(lang => (
+                      <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {allCategories.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Languages</SelectItem>
-                  {languages.map(lang => (
-                    <SelectItem key={lang} value={lang}>{lang}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {allCategories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Readings List */}
-      {filteredReadings.length > 0 ? (
+        {/* Loading State */}
+        {loading ? (
+          <Loading variant="skeleton-cards" />
+        ) : (
+          <>
+        {/* Readings List */}
+        {filteredReadings.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredReadings.map((reading) => (
             <Card key={reading.id} className="hover:shadow-lg transition-shadow">
@@ -242,36 +248,37 @@ export default function ReadingsPage() {
         </Card>
       )}
 
-      {/* Quick Stats */}
-      {readings.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Reading Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold">{readings.length}</div>
-                <div className="text-sm text-muted-foreground">Total Readings</div>
+        {/* Quick Stats */}
+        {readings.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Reading Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold">{readings.length}</div>
+                  <div className="text-sm text-muted-foreground">Total Readings</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{languages.length}</div>
+                  <div className="text-sm text-muted-foreground">Languages</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{allCategories.length}</div>
+                  <div className="text-sm text-muted-foreground">Categories</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{filteredReadings.length}</div>
+                  <div className="text-sm text-muted-foreground">Filtered Results</div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-bold">{languages.length}</div>
-                <div className="text-sm text-muted-foreground">Languages</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold">{allCategories.length}</div>
-                <div className="text-sm text-muted-foreground">Categories</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold">{filteredReadings.length}</div>
-                <div className="text-sm text-muted-foreground">Filtered Results</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-      
-      {loading && <Loading variant="skeleton-cards" />}
+            </CardContent>
+          </Card>
+        )}
+          </>
+        )}
+      </div>
     </PageContainer>
   )
 }

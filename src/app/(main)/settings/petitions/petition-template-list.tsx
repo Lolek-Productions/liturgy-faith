@@ -3,11 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Trash2, Search, FileText, Edit, Plus } from "lucide-react";
 import { deletePetitionContext, PetitionContextTemplate } from '@/lib/actions/petition-contexts';
 import { toast } from 'sonner';
 import { useRouter } from "next/navigation";
+import { useBreadcrumbs } from '@/components/breadcrumb-context';
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,15 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
+  const { setBreadcrumbs } = useBreadcrumbs();
+
+  useEffect(() => {
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: "Settings", href: "/settings" },
+      { label: "Petition Templates" }
+    ]);
+  }, [setBreadcrumbs]);
 
   const filteredTemplates = useMemo(() => {
     let filtered = templates;
@@ -101,6 +111,12 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
           />
         </div>
         <div className="flex gap-2">
+          <Button asChild size="sm" variant="outline">
+            <Link href="/settings/petitions/default">
+              <FileText className="h-4 w-4 mr-2" />
+              Default Petitions
+            </Link>
+          </Button>
           <Button asChild size="sm">
             <Link href="/settings/petitions/create">
               <Plus className="h-4 w-4 mr-2" />

@@ -238,7 +238,7 @@ export function OfferingAmountInput({
                             isPending && "opacity-60 cursor-not-allowed"
                           )}
                           onClick={() => handleQuickAmountSelect(quickAmount)}
-                          disabled={isPending}
+                          disabled={!!isPending}
                         >
                           {quickAmount.label}
                           {isPending && (

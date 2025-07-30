@@ -206,10 +206,8 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
       const parsedContext = JSON.parse(petition.context)
       context = {
         id: petition.id,
+        petition_id: petition.id,
         parish_id: petition.parish_id,
-        title: parsedContext.name || petition.title,
-        description: parsedContext.description || '',
-        context: petition.context,
         community_info: parsedContext.community_info || '',
         created_at: petition.created_at,
         updated_at: petition.updated_at
@@ -234,6 +232,37 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
 
   const generatedContent = await generatePetitionContent(data)
 
+  // Get the existing petition to preserve the context structure
+  const { data: existingPetition, error: fetchError } = await supabase
+    .from('petitions')
+    .select('context')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) {
+    throw new Error('Failed to fetch existing petition')
+  }
+
+  // Update the context with new community info
+  let updatedContext = null
+  if (existingPetition?.context) {
+    try {
+      const parsedContext = JSON.parse(existingPetition.context)
+      parsedContext.community_info = data.community_info
+      updatedContext = JSON.stringify(parsedContext)
+    } catch {
+      // If parsing fails, create a new context
+      updatedContext = JSON.stringify({
+        name: 'Updated Context',
+        community_info: data.community_info,
+        sacraments_received: [],
+        deaths_this_week: [],
+        sick_members: [],
+        special_petitions: []
+      })
+    }
+  }
+
   const { data: petition, error: petitionError } = await supabase
     .from('petitions')
     .update({
@@ -241,6 +270,7 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
       date: data.date,
       language: data.language,
       generated_content: generatedContent,
+      context: updatedContext,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -248,19 +278,8 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
     .single()
 
   if (petitionError) {
+    console.error('Petition update error:', petitionError)
     throw new Error('Failed to update petition')
-  }
-
-  const { error: contextError } = await supabase
-    .from('petition_contexts')
-    .update({
-      community_info: data.community_info,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('petition_id', id)
-
-  if (contextError) {
-    throw new Error('Failed to update petition context')
   }
 
   return petition

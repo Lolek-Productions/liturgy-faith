@@ -47,7 +47,15 @@ export default function CreateLiturgicalReadingsPage() {
       router.push(`/liturgical-readings/${liturgicalReading.id}/edit?step=2`)
     } catch (error) {
       console.error('Failed to create liturgical reading:', error)
-      toast.error('Failed to create reading collection. Please try again.')
+      // More detailed error logging
+      if (error instanceof Error) {
+        console.error('Error message:', error.message)
+        console.error('Error stack:', error.stack)
+        toast.error(`Failed to create reading collection: ${error.message}`)
+      } else {
+        console.error('Unknown error:', error)
+        toast.error('Failed to create reading collection. Please try again.')
+      }
     } finally {
       setSaving(false)
     }

@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Thu Jul 17 20:08:24 CDT 2025
+**Generated on:** Tue Jul 29 14:04:52 CDT 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -168,16 +168,17 @@ The following tables are available in the database:
 | `created_at` | timestamp with time zone | NO | now() |
 | `date` | date | YES | none |
 | `description` | text | YES | none |
+| `first_reading_id` | uuid | YES | none |
 | `first_reading_lector` | text | YES | none |
-| `first_reading` | text | YES | none |
 | `gospel_lector` | text | YES | none |
-| `gospel_reading` | text | YES | none |
+| `gospel_reading_id` | uuid | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |
 | `parish_id` | uuid | YES | none |
+| `psalm_id` | uuid | YES | none |
 | `psalm_lector` | text | YES | none |
-| `responsorial_psalm` | text | YES | none |
+| `second_reading_id` | uuid | YES | none |
 | `second_reading_lector` | text | YES | none |
-| `second_reading` | text | YES | none |
+| `sung_petitions` | boolean | YES | none |
 | `title` | text | YES | none |
 
 ---
@@ -306,6 +307,7 @@ The following tables are available in the database:
 | Column | Type | Nullable | Default |
 |--------|------|----------|---------|
 | `created_at` | timestamp with time zone | NO | now() |
+| `default_petitions` | text | YES | none |
 | `id` | uuid | NO | gen_random_uuid() |
 | `mass_intention_offering_quick_amounts` | jsonb | YES | none |
 | `parish_id` | uuid | YES | none |

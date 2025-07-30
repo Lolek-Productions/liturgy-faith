@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
-import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { getPetitionContexts, PetitionContextTemplate, ensureDefaultContexts, cleanupInvalidContexts, createPetitionContext } from '@/lib/actions/petition-contexts'
 import { parseContextData } from '@/lib/petition-context-utils'
@@ -199,17 +198,13 @@ export default function LanguageContextStep({
             inputType="select"
             value={wizardData.language}
             onChange={handleLanguageChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a language" />
-            </SelectTrigger>
-            <SelectContent align="start" side="bottom">
-              <SelectItem value="english">English</SelectItem>
-              <SelectItem value="spanish">Spanish</SelectItem>
-              <SelectItem value="french">French</SelectItem>
-              <SelectItem value="latin">Latin</SelectItem>
-            </SelectContent>
-          </FormField>
+            options={[
+              { value: 'english', label: 'English' },
+              { value: 'spanish', label: 'Spanish' },
+              { value: 'french', label: 'French' },
+              { value: 'latin', label: 'Latin' }
+            ]}
+          />
         </CardContent>
       </Card>
 

@@ -25,7 +25,6 @@ import type { IndividualReading } from '@/lib/types'
 interface WizardData {
   title: string
   description: string
-  includePetitions: boolean
   readings: {
     first?: string
     psalm?: string
@@ -58,7 +57,6 @@ export default function ReadingsWizardPage() {
   const [wizardData, setWizardData] = useState<WizardData>({
     title: '',
     description: '',
-    includePetitions: false,
     readings: {},
     lectors: {},
     printOptions: {
@@ -101,7 +99,7 @@ export default function ReadingsWizardPage() {
   }
 
   const nextStep = () => {
-    if (currentStep < 6) {
+    if (currentStep < 5) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -146,20 +144,13 @@ export default function ReadingsWizardPage() {
     
     params.set('title', wizardData.title || 'Liturgical Readings')
     
-    if (wizardData.includePetitions) {
-      params.set('includePetitions', 'true')
-    }
-    
-    const printUrl = wizardData.includePetitions 
-      ? `/print/combined?${params.toString()}`
-      : `/print/readings-print?${params.toString()}`
+    const printUrl = `/print/readings-print?${params.toString()}`
     
     window.open(printUrl, '_blank')
   }
 
   const steps = [
     'Event Details',
-    'Petitions Option', 
     'First Reading',
     'Psalm',
     'Second Reading & Gospel',
@@ -252,40 +243,8 @@ export default function ReadingsWizardPage() {
             </div>
           )}
 
-          {/* Step 2: Petitions Option */}
+          {/* Step 2: First Reading */}
           {currentStep === 2 && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="text-2xl font-bold">Include Petitions?</h2>
-                <p className="text-muted-foreground">Would you like to include petitions with your readings?</p>
-              </div>
-              
-              <div className="flex justify-center">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="petitions"
-                    checked={wizardData.includePetitions}
-                    onCheckedChange={(checked) => updateWizardData({ includePetitions: !!checked })}
-                  />
-                  <Label htmlFor="petitions" className="text-sm font-medium">
-                    Include petitions in the final document
-                  </Label>
-                </div>
-              </div>
-              
-              {wizardData.includePetitions && (
-                <div className="bg-muted/50 p-4 rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Petitions will be included in your print layout. You can configure 
-                    specific petition content in the settings.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 3: First Reading */}
-          {currentStep === 3 && (
             <ReadingSelectionStep
               title="First Reading"
               description="Select the first reading for your liturgical celebration"
@@ -306,8 +265,8 @@ export default function ReadingsWizardPage() {
             />
           )}
 
-          {/* Step 4: Psalm */}
-          {currentStep === 4 && (
+          {/* Step 3: Psalm */}
+          {currentStep === 3 && (
             <ReadingSelectionStep
               title="Responsorial Psalm"
               description="Select the psalm for your liturgical celebration"
@@ -328,8 +287,8 @@ export default function ReadingsWizardPage() {
             />
           )}
 
-          {/* Step 5: Second Reading & Gospel */}
-          {currentStep === 5 && (
+          {/* Step 4: Second Reading & Gospel */}
+          {currentStep === 4 && (
             <div className="space-y-8">
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-bold">Second Reading & Gospel</h2>
@@ -378,8 +337,8 @@ export default function ReadingsWizardPage() {
             </div>
           )}
 
-          {/* Step 6: Review & Save */}
-          {currentStep === 6 && (
+          {/* Step 5: Review & Save */}
+          {currentStep === 5 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-bold">Review & Save</h2>
@@ -397,7 +356,6 @@ export default function ReadingsWizardPage() {
                       {wizardData.description && (
                         <div><strong>Description:</strong> {wizardData.description}</div>
                       )}
-                      <div><strong>Include Petitions:</strong> {wizardData.includePetitions ? 'Yes' : 'No'}</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -474,9 +432,9 @@ export default function ReadingsWizardPage() {
         
         <Button 
           onClick={nextStep} 
-          disabled={currentStep === 6 || (currentStep === 1 && !wizardData.title.trim())}
+          disabled={currentStep === 5 || (currentStep === 1 && !wizardData.title.trim())}
         >
-          {currentStep === 6 ? 'Complete' : 'Next'}
+          {currentStep === 5 ? 'Complete' : 'Next'}
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </div>

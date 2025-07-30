@@ -285,14 +285,15 @@ export interface LiturgicalReading {
   title: string
   description?: string
   date?: string
-  first_reading?: string
+  first_reading_id?: string
   first_reading_lector?: string
-  responsorial_psalm?: string
+  psalm_id?: string
   psalm_lector?: string
-  second_reading?: string
+  second_reading_id?: string
   second_reading_lector?: string
-  gospel_reading?: string
+  gospel_reading_id?: string
   gospel_lector?: string
+  sung_petitions?: boolean
   created_at: string
 }
 
@@ -300,14 +301,15 @@ export interface CreateLiturgicalReadingData {
   title: string
   description?: string
   date?: string
-  first_reading?: string
+  first_reading_id?: string
   first_reading_lector?: string
-  responsorial_psalm?: string
+  psalm_id?: string
   psalm_lector?: string
-  second_reading?: string
+  second_reading_id?: string
   second_reading_lector?: string
-  gospel_reading?: string
+  gospel_reading_id?: string
   gospel_lector?: string
+  sung_petitions?: boolean
 }
 
 // Additional parish-based interfaces

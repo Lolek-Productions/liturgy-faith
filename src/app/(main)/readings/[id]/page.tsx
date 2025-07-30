@@ -111,35 +111,30 @@ export default function ReadingDetailPage({ params }: PageProps) {
       description={reading.lectionary_id || 'Scripture reading details'}
       maxWidth="4xl"
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/readings">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Readings
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">{reading.pericope || 'Untitled Reading'}</h1>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              {reading.language && (
-                <Badge variant="outline">
-                  {reading.language}
-                </Badge>
-              )}
-              {reading.lectionary_id && (
-                <Badge variant="secondary">
-                  {reading.lectionary_id}
-                </Badge>
-              )}
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                {new Date(reading.created_at).toLocaleDateString()}
-              </div>
+      <div className="space-y-4">
+        {/* Title and badges */}
+        <div>
+          <h1 className="text-3xl font-bold">{reading.pericope || 'Untitled Reading'}</h1>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {reading.language && (
+              <Badge variant="outline">
+                {reading.language}
+              </Badge>
+            )}
+            {reading.lectionary_id && (
+              <Badge variant="secondary">
+                {reading.lectionary_id}
+              </Badge>
+            )}
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              {new Date(reading.created_at).toLocaleDateString()}
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        
+        {/* Action buttons */}
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={handleCopyText}>
             <Copy className="h-4 w-4 mr-2" />
             Copy Text
@@ -161,158 +156,86 @@ export default function ReadingDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Categories */}
-      {reading.categories && reading.categories.length > 0 && (
+      <div className="space-y-6">
+        {/* Categories */}
+        {reading.categories && reading.categories.length > 0 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-wrap gap-2">
+                {reading.categories.map(category => (
+                  <Badge key={category} className={getCategoryColor(category)}>
+                    {category}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Reading Text */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-wrap gap-2">
-              {reading.categories.map(category => (
-                <Badge key={category} className={getCategoryColor(category)}>
-                  {category}
-                </Badge>
-              ))}
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Reading Text
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-muted/30 p-6 rounded-lg">
+              <div className="space-y-4">
+                {reading.pericope && (
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-primary">
+                      {reading.pericope}
+                    </h3>
+                  </div>
+                )}
+                <div className="prose prose-sm max-w-none">
+                  <p className="whitespace-pre-wrap leading-relaxed text-foreground">
+                    {reading.text}
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Reading Text */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            Reading Text
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-muted/30 p-6 rounded-lg">
-            <div className="space-y-4">
-              {reading.pericope && (
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold text-primary">
-                    {reading.pericope}
-                  </h3>
-                </div>
-              )}
-              <div className="prose prose-sm max-w-none">
-                <p className="whitespace-pre-wrap leading-relaxed text-foreground">
-                  {reading.text}
+        {/* Reading Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Reading Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                  Word Count
+                </h4>
+                <p className="text-sm">
+                  {reading.text ? reading.text.split(' ').length : 0} words
+                </p>
+              </div>
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                  Character Count
+                </h4>
+                <p className="text-sm">
+                  {reading.text ? reading.text.length : 0} characters
+                </p>
+              </div>
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
+                  Reading ID
+                </h4>
+                <p className="text-xs font-mono text-muted-foreground">
+                  {reading.id}
                 </p>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Reading Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Reading Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
-                Pericope
-              </h4>
-              <p className="text-sm">
-                {reading.pericope || 'Not specified'}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
-                Language
-              </h4>
-              <p className="text-sm">
-                {reading.language || 'Not specified'}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
-                Lectionary ID
-              </h4>
-              <p className="text-sm">
-                {reading.lectionary_id || 'Not specified'}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
-                Categories
-              </h4>
-              <p className="text-sm">
-                {reading.categories && reading.categories.length > 0 
-                  ? reading.categories.length 
-                  : 'None'
-                } {reading.categories && reading.categories.length === 1 ? 'category' : 'categories'}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
-                Created
-              </h4>
-              <p className="text-sm">
-                {new Date(reading.created_at).toLocaleDateString()}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
-                Word Count
-              </h4>
-              <p className="text-sm">
-                {reading.text ? reading.text.split(' ').length : 0} words
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
-                Character Count
-              </h4>
-              <p className="text-sm">
-                {reading.text ? reading.text.length : 0} characters
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-1">
-                Reading ID
-              </h4>
-              <p className="text-xs font-mono text-muted-foreground">
-                {reading.id}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <Button variant="outline" onClick={handleCopyText}>
-              <Copy className="h-4 w-4 mr-2" />
-              Copy Full Text
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                if (reading.pericope) {
-                  navigator.clipboard.writeText(reading.pericope)
-                }
-              }}
-            >
-              <Copy className="h-4 w-4 mr-2" />
-              Copy Pericope
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/readings/create">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Create Similar Reading
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      </div>
     </PageContainer>
   )
 }
