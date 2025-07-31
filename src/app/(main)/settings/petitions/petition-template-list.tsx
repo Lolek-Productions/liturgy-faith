@@ -14,14 +14,7 @@ import {
   DataTableHeader,
   DataTableRowActions,
 } from '@/components/data-table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DeleteRowDialog } from '@/components/delete-row-dialog';
 
 interface PetitionTemplateListProps {
   templates: PetitionContextTemplate[];
@@ -31,7 +24,6 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const { setBreadcrumbs } = useBreadcrumbs();
 
@@ -65,18 +57,14 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
   const handleDelete = async () => {
     if (!templateToDelete) return;
     
-    setIsDeleting(true);
-    
     try {
       await deletePetitionContext(templateToDelete);
       toast.success("Template deleted successfully");
       router.refresh();
+      setTemplateToDelete(null);
     } catch (error) {
       toast.error("Failed to delete template. Please try again.");
-    } finally {
-      setIsDeleting(false);
-      setDeleteDialogOpen(false);
-      setTemplateToDelete(null);
+      throw error; // Re-throw so the dialog can handle the loading state
     }
   };
 
@@ -119,7 +107,7 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
     {
       key: "description",
       header: "Description",
-      hiddenOn: "md",
+      hiddenOn: "sm",
       cell: (template) => (
         <span className="text-sm text-muted-foreground">
           {template.description || "No description"}
@@ -129,24 +117,12 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
     {
       key: "created_at",
       header: "Created",
-      hiddenOn: "lg",
+      hiddenOn: "md",
       sortable: true,
       accessorFn: (template) => new Date(template.created_at),
       cell: (template) => (
         <span className="text-sm text-muted-foreground">
           {formatDate(template.created_at)}
-        </span>
-      ),
-    },
-    {
-      key: "updated_at", 
-      header: "Updated",
-      hiddenOn: "lg",
-      sortable: true,
-      accessorFn: (template) => new Date(template.updated_at),
-      cell: (template) => (
-        <span className="text-sm text-muted-foreground">
-          {formatDate(template.updated_at)}
         </span>
       ),
     },
@@ -158,7 +134,7 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
       cell: (template) => (
         <DataTableRowActions
           row={template}
-          onEdit={(row) => router.push(`/settings/petitions/${row.id}`)}
+          variant="hybrid"
           onDelete={(row) => openDeleteDialog(row.id)}
         />
       ),
@@ -193,6 +169,7 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
         data={filteredTemplates}
         columns={columns}
         keyExtractor={(template) => template.id}
+        onRowClick={(template) => router.push(`/settings/petitions/${template.id}`)}
         emptyState={{
           icon: <FileText className="h-12 w-12 text-gray-400" />,
           title: searchTerm ? "No templates found" : "No templates yet",
@@ -207,30 +184,13 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
         }}
       />
     
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Template</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{getTemplateByTitle(templateToDelete || '')?.title}&quot;? 
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteRowDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Delete Template"
+        itemName={getTemplateByTitle(templateToDelete || '')?.title}
+      />
     </div>
   );
 }

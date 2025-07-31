@@ -93,7 +93,7 @@ interface DataTableRowActionsProps<T> {
     variant?: DataTableAction["variant"];
     className?: string;
   }>;
-  variant?: "inline" | "dropdown";
+  variant?: "inline" | "dropdown" | "hybrid";
   className?: string;
 }
 
@@ -105,6 +105,66 @@ export function DataTableRowActions<T>({
   variant = "inline",
   className,
 }: DataTableRowActionsProps<T>) {
+  if (variant === "hybrid") {
+    // For hybrid variant, only show dropdown with actions (no inline edit button)
+    const dropdownActions: DataTableAction[] = [];
+
+    if (customActions.length > 0) {
+      customActions.forEach((action) => {
+        dropdownActions.push({
+          label: action.label,
+          icon: action.icon,
+          onClick: () => action.onClick(row),
+          variant: action.variant,
+          className: action.className,
+        });
+      });
+    }
+
+    if (onDelete) {
+      dropdownActions.push({
+        label: "Delete",
+        icon: <Trash2 className="h-4 w-4" />,
+        onClick: () => onDelete(row),
+        variant: "destructive",
+        separator: dropdownActions.length > 0,
+      });
+    }
+
+    return (
+      <div className={cn("flex gap-2 items-center justify-center", className)}>
+        {dropdownActions.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {dropdownActions.map((action, index) => (
+                <React.Fragment key={index}>
+                  {action.separator && index > 0 && <DropdownMenuSeparator />}
+                  <DropdownMenuItem
+                    onClick={action.onClick}
+                    className={cn(
+                      action.variant === "destructive" && "text-destructive focus:text-destructive",
+                      action.className
+                    )}
+                  >
+                    {action.icon && <span className="mr-2">{action.icon}</span>}
+                    {action.label}
+                  </DropdownMenuItem>
+                </React.Fragment>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+    );
+  }
+
+  // Original implementation for inline and dropdown variants
   const actions: DataTableAction[] = [];
 
   if (customActions.length > 0) {

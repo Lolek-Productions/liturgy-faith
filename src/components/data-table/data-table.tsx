@@ -205,7 +205,14 @@ export function DataTable<T>({
                   onRowClick && "cursor-pointer",
                   rowClassValue
                 )}
-                onClick={() => onRowClick?.(row)}
+                onClick={(e) => {
+                  // Don't trigger row click if clicking on buttons or interactive elements
+                  const target = e.target as HTMLElement;
+                  if (target.closest('button') || target.closest('[role="menuitem"]')) {
+                    return;
+                  }
+                  onRowClick?.(row);
+                }}
               >
                 {visibleColumns.map((column) => (
                   <TableCell

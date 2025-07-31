@@ -515,3 +515,20 @@ export async function regeneratePetitionContent(id: string, data: { title: strin
   return petition
 }
 
+export async function deletePetition(id: string) {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+
+  const { error } = await supabase
+    .from('petitions')
+    .delete()
+    .eq('id', id)
+    .eq('parish_id', selectedParishId)
+
+  if (error) {
+    console.error('Petition deletion error:', error)
+    throw new Error('Failed to delete petition')
+  }
+}
+

@@ -1,20 +1,23 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { searchPetitions } from '@/lib/actions/petitions'
+import { searchPetitions, deletePetition } from '@/lib/actions/petitions'
 import { Button } from '@/components/ui/button'
 import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
 import Link from 'next/link'
-import { FileText, Plus, Eye, Printer, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FileText, Plus, Printer, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { Petition } from '@/lib/types'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 import {
   DataTable,
   DataTableColumn,
   DataTableHeader,
   DataTableRowActions,
 } from '@/components/data-table'
+import { DeleteRowDialog } from '@/components/delete-row-dialog'
 
 export default function PetitionsPage() {
   const [petitions, setPetitions] = useState<Petition[]>([])
@@ -24,7 +27,10 @@ export default function PetitionsPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [total, setTotal] = useState(0)
   const [itemsPerPage] = useState(10)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [petitionToDelete, setPetitionToDelete] = useState<string | null>(null)
   const { setBreadcrumbs } = useBreadcrumbs()
+  const router = useRouter()
 
   useEffect(() => {
     setBreadcrumbs([
@@ -63,6 +69,30 @@ export default function PetitionsPage() {
     }
   }, [searchTerm])
 
+  const openDeleteDialog = (petitionId: string) => {
+    setPetitionToDelete(petitionId)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDelete = async () => {
+    if (!petitionToDelete) return
+    
+    try {
+      await deletePetition(petitionToDelete)
+      toast.success("Petition deleted successfully")
+      // Reload the petitions list
+      await loadPetitions()
+      setPetitionToDelete(null)
+    } catch (error) {
+      toast.error("Failed to delete petition. Please try again.")
+      throw error // Re-throw so the dialog can handle the loading state
+    }
+  }
+
+  const getPetitionById = (petitionId: string) => {
+    return petitions.find(p => p.id === petitionId)
+  }
+
   const columns: DataTableColumn<Petition>[] = [
     {
       key: "title",
@@ -76,6 +106,7 @@ export default function PetitionsPage() {
     {
       key: "language",
       header: "Language",
+      hiddenOn: "md",
       sortable: true,
       accessorFn: (petition) => petition.language,
       cell: (petition) => (
@@ -85,6 +116,7 @@ export default function PetitionsPage() {
     {
       key: "date",
       header: "Date",
+      hiddenOn: "lg",
       sortable: true,
       accessorFn: (petition) => new Date(petition.date),
       cell: (petition) => new Date(petition.date).toLocaleDateString(),
@@ -92,23 +124,19 @@ export default function PetitionsPage() {
     {
       key: "actions",
       header: "Actions",
-      headerClassName: "text-right",
-      className: "text-right",
+      headerClassName: "text-center",
+      className: "text-center",
       cell: (petition) => (
         <DataTableRowActions
           row={petition}
+          variant="hybrid"
+          onDelete={(row) => openDeleteDialog(row.id)}
           customActions={[
-            {
-              label: "View",
-              icon: <Eye className="h-4 w-4" />,
-              onClick: (row) => window.location.href = `/petitions/${row.id}`,
-              variant: "outline",
-            },
             {
               label: "Print",
               icon: <Printer className="h-4 w-4" />,
               onClick: (row) => window.open(`/print/petitions/${row.id}`, '_blank'),
-              variant: "outline",
+              variant: "ghost",
             },
           ]}
         />
@@ -153,6 +181,7 @@ export default function PetitionsPage() {
           data={petitions}
           columns={columns}
           keyExtractor={(petition) => petition.id}
+          onRowClick={(petition) => window.location.href = `/petitions/${petition.id}`}
           emptyState={{
             icon: <FileText className="h-12 w-12 mx-auto text-muted-foreground" />,
             title: searchTerm ? "No petitions found" : "No petitions yet",
@@ -229,6 +258,14 @@ export default function PetitionsPage() {
           </div>
         </div>
       )}
+
+      <DeleteRowDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Delete Petition"
+        itemName={getPetitionById(petitionToDelete || '')?.title}
+      />
     </PageContainer>
   )
 }
