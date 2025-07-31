@@ -82,7 +82,7 @@ export default function PetitionWizardPage() {
             setWizardData(prev => ({
               ...prev,
               language: petitionData.language || 'english',
-              generatedContent: petitionData.generated_content || '',
+              generatedContent: petitionData.text || '', // Use text field, not generated_content
             }))
           } else {
             setError('Petition not found')

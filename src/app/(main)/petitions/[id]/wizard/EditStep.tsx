@@ -40,6 +40,50 @@ export default function EditStep({
     setHasChanges(content !== wizardData.generatedContent)
   }, [content, wizardData.generatedContent])
 
+  // Auto-generate when component mounts if no content exists
+  useEffect(() => {
+    let hasRun = false
+    
+    const autoGenerate = async () => {
+      // Only auto-generate if:
+      // 1. No content has been generated yet
+      // 2. Not currently generating
+      // 3. Haven't already run this effect
+      // 4. Petition data is loaded
+      if (!hasGenerated && !generating && !hasRun && petition.id && (!wizardData.generatedContent || wizardData.generatedContent.trim() === '')) {
+        hasRun = true
+        console.log('Auto-generating petition content on step 3 load')
+        setGenerating(true)
+        try {
+          toast.loading('Auto-generating petitions...')
+          const generatedContent = await generatePetitionContent({
+            title: petition.title,
+            date: petition.date,
+            language: wizardData.language,
+            community_info: petition.details || '',
+            templateId: wizardData.templateId
+          })
+          
+          // Save generated content to database
+          await updatePetitionContent(petition.id, generatedContent)
+          
+          updateWizardData({ generatedContent })
+          setContent(generatedContent)
+          setHasGenerated(true)
+          toast.success('Petitions auto-generated successfully')
+        } catch (error) {
+          console.error('Failed to auto-generate petitions:', error)
+          toast.error('Failed to auto-generate petitions')
+        } finally {
+          setGenerating(false)
+        }
+      }
+    }
+
+    // Only run once when petition is loaded and we have no content
+    autoGenerate()
+  }, [petition.id]) // Only depend on petition.id to run once when petition loads
+
   // Auto-save with debouncing
   useEffect(() => {
     if (hasChanges && !saving && content.trim() !== '') {
@@ -72,7 +116,7 @@ export default function EditStep({
         title: petition.title,
         date: petition.date,
         language: wizardData.language,
-        community_info: (wizardData.templateData?.community_info as string) || '',
+        community_info: petition.details || '',
         templateId: wizardData.templateId
       })
       
@@ -148,8 +192,8 @@ export default function EditStep({
           </CardTitle>
           <p className="text-muted-foreground">
             {!hasGenerated 
-              ? 'Generate AI-powered liturgical petitions based on your context and community information.'
-              : 'Review the generated petitions and make any necessary edits. Changes are automatically saved.'
+              ? 'AI will analyze your selected template structure, integrate your community-specific details, and adapt the language style to generate contextually appropriate liturgical petitions.'
+              : 'AI analyzed your template structure, integrated your community details, and adapted the language style to create these contextually appropriate petitions. Edit as needed - changes save automatically.'
             }
           </p>
         </CardHeader>

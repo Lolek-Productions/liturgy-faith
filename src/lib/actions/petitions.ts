@@ -48,21 +48,13 @@ export async function createPetition(data: CreatePetitionData) {
   if (data.templateId) {
     const template = await getPetitionContext(data.templateId)
     if (template) {
-      templateReference = template.title
-      // Store community info and other details in the details field
-      detailsData = JSON.stringify({
-        community_info: data.community_info,
-        template_id: data.templateId,
-        template_title: template.title,
-        template_description: template.description
-      })
+      templateReference = template.context // Store template content, not title
+      // Store community info as simple text in the details field
+      detailsData = data.community_info
     }
   } else {
-    // Store basic details for custom petition
-    detailsData = JSON.stringify({
-      community_info: data.community_info,
-      template_type: 'custom'
-    })
+    // Store community info as simple text for custom petition
+    detailsData = data.community_info
   }
 
   const generatedContent = await generatePetitionContent(data)
@@ -204,17 +196,13 @@ export async function getSavedContexts(): Promise<Array<{id: string, name: strin
   }
 
   return (data || []).map(petition => {
-    try {
-      const details = JSON.parse(petition.details || '{}')
-      if (details.community_info && details.community_info.trim()) {
-        return {
-          id: petition.id,
-          name: `${petition.title} - ${new Date(petition.date).toLocaleDateString()}`,
-          community_info: details.community_info
-        }
+    // Details is now simple text, not JSON
+    if (petition.details && petition.details.trim()) {
+      return {
+        id: petition.id,
+        name: `${petition.title} - ${new Date(petition.date).toLocaleDateString()}`,
+        community_info: petition.details
       }
-    } catch (e) {
-      // Skip petitions with invalid JSON in details
     }
     return null
   }).filter(Boolean) as Array<{id: string, name: string, community_info: string}>
@@ -236,22 +224,16 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
     return null
   }
 
-  // Parse the context from the petition's details field
+  // Get the context from the petition's details field (now simple text)
   let context: PetitionContext | null = null
   if (petition.details) {
-    try {
-      const parsedDetails = JSON.parse(petition.details)
-      context = {
-        id: petition.id,
-        petition_id: petition.id,
-        parish_id: petition.parish_id,
-        community_info: parsedDetails.community_info || '',
-        created_at: petition.created_at,
-        updated_at: petition.updated_at
-      }
-    } catch (e) {
-      console.error('Failed to parse petition details:', e)
-      // Don't return null - just continue with empty context
+    context = {
+      id: petition.id,
+      petition_id: petition.id,
+      parish_id: petition.parish_id,
+      community_info: petition.details, // Details is now simple text
+      created_at: petition.created_at,
+      updated_at: petition.updated_at
     }
   }
   
@@ -289,27 +271,8 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
     throw new Error('Failed to fetch existing petition')
   }
 
-  // Update the details with new community info
-  let updatedDetails = null
-  if (existingPetition?.details) {
-    try {
-      const parsedDetails = JSON.parse(existingPetition.details)
-      parsedDetails.community_info = data.community_info
-      updatedDetails = JSON.stringify(parsedDetails)
-    } catch {
-      // If parsing fails, create new details
-      updatedDetails = JSON.stringify({
-        community_info: data.community_info,
-        template_type: 'updated'
-      })
-    }
-  } else {
-    // Create new details if none exist
-    updatedDetails = JSON.stringify({
-      community_info: data.community_info,
-      template_type: 'updated'
-    })
-  }
+  // Update the details with new community info (now simple text)
+  const updatedDetails = data.community_info
 
   const { data: petition, error: petitionError } = await supabase
     .from('petitions')
@@ -335,11 +298,24 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
 }
 
 export async function generatePetitionContent(data: CreatePetitionData): Promise<string> {
+  // Get the petition template content if templateId is provided
+  let templateContent = ''
+  if (data.templateId) {
+    try {
+      const template = await getPetitionContext(data.templateId)
+      if (template && template.context) {
+        templateContent = template.context
+      }
+    } catch (error) {
+      console.warn('Failed to fetch template content:', error)
+    }
+  }
+
   // Get the user's custom prompt template
   const template = await getPromptTemplate()
   
-  // Replace template variables with actual values
-  const variables = getTemplateVariables(data)
+  // Replace template variables with actual values (now includes template content)
+  const variables = getTemplateVariables(data, templateContent)
   const prompt = replaceTemplateVariables(template, variables)
   
 

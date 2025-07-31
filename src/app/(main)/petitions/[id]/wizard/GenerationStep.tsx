@@ -39,7 +39,7 @@ export default function GenerationStep({
         title: petition.title,
         date: petition.date,
         language: wizardData.language,
-        community_info: (wizardData.templateData?.community_info as string) || '',
+        community_info: petition.details || '',
         templateId: wizardData.templateId
       })
       
