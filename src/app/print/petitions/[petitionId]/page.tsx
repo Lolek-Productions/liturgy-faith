@@ -136,9 +136,9 @@ export default function PrintPetitionPage({ params }: PrintPetitionPageProps) {
 
         {/* Petitions Content */}
         <div className="mt-8">
-          {petition.generated_content ? (
+          {(petition.text || petition.generated_content) ? (
             <div className="whitespace-pre-line">
-              {petition.generated_content.split('\n')
+              {(petition.text || petition.generated_content)?.split('\n')
                 .filter(line => line.trim())
                 .filter((line, index) => {
                   // Skip the first line if it matches the petition title

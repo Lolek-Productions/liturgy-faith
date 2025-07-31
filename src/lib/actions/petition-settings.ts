@@ -15,11 +15,11 @@ export async function getPetitionContextSettings(): Promise<PetitionContextSetti
   await ensureJWTClaims()
 
   const { data, error } = await supabase
-    .from('petition_contexts')
+    .from('petition_templates')
     .select('*')
 
   if (error && error.code !== 'PGRST116') {
-    throw new Error('Failed to load petition contexts')
+    throw new Error('Failed to load petition templates')
   }
 
   const settings: PetitionContextSettings = {}
@@ -39,7 +39,7 @@ export async function updatePetitionContextSetting(contextId: string, petitionTe
 
   // Simply store the petition text directly in the context field
   const { error } = await supabase
-    .from('petition_contexts')
+    .from('petition_templates')
     .update({
       context: petitionText,
       updated_at: new Date().toISOString()
@@ -47,7 +47,7 @@ export async function updatePetitionContextSetting(contextId: string, petitionTe
     .eq('id', contextId)
 
   if (error) {
-    throw new Error('Failed to update petition context setting')
+    throw new Error('Failed to update petition template setting')
   }
 }
 

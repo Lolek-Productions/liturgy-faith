@@ -41,7 +41,7 @@ export async function getPetitionContexts(): Promise<PetitionContextTemplate[]> 
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('petition_contexts')
+    .from('petition_templates')
     .select('*')
     .order('title', { ascending: true })
 
@@ -58,7 +58,7 @@ export async function createPetitionContext(contextData: CreateContextData): Pro
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('petition_contexts')
+    .from('petition_templates')
     .insert([
       {
         parish_id: selectedParishId,
@@ -83,7 +83,7 @@ export async function updatePetitionContext(contextData: UpdateContextData): Pro
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('petition_contexts')
+    .from('petition_templates')
     .update({
       title: contextData.title,
       description: contextData.description,
@@ -106,7 +106,7 @@ export async function deletePetitionContext(contextId: string): Promise<void> {
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('petition_contexts')
+    .from('petition_templates')
     .delete()
     .eq('id', contextId)
 
@@ -121,7 +121,7 @@ export async function getPetitionContext(contextId: string): Promise<PetitionCon
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('petition_contexts')
+    .from('petition_templates')
     .select('*')
     .eq('id', contextId)
     .single()
@@ -146,7 +146,7 @@ export async function cleanupInvalidContexts(): Promise<void> {
 
   // Remove contexts with empty titles or invalid context data
   await supabase
-    .from('petition_contexts')
+    .from('petition_templates')
     .delete()
     .or('title.is.null,title.eq.,context.is.null,context.eq.')
 }
@@ -162,7 +162,7 @@ export async function ensureDefaultContexts(): Promise<void> {
 
   // Check if parish already has valid contexts
   const { data: existingContexts } = await supabase
-    .from('petition_contexts')
+    .from('petition_templates')
     .select('id')
     .not('title', 'is', null)
     .not('title', 'eq', '')
@@ -215,7 +215,7 @@ export async function ensureDefaultContexts(): Promise<void> {
 
   for (const contextData of defaultContexts) {
     await supabase
-      .from('petition_contexts')
+      .from('petition_templates')
       .insert([
         {
           parish_id: selectedParishId,

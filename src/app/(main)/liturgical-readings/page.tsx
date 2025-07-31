@@ -67,7 +67,7 @@ export default function LiturgicalReadingsPage() {
 
   return (
     <PageContainer 
-      title="My Liturgical Readings"
+      title="Our Liturgical Readings"
       description="Manage your liturgical reading collections created with the wizard or manual entry."
       maxWidth="7xl"
     >

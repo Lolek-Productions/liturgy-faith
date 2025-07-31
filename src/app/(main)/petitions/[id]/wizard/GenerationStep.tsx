@@ -12,8 +12,8 @@ interface GenerationStepProps {
   petition: Petition
   wizardData: {
     language: string
-    contextId: string
-    contextData: Record<string, unknown>
+    templateId: string
+    templateData: Record<string, unknown>
     generatedContent: string
   }
   updateWizardData: (updates: Record<string, unknown>) => void
@@ -39,8 +39,8 @@ export default function GenerationStep({
         title: petition.title,
         date: petition.date,
         language: wizardData.language,
-        community_info: (wizardData.contextData?.community_info as string) || '',
-        contextId: wizardData.contextId
+        community_info: (wizardData.templateData?.community_info as string) || '',
+        templateId: wizardData.templateId
       })
       
       // Save generated content to database
@@ -79,7 +79,7 @@ export default function GenerationStep({
               <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No Content Generated Yet</h3>
               <p className="text-muted-foreground mb-6">
-                Please use the regenerate button below to create petitions in {wizardData.language} based on your context &quot;{(wizardData.contextData?.name as string) || 'Unknown'}&quot;.
+                Please use the regenerate button below to create petitions in {wizardData.language} based on your template &quot;{(wizardData.templateData?.name as string) || 'Unknown'}&quot;.
               </p>
               <Button 
                 onClick={handleGenerate} 
@@ -143,13 +143,13 @@ export default function GenerationStep({
               <span className="font-medium">Language:</span> {wizardData.language}
             </div>
             <div>
-              <span className="font-medium">Context:</span> {(wizardData.contextData?.name as string) || 'Unknown'}
+              <span className="font-medium">Template:</span> {(wizardData.templateData?.name as string) || 'Unknown'}
             </div>
-            {(wizardData.contextData?.community_info as string) && (
+            {(wizardData.templateData?.community_info as string) && (
               <div className="col-span-2">
                 <span className="font-medium">Community Info:</span>
                 <p className="text-muted-foreground mt-1">
-                  {wizardData.contextData.community_info as string}
+                  {wizardData.templateData.community_info as string}
                 </p>
               </div>
             )}

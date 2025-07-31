@@ -75,7 +75,97 @@ export function MainSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              
+              <CollapsibleNavSection
+                name="Readings"
+                icon={BookOpen}
+                items={[
+                  {
+                    title: "Our Readings",
+                    url: "/readings",
+                    icon: BookOpen,
+                  },
+                  {
+                    title: "Create Reading",
+                    url: "/readings/create",
+                    icon: Sparkles,
+                  },
+                ]}
+                defaultOpen={false}
+              />
+
+              <CollapsibleNavSection
+                name="Liturgical Readings"
+                icon={BookOpen}
+                items={[
+                  {
+                    title: "Our Liturgical Readings",
+                    url: "/liturgical-readings",
+                    icon: BookOpen,
+                  },
+                  {
+                    title: "Create Liturgical Reading",
+                    url: "/liturgical-readings/create",
+                    icon: Sparkles,
+                  },
+                ]}
+                defaultOpen={false}
+              />
+
+              {/* <CollapsibleNavSection
+                name="Liturgy"
+                icon={ClipboardList}
+                items={[
+                  {
+                    title: "Liturgy Planning",
+                    url: "/liturgy-planning",
+                    icon: ClipboardList,
+                  },
+                  {
+                    title: "Create Liturgy",
+                    url: "/liturgy/wizard",
+                    icon: Sparkles,
+                  },
+                  {
+                    title: "Liturgical Calendar",
+                    url: "/calendar",
+                    icon: Calendar,
+                  },
+                ]}
+                defaultOpen={false}
+              /> */}
+
+              {/* <CollapsibleNavSection
+                name="Ministry"
+                icon={UserCheck}
+                items={[
+                  {
+                    title: "Ministers Directory",
+                    url: "/ministers",
+                    icon: UserCheck,
+                  },
+                  {
+                    title: "People",
+                    url: "/people",
+                    icon: User,
+                  },
+                  {
+                    title: "Groups",
+                    url: "/groups",
+                    icon: Users,
+                  },
+                  {
+                    title: "Ministries",
+                    url: "/ministries",
+                    icon: Sparkles,
+                  },
+                  {
+                    title: "Event Templates",
+                    url: "/liturgical-event-templates",
+                    icon: FileText,
+                  },
+                ]}
+                defaultOpen={false}
+              /> */}
 
               <CollapsibleNavSection
                 name="Mass Intentions"
@@ -109,13 +199,13 @@ export function MainSidebar() {
                 ]}
                 defaultOpen={false}
               />
-              
+
               <CollapsibleNavSection
                 name="Petitions"
                 icon={FileText}
                 items={[
                   {
-                    title: "My Petitions",
+                    title: "Our Petitions",
                     url: "/petitions",
                     icon: FileText,
                   },
@@ -123,98 +213,6 @@ export function MainSidebar() {
                     title: "Create Petition",
                     url: "/petitions/create",
                     icon: Sparkles,
-                  },
-                ]}
-                defaultOpen={false}
-              />
-
-              <CollapsibleNavSection
-                name="Readings"
-                icon={BookOpen}
-                items={[
-                  {
-                    title: "My Readings",
-                    url: "/readings",
-                    icon: BookOpen,
-                  },
-                  {
-                    title: "Create Reading",
-                    url: "/readings/create",
-                    icon: Sparkles,
-                  },
-                ]}
-                defaultOpen={false}
-              />
-
-              <CollapsibleNavSection
-                name="Liturgical Readings"
-                icon={BookOpen}
-                items={[
-                  {
-                    title: "My Liturgical Readings",
-                    url: "/liturgical-readings",
-                    icon: BookOpen,
-                  },
-                  {
-                    title: "Create Liturgical Reading",
-                    url: "/liturgical-readings/create",
-                    icon: Sparkles,
-                  },
-                ]}
-                defaultOpen={false}
-              />
-
-              <CollapsibleNavSection
-                name="Liturgy"
-                icon={ClipboardList}
-                items={[
-                  {
-                    title: "Liturgy Planning",
-                    url: "/liturgy-planning",
-                    icon: ClipboardList,
-                  },
-                  {
-                    title: "Create Liturgy",
-                    url: "/liturgy/wizard",
-                    icon: Sparkles,
-                  },
-                  {
-                    title: "Liturgical Calendar",
-                    url: "/calendar",
-                    icon: Calendar,
-                  },
-                ]}
-                defaultOpen={false}
-              />
-
-              <CollapsibleNavSection
-                name="Ministry"
-                icon={UserCheck}
-                items={[
-                  {
-                    title: "Ministers Directory",
-                    url: "/ministers",
-                    icon: UserCheck,
-                  },
-                  {
-                    title: "People",
-                    url: "/people",
-                    icon: User,
-                  },
-                  {
-                    title: "Groups",
-                    url: "/groups",
-                    icon: Users,
-                  },
-                  {
-                    title: "Ministries",
-                    url: "/ministries",
-                    icon: Sparkles,
-                  },
-                  {
-                    title: "Event Templates",
-                    url: "/liturgical-event-templates",
-                    icon: FileText,
                   },
                 ]}
                 defaultOpen={false}

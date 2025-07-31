@@ -49,7 +49,7 @@ export default function CreatePetitionPage() {
   return (
     <PageContainer 
       title="Create New Petitions" 
-      description="Start by providing basic information. You'll configure language and context details in the next step."
+      description="Start by providing basic information. You'll configure language and template details in the next step."
       cardTitle="Petition Details"
       maxWidth="2xl"
     >
@@ -84,7 +84,7 @@ export default function CreatePetitionPage() {
               disabled={loading || !title.trim() || !date}
               className="w-full"
             >
-              {loading ? 'Creating...' : 'Continue to Petition Wizard'}
+              {loading ? 'Creating...' : 'Continue'}
             </Button>
           </form>
     </PageContainer>

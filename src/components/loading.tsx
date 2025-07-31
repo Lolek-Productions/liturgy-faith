@@ -7,7 +7,7 @@ interface LoadingProps {
   className?: string
   size?: 'sm' | 'md' | 'lg'
   centered?: boolean
-  variant?: 'spinner' | 'skeleton-cards' | 'skeleton-list'
+  variant?: 'spinner' | 'skeleton-cards' | 'skeleton-list' | 'skeleton-table'
 }
 
 export function Loading({ 
@@ -59,6 +59,45 @@ export function Loading({
             </div>
           </div>
         ))}
+      </div>
+    )
+  }
+
+  if (variant === 'skeleton-table') {
+    return (
+      <div className={cn("space-y-4", className)}>
+        {/* Search bar skeleton */}
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+        
+        {/* Table skeleton */}
+        <div className="border rounded-lg">
+          {/* Table header */}
+          <div className="border-b bg-muted/50 px-4 py-3">
+            <div className="flex items-center space-x-4">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-20 hidden md:block" />
+              <Skeleton className="h-4 w-16 hidden lg:block" />
+              <div className="flex-1" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          </div>
+          
+          {/* Table rows */}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="border-b last:border-b-0 px-4 py-3">
+              <div className="flex items-center space-x-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-16 hidden md:block" />
+                <Skeleton className="h-4 w-20 hidden lg:block" />
+                <div className="flex-1" />
+                <Skeleton className="h-8 w-8 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

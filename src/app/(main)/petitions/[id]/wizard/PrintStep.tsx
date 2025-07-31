@@ -10,19 +10,15 @@ interface PrintStepProps {
   petition: Petition
   wizardData: {
     language: string
-    contextId: string
-    contextData: Record<string, unknown>
+    templateId: string
+    templateData: Record<string, unknown>
     generatedContent: string
   }
-  onComplete: () => void
-  onPrevious: () => void
 }
 
 export default function PrintStep({ 
   petition, 
-  wizardData, 
-  onComplete,
-  onPrevious 
+  wizardData
 }: PrintStepProps) {
   
   const handlePrint = () => {
@@ -54,7 +50,7 @@ export default function PrintStep({
             <div className="flex gap-4 text-sm text-green-700">
               <span>Date: {new Date(petition.date).toLocaleDateString()}</span>
               <span>Language: {wizardData.language}</span>
-              <span>Context: {(wizardData.contextData?.name as string) || 'Unknown'}</span>
+              <span>Template: {(wizardData.templateData?.name as string) || 'Unknown'}</span>
             </div>
           </div>
         </CardContent>
@@ -126,7 +122,7 @@ export default function PrintStep({
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Context:</span>
-              <span>{(wizardData.contextData?.name as string) || 'Unknown'}</span>
+              <span>{(wizardData.templateData?.name as string) || 'Unknown'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Content Length:</span>
@@ -136,16 +132,6 @@ export default function PrintStep({
         </CardContent>
       </Card>
 
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-        <Button onClick={onComplete}>
-          Complete & View Petition
-        </Button>
-      </div>
     </div>
   )
 }

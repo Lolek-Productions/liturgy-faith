@@ -4,11 +4,15 @@ export interface Petition {
   title: string
   date: string
   language: string
-  generated_content?: string
-  petition_text?: string // Alias for generated_content for compatibility
-  context?: string // Serialized context data
+  text?: string // Main petition text content
+  details?: string // JSON string containing additional details like community_info
+  template?: string // Reference to template used
   created_at: string
   updated_at: string
+  // Deprecated fields for backward compatibility
+  generated_content?: string // Alias for text
+  petition_text?: string // Alias for text  
+  context?: string // Deprecated - data now in details
 }
 
 export interface PetitionContext {
@@ -25,7 +29,7 @@ export interface CreatePetitionData {
   date: string
   language: string
   community_info: string
-  contextId?: string // Optional context template ID to copy from
+  templateId?: string // Optional petition template ID to copy from
 }
 
 export interface PetitionSettings {

@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "mcp__lolek-mcp__list-examples",
+      "mcp__lolek-mcp__get-claude-rules",
+      "mcp__lolek-mcp__get-workflow-rules",
+      "Bash(./scripts/generate-database-docs.sh:*)",
+      "Bash(chmod:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }

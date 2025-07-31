@@ -1,25 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Check } from 'lucide-react'
+import { Check, ArrowLeft } from 'lucide-react'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { PageContainer } from '@/components/page-container'
 import { getPetition } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
 
 // Import wizard steps
-import LanguageContextStep from '@/components/wizard/LanguageContextStep'
-import ContextEditStep from '@/components/wizard/ContextEditStep'
-import EditStep from '@/components/wizard/EditStep'
-import PrintStep from '@/components/wizard/PrintStep'
+import LanguageTemplateStep from './LanguageContextStep'
+import TemplateEditStep from './ContextEditStep'
+import EditStep from './EditStep'
+import PrintStep from './PrintStep'
 
 const STEPS = [
-  { id: 1, title: 'Language & Context', description: 'Choose language and select context template' },
-  { id: 2, title: 'Context Details', description: 'Customize context with specific names and details' },
+  { id: 1, title: 'Language & Template', description: 'Choose language and select petition template' },
+  { id: 2, title: 'Template Details', description: 'Customize template with specific names and details' },
   { id: 3, title: 'Edit & Review', description: 'Generate and edit petitions using AI' },
   { id: 4, title: 'Print & Complete', description: 'Print petitions and complete' }
 ]
@@ -27,6 +27,7 @@ const STEPS = [
 export default function PetitionWizardPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { setBreadcrumbs } = useBreadcrumbs()
   const [petition, setPetition] = useState<Petition | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
@@ -36,8 +37,8 @@ export default function PetitionWizardPage() {
   // Wizard state
   const [wizardData, setWizardData] = useState({
     language: 'english',
-    contextId: '',
-    contextData: {} as Record<string, unknown>,
+    templateId: '',
+    templateData: {} as Record<string, unknown>,
     generatedContent: '',
   })
 
@@ -48,6 +49,26 @@ export default function PetitionWizardPage() {
       { label: "Petition Wizard" }
     ])
   }, [setBreadcrumbs])
+
+  const updateStepInUrl = (step: number) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('step', step.toString())
+    router.replace(url.pathname + url.search, { scroll: false })
+  }
+
+  // Initialize step from URL params
+  useEffect(() => {
+    const stepParam = searchParams.get('step')
+    if (stepParam) {
+      const stepNumber = parseInt(stepParam, 10)
+      if (stepNumber >= 1 && stepNumber <= STEPS.length) {
+        setCurrentStep(stepNumber)
+      }
+    } else {
+      // If no step in URL, set step 1 in URL
+      updateStepInUrl(1)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     const loadPetition = async () => {
@@ -80,13 +101,17 @@ export default function PetitionWizardPage() {
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
-      setCurrentStep(currentStep + 1)
+      const newStep = currentStep + 1
+      setCurrentStep(newStep)
+      updateStepInUrl(newStep)
     }
   }
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      const newStep = currentStep - 1
+      setCurrentStep(newStep)
+      updateStepInUrl(newStep)
     }
   }
 
@@ -94,6 +119,7 @@ export default function PetitionWizardPage() {
     // Allow navigation to previous steps or current step
     if (stepId <= currentStep) {
       setCurrentStep(stepId)
+      updateStepInUrl(stepId)
     }
   }
 
@@ -144,21 +170,18 @@ export default function PetitionWizardPage() {
     switch (currentStep) {
       case 1:
         return (
-          <LanguageContextStep
+          <LanguageTemplateStep
             petition={petition}
             wizardData={wizardData}
             updateWizardData={updateWizardData}
-            onNext={handleNext}
           />
         )
       case 2:
         return (
-          <ContextEditStep
+          <TemplateEditStep
             petition={petition}
             wizardData={wizardData}
             updateWizardData={updateWizardData}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
           />
         )
       case 3:
@@ -167,8 +190,6 @@ export default function PetitionWizardPage() {
             petition={petition}
             wizardData={wizardData}
             updateWizardData={updateWizardData}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
           />
         )
       case 4:
@@ -176,8 +197,6 @@ export default function PetitionWizardPage() {
           <PrintStep
             petition={petition}
             wizardData={wizardData}
-            onComplete={handleComplete}
-            onPrevious={handlePrevious}
           />
         )
       default:
@@ -192,13 +211,6 @@ export default function PetitionWizardPage() {
       maxWidth="4xl"
     >
       <div className="space-y-6">
-        {/* Header with Date Badge */}
-        <div className="flex justify-end">
-          <Badge variant="outline">
-            {new Date(petition.date).toLocaleDateString()}
-          </Badge>
-        </div>
-
         {/* Progress Steps */}
         <Card>
           <CardContent className="p-6">
@@ -243,6 +255,28 @@ export default function PetitionWizardPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between">
+          <Button 
+            variant="outline" 
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Previous
+          </Button>
+          
+          {currentStep < STEPS.length ? (
+            <Button onClick={handleNext}>
+              Next: {STEPS[currentStep]?.title}
+            </Button>
+          ) : (
+            <Button onClick={handleComplete}>
+              Complete & View Petition
+            </Button>
+          )}
+        </div>
 
         {/* Step Content */}
         {renderStepContent()}

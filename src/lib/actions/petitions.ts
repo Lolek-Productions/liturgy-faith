@@ -21,8 +21,9 @@ export async function createBasicPetition(data: { title: string; date: string })
         title: data.title,
         date: data.date,
         language: 'english', // Default, will be set in wizard
-        generated_content: null, // Will be generated in wizard
-        context: null, // Will be set in wizard
+        text: null, // Will be generated in wizard
+        details: null, // Will be set in wizard
+        template: null, // Will be set in wizard
       },
     ])
     .select()
@@ -40,45 +41,28 @@ export async function createPetition(data: CreatePetitionData) {
   
   const selectedParishId = await requireSelectedParish()
 
-  // If a context ID is provided, get the full context data
-  let contextData = null
-  if (data.contextId) {
-    const template = await getPetitionContext(data.contextId)
+  // If a template ID is provided, store it for reference
+  let templateReference = null
+  let detailsData = null
+  
+  if (data.templateId) {
+    const template = await getPetitionContext(data.templateId)
     if (template) {
-      try {
-        const parsedContext = JSON.parse(template.context)
-        contextData = {
-          name: parsedContext.name || template.title,
-          description: template.description,
-          community_info: data.community_info, // Use the custom community info from the form
-          sacraments_received: parsedContext.sacraments_received || [],
-          deaths_this_week: parsedContext.deaths_this_week || [],
-          sick_members: parsedContext.sick_members || [],
-          special_petitions: parsedContext.special_petitions || []
-        }
-      } catch {
-        // Fallback if parsing fails
-        contextData = {
-          name: template.title,
-          description: template.description,
-          community_info: data.community_info,
-          sacraments_received: [],
-          deaths_this_week: [],
-          sick_members: [],
-          special_petitions: []
-        }
-      }
+      templateReference = template.title
+      // Store community info and other details in the details field
+      detailsData = JSON.stringify({
+        community_info: data.community_info,
+        template_id: data.templateId,
+        template_title: template.title,
+        template_description: template.description
+      })
     }
   } else {
-    // Create a basic context with just community info
-    contextData = {
-      name: 'Custom Context',
+    // Store basic details for custom petition
+    detailsData = JSON.stringify({
       community_info: data.community_info,
-      sacraments_received: [],
-      deaths_this_week: [],
-      sick_members: [],
-      special_petitions: []
-    }
+      template_type: 'custom'
+    })
   }
 
   const generatedContent = await generatePetitionContent(data)
@@ -91,8 +75,9 @@ export async function createPetition(data: CreatePetitionData) {
         title: data.title,
         date: data.date,
         language: data.language,
-        generated_content: generatedContent,
-        context: contextData ? JSON.stringify(contextData) : null,
+        text: generatedContent,
+        details: detailsData,
+        template: templateReference,
       },
     ])
     .select()
@@ -204,43 +189,34 @@ export async function getPetition(id: string): Promise<Petition | null> {
 export async function getSavedContexts(): Promise<Array<{id: string, name: string, community_info: string}>> {
   const supabase = await createClient()
   
-  await requireSelectedParish()
+  const selectedParishId = await requireSelectedParish()
 
+  // Get petitions that have details with community_info
   const { data, error } = await supabase
-    .from('petition_contexts')
-    .select(`
-      id,
-      community_info,
-      petition_id,
-      petitions (
-        title,
-        date
-      )
-    `)
-    .neq('community_info', '')
-    .not('petitions', 'is', null)
+    .from('petitions')
+    .select('id, title, date, details')
+    .eq('parish_id', selectedParishId)
+    .not('details', 'is', null)
     .order('created_at', { ascending: false })
 
   if (error) {
     throw new Error('Failed to fetch saved contexts')
   }
 
-  return (data || []).map(item => {
-    const typedItem = item as unknown as { 
-      id: string; 
-      community_info: string; 
-      petitions: { title: string; date: string } | null 
+  return (data || []).map(petition => {
+    try {
+      const details = JSON.parse(petition.details || '{}')
+      if (details.community_info && details.community_info.trim()) {
+        return {
+          id: petition.id,
+          name: `${petition.title} - ${new Date(petition.date).toLocaleDateString()}`,
+          community_info: details.community_info
+        }
+      }
+    } catch (e) {
+      // Skip petitions with invalid JSON in details
     }
-    
-    if (!typedItem.petitions) {
-      return null
-    }
-    
-    return {
-      id: typedItem.id,
-      name: `${typedItem.petitions.title} - ${new Date(typedItem.petitions.date).toLocaleDateString()}`,
-      community_info: typedItem.community_info
-    }
+    return null
   }).filter(Boolean) as Array<{id: string, name: string, community_info: string}>
 }
 
@@ -260,21 +236,21 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
     return null
   }
 
-  // Parse the context from the petition's context field
+  // Parse the context from the petition's details field
   let context: PetitionContext | null = null
-  if (petition.context) {
+  if (petition.details) {
     try {
-      const parsedContext = JSON.parse(petition.context)
+      const parsedDetails = JSON.parse(petition.details)
       context = {
         id: petition.id,
         petition_id: petition.id,
         parish_id: petition.parish_id,
-        community_info: parsedContext.community_info || '',
+        community_info: parsedDetails.community_info || '',
         created_at: petition.created_at,
         updated_at: petition.updated_at
       }
     } catch (e) {
-      console.error('Failed to parse petition context:', e)
+      console.error('Failed to parse petition details:', e)
       // Don't return null - just continue with empty context
     }
   }
@@ -301,10 +277,10 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
 
   const generatedContent = await generatePetitionContent(data)
 
-  // Get the existing petition to preserve the context structure
+  // Get the existing petition to preserve the details structure
   const { data: existingPetition, error: fetchError } = await supabase
     .from('petitions')
-    .select('context')
+    .select('details, template')
     .eq('id', id)
     .eq('parish_id', selectedParishId)
     .single()
@@ -313,24 +289,26 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
     throw new Error('Failed to fetch existing petition')
   }
 
-  // Update the context with new community info
-  let updatedContext = null
-  if (existingPetition?.context) {
+  // Update the details with new community info
+  let updatedDetails = null
+  if (existingPetition?.details) {
     try {
-      const parsedContext = JSON.parse(existingPetition.context)
-      parsedContext.community_info = data.community_info
-      updatedContext = JSON.stringify(parsedContext)
+      const parsedDetails = JSON.parse(existingPetition.details)
+      parsedDetails.community_info = data.community_info
+      updatedDetails = JSON.stringify(parsedDetails)
     } catch {
-      // If parsing fails, create a new context
-      updatedContext = JSON.stringify({
-        name: 'Updated Context',
+      // If parsing fails, create new details
+      updatedDetails = JSON.stringify({
         community_info: data.community_info,
-        sacraments_received: [],
-        deaths_this_week: [],
-        sick_members: [],
-        special_petitions: []
+        template_type: 'updated'
       })
     }
+  } else {
+    // Create new details if none exist
+    updatedDetails = JSON.stringify({
+      community_info: data.community_info,
+      template_type: 'updated'
+    })
   }
 
   const { data: petition, error: petitionError } = await supabase
@@ -339,8 +317,8 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
       title: data.title,
       date: data.date,
       language: data.language,
-      generated_content: generatedContent,
-      context: updatedContext,
+      text: generatedContent,
+      details: updatedDetails,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -422,9 +400,10 @@ export async function updatePetitionContext(petitionId: string, context: string)
   
   const selectedParishId = await requireSelectedParish()
 
+  // Context is now stored in the details field
   const { error } = await supabase
     .from('petitions')
-    .update({ context })
+    .update({ details: context })
     .eq('id', petitionId)
     .eq('parish_id', selectedParishId)
 
@@ -440,7 +419,7 @@ export async function updatePetitionContent(petitionId: string, content: string)
 
   const { error } = await supabase
     .from('petitions')
-    .update({ generated_content: content })
+    .update({ text: content })
     .eq('id', petitionId)
     .eq('parish_id', selectedParishId)
 
@@ -449,7 +428,7 @@ export async function updatePetitionContent(petitionId: string, content: string)
   }
 }
 
-export async function updatePetitionDetails(id: string, data: { title: string; date: string; language: string; generated_content: string }) {
+export async function updatePetitionDetails(id: string, data: { title: string; date: string; language: string; text: string }) {
   const supabase = await createClient()
   
   const selectedParishId = await requireSelectedParish()
@@ -460,7 +439,7 @@ export async function updatePetitionDetails(id: string, data: { title: string; d
       title: data.title,
       date: data.date,
       language: data.language,
-      generated_content: data.generated_content,
+      text: data.text,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -476,7 +455,7 @@ export async function updatePetitionDetails(id: string, data: { title: string; d
   return petition
 }
 
-export async function regeneratePetitionContent(id: string, data: { title: string; date: string; language: string; contextId?: string; community_info?: string }) {
+export async function regeneratePetitionContent(id: string, data: { title: string; date: string; language: string; templateId?: string; community_info?: string }) {
   const supabase = await createClient()
   
   const selectedParishId = await requireSelectedParish()
@@ -487,7 +466,7 @@ export async function regeneratePetitionContent(id: string, data: { title: strin
     date: data.date,
     language: data.language,
     community_info: data.community_info || '',
-    contextId: data.contextId
+    templateId: data.templateId
   }
 
   const generatedContent = await generatePetitionContent(petitionData)
@@ -499,7 +478,7 @@ export async function regeneratePetitionContent(id: string, data: { title: strin
       title: data.title,
       date: data.date,
       language: data.language,
-      generated_content: generatedContent,
+      text: generatedContent,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

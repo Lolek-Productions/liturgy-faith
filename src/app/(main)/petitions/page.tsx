@@ -147,18 +147,18 @@ export default function PetitionsPage() {
   if (loading) {
     return (
       <PageContainer 
-        title="My Petitions" 
+        title="Our Petitions" 
         description="Manage your created petitions"
         maxWidth="6xl"
       >
-        <Loading variant="skeleton-list" />
+        <Loading variant="skeleton-table" />
       </PageContainer>
     )
   }
 
   return (
     <PageContainer 
-      title="My Petitions" 
+      title="Our Petitions" 
       description="Manage your created petitions"
       maxWidth="6xl"
     >

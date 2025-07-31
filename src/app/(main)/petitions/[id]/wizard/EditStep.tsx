@@ -13,21 +13,17 @@ interface EditStepProps {
   petition: Petition
   wizardData: {
     language: string
-    contextId: string
-    contextData: Record<string, unknown>
+    templateId: string
+    templateData: Record<string, unknown>
     generatedContent: string
   }
   updateWizardData: (updates: Record<string, unknown>) => void
-  onNext: () => void
-  onPrevious: () => void
 }
 
 export default function EditStep({ 
   petition, 
   wizardData, 
-  updateWizardData, 
-  onNext,
-  onPrevious 
+  updateWizardData
 }: EditStepProps) {
   const [content, setContent] = useState(wizardData.generatedContent || '')
   const [saving, setSaving] = useState(false)
@@ -76,8 +72,8 @@ export default function EditStep({
         title: petition.title,
         date: petition.date,
         language: wizardData.language,
-        community_info: (wizardData.contextData?.community_info as string) || '',
-        contextId: wizardData.contextId
+        community_info: (wizardData.templateData?.community_info as string) || '',
+        templateId: wizardData.templateId
       })
       
       // Save generated content to database
@@ -114,14 +110,6 @@ export default function EditStep({
     }
   }
 
-  const handleNext = async () => {
-    if (hasChanges) {
-      await handleSave()
-    } else {
-      toast.success('Petition review completed')
-    }
-    onNext()
-  }
 
   return (
     <div className="space-y-6">
@@ -171,7 +159,7 @@ export default function EditStep({
               <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">Ready to Generate Petitions</h3>
               <p className="text-muted-foreground mb-6">
-                We&apos;ll create liturgical petitions in {wizardData.language} based on your context &quot;{(wizardData.contextData?.name as string) || 'Unknown'}&quot;.
+                We&apos;ll create liturgical petitions in {wizardData.language} based on your template &quot;{(wizardData.templateData?.name as string) || 'Unknown'}&quot;.
               </p>
               <Button 
                 onClick={handleGenerate} 
@@ -240,16 +228,6 @@ export default function EditStep({
         </CardContent>
       </Card>
 
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-        <Button onClick={handleNext} disabled={!hasGenerated || saving}>
-          {saving ? 'Saving...' : 'Next: Print & Complete'}
-        </Button>
-      </div>
     </div>
   )
 }

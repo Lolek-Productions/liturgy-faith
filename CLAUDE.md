@@ -247,6 +247,23 @@ When creating new components:
 6. Add error boundaries for complex components
 7. Use shadcn/ui components when available (but check agent rules first)
 
+### Dialog/Modal Sizing
+**Use Tailwind preset classes instead of inline styles for modal widths**
+
+Available Dialog preset sizes:
+- `sm:max-w-sm` (384px) - Small
+- `sm:max-w-md` (448px) - Medium
+- `sm:max-w-lg` (512px) - Large (default)
+- `sm:max-w-xl` (576px) - Extra Large
+- `sm:max-w-2xl` (672px) - 2XL
+- `sm:max-w-3xl` (768px) - 3XL
+- `sm:max-w-4xl` (896px) - 4XL (good for wide modals)
+- `sm:max-w-5xl` (1024px) - 5XL
+- `sm:max-w-6xl` (1152px) - 6XL
+- `sm:max-w-7xl` (1280px) - 7XL
+
+Example: `<DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden">`
+
 ### Database Operations
 **ALWAYS check `get-agent-rules` for database constraints before making changes**
 

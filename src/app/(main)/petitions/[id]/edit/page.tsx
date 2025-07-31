@@ -24,13 +24,13 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
   const [language, setLanguage] = useState('english')
-  const [generatedContent, setGeneratedContent] = useState('')
+  const [petitionText, setPetitionText] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
   const [error, setError] = useState('')
   const [showRegenerateModal, setShowRegenerateModal] = useState(false)
-  const [contexts, setContexts] = useState<PetitionContextTemplate[]>([])
-  const [selectedContextId, setSelectedContextId] = useState('none')
+  const [templates, setTemplates] = useState<PetitionContextTemplate[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState('none')
   const [communityInfo, setCommunityInfo] = useState('')
   const [regenerating, setRegenerating] = useState(false)
   const router = useRouter()
@@ -48,7 +48,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
           setTitle(petition.title)
           setDate(petition.date)
           setLanguage(petition.language)
-          setGeneratedContent(petition.generated_content || '')
+          setPetitionText(petition.text || petition.generated_content || '')
           
           // Set breadcrumbs with petition title
           setBreadcrumbs([
@@ -68,20 +68,20 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
     loadPetition()
   }, [params, setBreadcrumbs])
 
-  // Load contexts when modal opens
+  // Load templates when modal opens
   useEffect(() => {
-    const loadContexts = async () => {
+    const loadTemplates = async () => {
       if (showRegenerateModal) {
         try {
-          const contextsData = await getPetitionContexts()
-          setContexts(contextsData)
+          const templatesData = await getPetitionContexts()
+          setTemplates(templatesData)
         } catch (error) {
-          console.error('Failed to load contexts:', error)
-          toast.error('Failed to load petition contexts')
+          console.error('Failed to load templates:', error)
+          toast.error('Failed to load petition templates')
         }
       }
     }
-    loadContexts()
+    loadTemplates()
   }, [showRegenerateModal])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,7 +94,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
         title,
         date,
         language,
-        generated_content: generatedContent.trim(),
+        text: petitionText.trim(),
       }
 
       await updatePetitionDetails(id, petitionData)
@@ -109,8 +109,8 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   }
 
   const handleRegenerate = async () => {
-    if (selectedContextId === 'none' && !communityInfo.trim()) {
-      toast.error('Please select a context or provide community information')
+    if (selectedTemplateId === 'none' && !communityInfo.trim()) {
+      toast.error('Please select a template or provide community information')
       return
     }
 
@@ -120,14 +120,14 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
         title,
         date,
         language,
-        contextId: selectedContextId === 'none' ? undefined : selectedContextId,
+        templateId: selectedTemplateId === 'none' ? undefined : selectedTemplateId,
         community_info: communityInfo.trim()
       }
 
       const updatedPetition = await regeneratePetitionContent(id, regenerationData)
-      setGeneratedContent(updatedPetition.generated_content || '')
+      setPetitionText(updatedPetition.text || updatedPetition.generated_content || '')
       setShowRegenerateModal(false)
-      setSelectedContextId('none')
+      setSelectedTemplateId('none')
       setCommunityInfo('')
       toast.success('Petition content regenerated successfully!')
     } catch (error) {
@@ -225,17 +225,17 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
                     </DialogHeader>
                     <div className="space-y-4">
                       <FormField
-                        id="contextSelect"
-                        label="Select Context Template (Optional)"
-                        description="Choose a pre-defined context template"
+                        id="templateSelect"
+                        label="Select Petition Template (Optional)"
+                        description="Choose a pre-defined petition template"
                         inputType="select"
-                        value={selectedContextId}
-                        onChange={setSelectedContextId}
+                        value={selectedTemplateId}
+                        onChange={setSelectedTemplateId}
                         options={[
                           { value: 'none', label: 'No template - use community info only' },
-                          ...contexts.map(context => ({
-                            value: context.id,
-                            label: context.title
+                          ...templates.map(template => ({
+                            value: template.id,
+                            label: template.title
                           }))
                         ]}
                       />
@@ -282,9 +282,9 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
               </div>
               
               <textarea
-                id="generatedContent"
-                value={generatedContent}
-                onChange={(e) => setGeneratedContent(e.target.value)}
+                id="petitionText"
+                value={petitionText}
+                onChange={(e) => setPetitionText(e.target.value)}
                 placeholder="Enter your petition content here..."
                 rows={12}
                 className="min-h-0 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"

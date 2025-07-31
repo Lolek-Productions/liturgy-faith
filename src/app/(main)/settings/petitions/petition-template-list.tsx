@@ -96,18 +96,13 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
       sortable: true,
       accessorFn: (template) => template.title,
       cell: (template) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{template.title}</span>
-          <span className="text-sm text-muted-foreground md:hidden">
-            {template.description}
-          </span>
-        </div>
+        <span className="font-medium">{template.title}</span>
       ),
     },
     {
       key: "description",
       header: "Description",
-      hiddenOn: "sm",
+      hiddenOn: "md",
       cell: (template) => (
         <span className="text-sm text-muted-foreground">
           {template.description || "No description"}
@@ -117,7 +112,7 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
     {
       key: "created_at",
       header: "Created",
-      hiddenOn: "md",
+      hiddenOn: "xl",
       sortable: true,
       accessorFn: (template) => new Date(template.created_at),
       cell: (template) => (

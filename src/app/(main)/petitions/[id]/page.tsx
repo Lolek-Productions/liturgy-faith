@@ -106,14 +106,14 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Generated Petition</CardTitle>
-                <CopyButton content={petition.generated_content || ''} />
+                <CopyButton content={petition.text || petition.generated_content || ''} />
               </div>
             </CardHeader>
             <CardContent>
               <div className="bg-muted p-6 rounded-md">
-                {petition.generated_content ? (
+                {(petition.text || petition.generated_content) ? (
                   <pre className="whitespace-pre-wrap text-sm font-mono">
-                    {petition.generated_content}
+                    {petition.text || petition.generated_content}
                   </pre>
                 ) : (
                   <div className="text-center text-muted-foreground py-8">
@@ -161,7 +161,7 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
                 Print Petitions
               </Button>
               <CopyButton 
-                content={petition.generated_content || ''} 
+                content={petition.text || petition.generated_content || ''} 
                 className="w-full"
                 variant="outline"
               />

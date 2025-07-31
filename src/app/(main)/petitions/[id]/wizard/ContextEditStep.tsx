@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -11,30 +11,26 @@ import { Petition } from '@/lib/types'
 import { ContextData } from '@/lib/petition-context-utils'
 import { toast } from 'sonner'
 
-interface ContextEditStepProps {
+interface TemplateEditStepProps {
   petition: Petition
   wizardData: {
     language: string
-    contextId: string
-    contextData: Record<string, unknown>
+    templateId: string
+    templateData: Record<string, unknown>
     generatedContent: string
   }
   updateWizardData: (updates: Record<string, unknown>) => void
-  onNext: () => void
-  onPrevious: () => void
 }
 
-export default function ContextEditStep({ 
+export default function TemplateEditStep({ 
   petition, 
   wizardData, 
-  updateWizardData, 
-  onNext,
-  onPrevious 
-}: ContextEditStepProps) {
-  const [contextData, setContextData] = useState<ContextData>({
-    name: 'Custom Context',
+  updateWizardData
+}: TemplateEditStepProps) {
+  const [templateData, setTemplateData] = useState<ContextData>({
+    name: 'Custom Template',
     description: '',
-    community_info: (wizardData.contextData?.community_info as string) || '',
+    community_info: (wizardData.templateData?.community_info as string) || '',
     sacraments_received: [],
     deaths_this_week: [],
     sick_members: [],
@@ -43,31 +39,35 @@ export default function ContextEditStep({
   const [saving, setSaving] = useState(false)
 
   const updateCommunityInfo = (value: string) => {
-    setContextData(prev => ({ ...prev, community_info: value }))
+    setTemplateData(prev => ({ ...prev, community_info: value }))
   }
 
-  const handleNext = async () => {
-    setSaving(true)
-    try {
-      // Update petition with context data
-      await updatePetitionContext(petition.id, JSON.stringify(contextData))
-      updateWizardData({ contextData })
-      toast.success('Context details saved successfully')
-      onNext()
-    } catch (error) {
-      console.error('Failed to save context:', error)
-      toast.error('Failed to save context details')
-    } finally {
-      setSaving(false)
+  // Auto-save when community info changes
+  useEffect(() => {
+    const saveData = async () => {
+      setSaving(true)
+      try {
+        await updatePetitionContext(petition.id, JSON.stringify(templateData))
+        updateWizardData({ templateData })
+      } catch (error) {
+        console.error('Failed to save template:', error)
+      } finally {
+        setSaving(false)
+      }
     }
-  }
+
+    if (templateData.community_info?.trim()) {
+      const debounceTimer = setTimeout(saveData, 1000)
+      return () => clearTimeout(debounceTimer)
+    }
+  }, [templateData, petition.id, updateWizardData])
 
   return (
     <div className="space-y-6">
-      {/* Context Information */}
+      {/* Template Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Customize Context Details</CardTitle>
+          <CardTitle>Customize Template Details</CardTitle>
           <p className="text-muted-foreground">
             Add specific names, details, and information relevant to this liturgical celebration.
           </p>
@@ -98,7 +98,7 @@ export default function ContextEditStep({
             
             <Textarea
               id="community_info"
-              value={contextData.community_info || ''}
+              value={templateData.community_info || ''}
               onChange={(e) => updateCommunityInfo(e.target.value)}
               placeholder="Enter all community information that should be included in the petitions..."
               className="min-h-[200px]"
@@ -107,16 +107,6 @@ export default function ContextEditStep({
         </CardContent>
       </Card>
 
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-        <Button onClick={handleNext} disabled={saving}>
-          {saving ? 'Saving...' : 'Next: Edit & Review'}
-        </Button>
-      </div>
     </div>
   )
 }

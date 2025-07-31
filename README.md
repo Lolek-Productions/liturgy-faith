@@ -62,7 +62,7 @@ A Next.js application for creating and managing church petitions, built with Sup
 ### Tables
 
 - **petitions**: Main petition records with generated content
-- **petition_contexts**: Associated context data (sacraments, deaths, sick members, special petitions)
+- **petition_templates**: Template data for petition generation (sacraments, deaths, sick members, special petitions)
 
 ### Security
 

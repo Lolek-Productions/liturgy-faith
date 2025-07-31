@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Tue Jul 29 14:04:52 CDT 2025
+**Generated on:** Thu Jul 31 09:57:45 CDT 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -357,7 +357,7 @@ The following tables are available in the database:
 
 ---
 
-### Table: `petition_contexts`
+### Table: `petition_templates`
 
 **Column Schema:**
 
@@ -379,13 +379,14 @@ The following tables are available in the database:
 
 | Column | Type | Nullable | Default |
 |--------|------|----------|---------|
-| `context` | text | YES | none |
 | `created_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
 | `date` | date | YES | none |
-| `generated_content` | text | YES | none |
+| `details` | text | YES | none |
 | `id` | uuid | NO | extensions.uuid_generate_v4() |
 | `language` | text | NO | english |
 | `parish_id` | uuid | YES | none |
+| `template` | text | YES | none |
+| `text` | text | YES | none |
 | `title` | text | YES | none |
 | `updated_at` | timestamp with time zone | NO | timezone('utc'::text, now()) |
 

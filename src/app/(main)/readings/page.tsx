@@ -84,7 +84,7 @@ export default function ReadingsPage() {
 
   return (
     <PageContainer 
-      title="My Readings"
+      title="Our Readings"
       description="Manage your collection of scripture readings and liturgical texts."
       maxWidth="7xl"
     >
