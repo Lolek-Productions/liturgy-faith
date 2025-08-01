@@ -52,34 +52,45 @@ export default function PetitionWizardPage() {
 
   const updateStepInUrl = (step: number) => {
     const url = new URL(window.location.href)
-    url.searchParams.set('step', step.toString())
-    router.replace(url.pathname + url.search, { scroll: false })
+    const currentStepParam = url.searchParams.get('step')
+    
+    // Only update if the step is different
+    if (currentStepParam !== step.toString()) {
+      url.searchParams.set('step', step.toString())
+      router.replace(url.pathname + url.search, { scroll: false })
+    }
   }
 
-  // Initialize step from URL params
+  // Initialize step from URL params (only run once)
   useEffect(() => {
     const stepParam = searchParams.get('step')
     if (stepParam) {
       const stepNumber = parseInt(stepParam, 10)
-      if (stepNumber >= 1 && stepNumber <= STEPS.length) {
+      if (stepNumber >= 1 && stepNumber <= STEPS.length && stepNumber !== currentStep) {
         setCurrentStep(stepNumber)
       }
-    } else {
-      // If no step in URL, set step 1 in URL
+    } else if (currentStep === 1) {
+      // Only set URL if we're on step 1 and there's no step param
       updateStepInUrl(1)
     }
-  }, [searchParams])
+  }, [searchParams]) // Remove currentStep from dependencies to prevent loops
 
   useEffect(() => {
+    let mounted = true
+    
     const loadPetition = async () => {
       try {
-        setLoading(true)
-        setError('')
+        if (mounted) {
+          setLoading(true)
+          setError('')
+        }
+        
         const resolvedParams = await params
         const id = resolvedParams.id
-        if (typeof id === 'string') {
+        
+        if (typeof id === 'string' && mounted) {
           const petitionData = await getPetition(id)
-          if (petitionData) {
+          if (petitionData && mounted) {
             setPetition(petitionData)
             // Initialize wizard data from existing petition
             setWizardData(prev => ({
@@ -88,22 +99,33 @@ export default function PetitionWizardPage() {
               templateContent: petitionData.template || '', // Initialize from existing template
               generatedContent: petitionData.text || '', // Use text field, not generated_content
             }))
-          } else {
+          } else if (mounted) {
             setError('Petition not found')
           }
-        } else {
+        } else if (mounted) {
           setError('Invalid petition ID')
         }
       } catch (err) {
         console.error('Failed to load petition:', err)
-        setError('Failed to load petition')
+        if (mounted) {
+          setError('Failed to load petition')
+        }
       } finally {
-        setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     }
 
-    loadPetition()
-  }, [])
+    // Only load if we don't already have a petition loaded
+    if (!petition && loading) {
+      loadPetition()
+    }
+
+    return () => {
+      mounted = false
+    }
+  }, []) // Empty dependency array - only run once on mount
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
