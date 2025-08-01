@@ -1,5 +1,5 @@
 import { PageContainer } from '@/components/page-container';
-import { getPetitionContexts, ensureDefaultContexts } from '@/lib/actions/petition-contexts';
+import { getPetitionTemplates, ensureDefaultContexts } from '@/lib/actions/petition-templates';
 import PetitionTemplateList from './petition-template-list';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
@@ -14,7 +14,7 @@ export default async function PetitionSettingsPage() {
 
   // Ensure initial contexts are created
   await ensureDefaultContexts();
-  const templates = await getPetitionContexts();
+  const templates = await getPetitionTemplates();
 
   return (
     <PageContainer

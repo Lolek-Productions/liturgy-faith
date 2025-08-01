@@ -35,7 +35,7 @@ export interface UpdateContextData extends CreateContextData {
   id: string
 }
 
-export async function getPetitionContexts(): Promise<PetitionContextTemplate[]> {
+export async function getPetitionTemplates(): Promise<PetitionContextTemplate[]> {
   const selectedParishId = await requireSelectedParish()
   await ensureJWTClaims()
   const supabase = await createClient()
@@ -43,6 +43,7 @@ export async function getPetitionContexts(): Promise<PetitionContextTemplate[]> 
   const { data, error } = await supabase
     .from('petition_templates')
     .select('*')
+    .eq('parish_id', selectedParishId)
     .order('title', { ascending: true })
 
   if (error) {
@@ -52,7 +53,7 @@ export async function getPetitionContexts(): Promise<PetitionContextTemplate[]> 
   return data || []
 }
 
-export async function createPetitionContext(contextData: CreateContextData): Promise<PetitionContextTemplate> {
+export async function createPetitionTemplate(contextData: CreateContextData): Promise<PetitionContextTemplate> {
   const selectedParishId = await requireSelectedParish()
   await ensureJWTClaims()
   const supabase = await createClient()
@@ -77,7 +78,7 @@ export async function createPetitionContext(contextData: CreateContextData): Pro
   return data
 }
 
-export async function updatePetitionContext(contextData: UpdateContextData): Promise<PetitionContextTemplate> {
+export async function updatePetitionTemplate(contextData: UpdateContextData): Promise<PetitionContextTemplate> {
   const selectedParishId = await requireSelectedParish()
   await ensureJWTClaims()
   const supabase = await createClient()
@@ -90,6 +91,7 @@ export async function updatePetitionContext(contextData: UpdateContextData): Pro
       context: contextData.context
     })
     .eq('id', contextData.id)
+    .eq('parish_id', selectedParishId)
     .select()
     .single()
 
@@ -100,7 +102,7 @@ export async function updatePetitionContext(contextData: UpdateContextData): Pro
   return data
 }
 
-export async function deletePetitionContext(contextId: string): Promise<void> {
+export async function deletePetitionTemplate(contextId: string): Promise<void> {
   const selectedParishId = await requireSelectedParish()
   await ensureJWTClaims()
   const supabase = await createClient()
@@ -109,13 +111,14 @@ export async function deletePetitionContext(contextId: string): Promise<void> {
     .from('petition_templates')
     .delete()
     .eq('id', contextId)
+    .eq('parish_id', selectedParishId)
 
   if (error) {
     throw new Error('Failed to delete petition context')
   }
 }
 
-export async function getPetitionContext(contextId: string): Promise<PetitionContextTemplate | null> {
+export async function getPetitionTemplate(contextId: string): Promise<PetitionContextTemplate | null> {
   const selectedParishId = await requireSelectedParish()
   await ensureJWTClaims()
   const supabase = await createClient()
@@ -124,6 +127,7 @@ export async function getPetitionContext(contextId: string): Promise<PetitionCon
     .from('petition_templates')
     .select('*')
     .eq('id', contextId)
+    .eq('parish_id', selectedParishId)
     .single()
 
   if (error) {
@@ -133,8 +137,8 @@ export async function getPetitionContext(contextId: string): Promise<PetitionCon
   return data
 }
 
-export async function getPetitionContextById(contextId: string): Promise<PetitionContextTemplate | null> {
-  return getPetitionContext(contextId)
+export async function getPetitionTemplateById(contextId: string): Promise<PetitionContextTemplate | null> {
+  return getPetitionTemplate(contextId)
 }
 
 
@@ -148,6 +152,7 @@ export async function cleanupInvalidContexts(): Promise<void> {
   await supabase
     .from('petition_templates')
     .delete()
+    .eq('parish_id', selectedParishId)
     .or('title.is.null,title.eq.,context.is.null,context.eq.')
 }
 

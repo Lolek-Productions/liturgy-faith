@@ -6,25 +6,25 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { FormField } from '@/components/ui/form-field'
 import { Info } from 'lucide-react'
-import { updatePetitionContext } from '@/lib/actions/petitions'
+import { updatePetitionDetails } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
 
-interface TemplateEditStepProps {
+interface DetailsEditStepProps {
   petition: Petition
   wizardData: {
     language: string
     templateId: string
-    templateData: Record<string, unknown>
+    templateContent: string
     generatedContent: string
   }
   updateWizardData: (updates: Record<string, unknown>) => void
 }
 
-export default function TemplateEditStep({ 
+export default function DetailsEditStep({ 
   petition, 
   wizardData, 
   updateWizardData
-}: TemplateEditStepProps) {
+}: DetailsEditStepProps) {
   const [petitionDetails, setPetitionDetails] = useState('')
   const [saving, setSaving] = useState(false)
   const [showInfoModal, setShowInfoModal] = useState(false)
@@ -32,13 +32,8 @@ export default function TemplateEditStep({
 
   // Initialize details from existing petition ONLY on component mount
   useEffect(() => {
-    let initialValue = ''
-    if (petition.details) {
-      // Details is now simple text, not JSON
-      initialValue = petition.details
-    } else if (wizardData.templateData?.community_info) {
-      initialValue = wizardData.templateData.community_info as string
-    }
+    // Details starts empty/null and user will input their specific details
+    const initialValue = petition.details || ''
     
     setPetitionDetails(initialValue)
     lastSavedValue.current = initialValue // Set the initial saved value to prevent unnecessary saves
@@ -54,10 +49,16 @@ export default function TemplateEditStep({
       }
 
       console.log('Saving petition details:', petitionDetails)
+      
+      if (!petition?.id) {
+        console.log('Skipping save - no petition ID')
+        return
+      }
+      
       setSaving(true)
       try {
-        // Store details as simple text, not JSON
-        await updatePetitionContext(petition.id, petitionDetails)
+        // Store details as simple text
+        await updatePetitionDetails(petition.id, petitionDetails)
         lastSavedValue.current = petitionDetails
         console.log('Successfully saved petition details')
         // Don't update wizard data here as it causes reinitialization loops

@@ -5,7 +5,7 @@ import { CreatePetitionData, Petition, PetitionContext } from '@/lib/types'
 import { redirect } from 'next/navigation'
 import { getPromptTemplate } from '@/lib/actions/definitions'
 import { replaceTemplateVariables, getTemplateVariables } from '@/lib/template-utils'
-import { getPetitionContext } from './petition-contexts'
+import { getPetitionTemplate } from './petition-templates'
 import { requireSelectedParish } from '@/lib/auth/parish'
 
 export async function createBasicPetition(data: { title: string; date: string }) {
@@ -46,7 +46,7 @@ export async function createPetition(data: CreatePetitionData) {
   let detailsData = null
   
   if (data.templateId) {
-    const template = await getPetitionContext(data.templateId)
+    const template = await getPetitionTemplate(data.templateId)
     if (template) {
       templateReference = template.context // Store template content, not title
       // Store community info as simple text in the details field
@@ -302,7 +302,7 @@ export async function generatePetitionContent(data: CreatePetitionData): Promise
   let templateContent = ''
   if (data.templateId) {
     try {
-      const template = await getPetitionContext(data.templateId)
+      const template = await getPetitionTemplate(data.templateId)
       if (template && template.context) {
         templateContent = template.context
       }
@@ -404,7 +404,39 @@ export async function updatePetitionContent(petitionId: string, content: string)
   }
 }
 
-export async function updatePetitionDetails(id: string, data: { title: string; date: string; language: string; text: string }) {
+export async function updatePetitionTemplate(petitionId: string, template: string) {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+
+  const { error } = await supabase
+    .from('petitions')
+    .update({ template })
+    .eq('id', petitionId)
+    .eq('parish_id', selectedParishId)
+
+  if (error) {
+    throw new Error('Failed to update petition template')
+  }
+}
+
+export async function updatePetitionDetails(petitionId: string, details: string) {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+
+  const { error } = await supabase
+    .from('petitions')
+    .update({ details })
+    .eq('id', petitionId)
+    .eq('parish_id', selectedParishId)
+
+  if (error) {
+    throw new Error('Failed to update petition details')
+  }
+}
+
+export async function updatePetitionFullDetails(id: string, data: { title: string; date: string; language: string; text: string }) {
   const supabase = await createClient()
   
   const selectedParishId = await requireSelectedParish()

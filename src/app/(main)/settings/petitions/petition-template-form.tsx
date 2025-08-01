@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { FormField } from '@/components/form-field';
-import { Save, Loader2 } from "lucide-react";
-import { createPetitionContext, updatePetitionContext, PetitionContextTemplate } from '@/lib/actions/petition-contexts';
+import { Save, Loader2, FileText } from "lucide-react";
+import { createPetitionTemplate, updatePetitionTemplate, PetitionContextTemplate } from '@/lib/actions/petition-templates';
+import { getDefaultPetitions } from '@/lib/actions/parish-settings';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,24 @@ export default function PetitionTemplateForm({ template, templateSettings }: Pet
     context: template?.context || ''
   });
 
+  const handleLoadDefaultPetitions = async () => {
+    try {
+      const defaultPetitions = await getDefaultPetitions()
+      if (defaultPetitions) {
+        setFormData(prev => ({
+          ...prev,
+          context: defaultPetitions
+        }))
+        toast.success('Default petition text loaded')
+      } else {
+        toast.info('No default petition text found in parish settings')
+      }
+    } catch (error) {
+      console.error('Failed to load default petitions:', error)
+      toast.error('Failed to load default petition text')
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -30,7 +49,7 @@ export default function PetitionTemplateForm({ template, templateSettings }: Pet
     try {
       if (template) {
         // Update existing template
-        await updatePetitionContext({
+        await updatePetitionTemplate({
           id: template.id,
           title: formData.title,
           description: formData.description,
@@ -40,7 +59,7 @@ export default function PetitionTemplateForm({ template, templateSettings }: Pet
         toast.success('Template updated successfully');
       } else {
         // Create new template
-        const newTemplate = await createPetitionContext({
+        const newTemplate = await createPetitionTemplate({
           title: formData.title,
           description: formData.description,
           context: formData.context
@@ -81,16 +100,30 @@ export default function PetitionTemplateForm({ template, templateSettings }: Pet
             placeholder="Brief description of when to use this template"
           />
           
-          <FormField
-            id="context"
-            label="Default Petition Content"
-            inputType="textarea"
-            value={formData.context}
-            onChange={(value) => setFormData({ ...formData, context: value })}
-            placeholder="Enter the default petitions for this template (one per line)..."
-            rows={10}
-            description="These are the default petitions that will be used when creating a new petition with this template. Users can edit them later."
-          />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Template Text</label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleLoadDefaultPetitions}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Insert Default Text
+              </Button>
+            </div>
+            <FormField
+              id="context"
+              label=""
+              inputType="textarea"
+              value={formData.context}
+              onChange={(value) => setFormData({ ...formData, context: value })}
+              placeholder="Enter the template text for this template..."
+              rows={10}
+              description="This is the template text that will be used when creating a new petition with this template. Users can edit it later."
+            />
+          </div>
         </CardContent>
       </Card>
 

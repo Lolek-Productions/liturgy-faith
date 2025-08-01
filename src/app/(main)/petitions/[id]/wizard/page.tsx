@@ -12,14 +12,14 @@ import { getPetition } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
 
 // Import wizard steps
-import LanguageTemplateStep from './LanguageContextStep'
-import TemplateEditStep from './ContextEditStep'
+import LanguageTemplateStep from './LanguageTemplateStep'
+import DetailsEditStep from './DetailsEditStep'
 import EditStep from './EditStep'
 import PrintStep from './PrintStep'
 
 const STEPS = [
   { id: 1, title: 'Language & Template', description: 'Choose language and select petition template' },
-  { id: 2, title: 'Template Details', description: 'Customize template with specific names and details' },
+  { id: 2, title: 'Petition Details', description: 'Add specific names and community information for this liturgy' },
   { id: 3, title: 'Edit & Review', description: 'Generate and edit petitions using AI' },
   { id: 4, title: 'Print & Complete', description: 'Print petitions and complete' }
 ]
@@ -38,7 +38,7 @@ export default function PetitionWizardPage() {
   const [wizardData, setWizardData] = useState({
     language: 'english',
     templateId: '',
-    templateData: {} as Record<string, unknown>,
+    templateContent: '', // Stores the actual template text
     generatedContent: '',
   })
 
@@ -73,7 +73,10 @@ export default function PetitionWizardPage() {
   useEffect(() => {
     const loadPetition = async () => {
       try {
-        const id = await params.id
+        setLoading(true)
+        setError('')
+        const resolvedParams = await params
+        const id = resolvedParams.id
         if (typeof id === 'string') {
           const petitionData = await getPetition(id)
           if (petitionData) {
@@ -82,11 +85,14 @@ export default function PetitionWizardPage() {
             setWizardData(prev => ({
               ...prev,
               language: petitionData.language || 'english',
+              templateContent: petitionData.template || '', // Initialize from existing template
               generatedContent: petitionData.text || '', // Use text field, not generated_content
             }))
           } else {
             setError('Petition not found')
           }
+        } else {
+          setError('Invalid petition ID')
         }
       } catch (err) {
         console.error('Failed to load petition:', err)
@@ -97,7 +103,7 @@ export default function PetitionWizardPage() {
     }
 
     loadPetition()
-  }, [params])
+  }, [])
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -167,6 +173,16 @@ export default function PetitionWizardPage() {
   }
 
   const renderStepContent = () => {
+    if (!petition) {
+      return (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p>Loading step content...</p>
+          </CardContent>
+        </Card>
+      )
+    }
+
     switch (currentStep) {
       case 1:
         return (
@@ -178,7 +194,7 @@ export default function PetitionWizardPage() {
         )
       case 2:
         return (
-          <TemplateEditStep
+          <DetailsEditStep
             petition={petition}
             wizardData={wizardData}
             updateWizardData={updateWizardData}
@@ -206,7 +222,7 @@ export default function PetitionWizardPage() {
 
   return (
     <PageContainer
-      title={`Petition Wizard: ${petition.title}`}
+      title={petition ? `Petition Wizard: ${petition.title}` : "Petition Wizard"}
       description="Follow the steps below to configure and generate your petitions"
       maxWidth="4xl"
     >

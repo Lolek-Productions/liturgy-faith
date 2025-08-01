@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState, useMemo, useEffect } from "react";
 import { FileText, Edit, Plus } from "lucide-react";
-import { deletePetitionContext, PetitionContextTemplate } from '@/lib/actions/petition-contexts';
+import { deletePetitionTemplate, PetitionContextTemplate } from '@/lib/actions/petition-templates';
 import { toast } from 'sonner';
 import { useRouter } from "next/navigation";
 import { useBreadcrumbs } from '@/components/breadcrumb-context';
@@ -58,7 +58,7 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
     if (!templateToDelete) return;
     
     try {
-      await deletePetitionContext(templateToDelete);
+      await deletePetitionTemplate(templateToDelete);
       toast.success("Template deleted successfully");
       router.refresh();
       setTemplateToDelete(null);
@@ -147,7 +147,7 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
             <Button asChild size="sm" variant="outline">
               <Link href="/settings/petitions/default">
                 <FileText className="h-4 w-4 mr-2" />
-                Default Petitions
+                Template Text
               </Link>
             </Button>
             <Button asChild size="sm">

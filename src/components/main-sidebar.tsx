@@ -214,6 +214,11 @@ export function MainSidebar() {
                     url: "/petitions/create",
                     icon: Sparkles,
                   },
+                  {
+                    title: "Settings",
+                    url: "/settings/petitions",
+                    icon: Settings,
+                  },
                 ]}
                 defaultOpen={false}
               />

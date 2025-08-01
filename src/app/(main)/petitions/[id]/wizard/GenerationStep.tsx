@@ -13,7 +13,7 @@ interface GenerationStepProps {
   wizardData: {
     language: string
     templateId: string
-    templateData: Record<string, unknown>
+    templateContent: string
     generatedContent: string
   }
   updateWizardData: (updates: Record<string, unknown>) => void
@@ -79,7 +79,7 @@ export default function GenerationStep({
               <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No Content Generated Yet</h3>
               <p className="text-muted-foreground mb-6">
-                Please use the regenerate button below to create petitions in {wizardData.language} based on your template &quot;{(wizardData.templateData?.name as string) || 'Unknown'}&quot;.
+                Please use the regenerate button below to create petitions in {wizardData.language} based on your selected template.
               </p>
               <Button 
                 onClick={handleGenerate} 
@@ -143,13 +143,13 @@ export default function GenerationStep({
               <span className="font-medium">Language:</span> {wizardData.language}
             </div>
             <div>
-              <span className="font-medium">Template:</span> {(wizardData.templateData?.name as string) || 'Unknown'}
+              <span className="font-medium">Template:</span> {wizardData.templateId ? 'Selected' : 'Unknown'}
             </div>
-            {(wizardData.templateData?.community_info as string) && (
+            {wizardData.templateContent && (
               <div className="col-span-2">
-                <span className="font-medium">Community Info:</span>
+                <span className="font-medium">Template Content:</span>
                 <p className="text-muted-foreground mt-1">
-                  {wizardData.templateData.community_info as string}
+                  {wizardData.templateContent.slice(0, 200)}...
                 </p>
               </div>
             )}

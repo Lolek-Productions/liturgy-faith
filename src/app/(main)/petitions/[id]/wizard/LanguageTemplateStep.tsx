@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { getPetitionContexts, PetitionContextTemplate, ensureDefaultContexts, cleanupInvalidContexts, createPetitionContext } from '@/lib/actions/petition-contexts'
+import { getPetitionTemplates, PetitionContextTemplate, ensureDefaultContexts, cleanupInvalidContexts, createPetitionTemplate } from '@/lib/actions/petition-templates'
 import { parseContextData } from '@/lib/petition-context-utils'
-import { updatePetitionLanguage, updatePetitionContext } from '@/lib/actions/petitions'
+import { updatePetitionLanguage, updatePetitionTemplate } from '@/lib/actions/petitions'
 import { getDefaultPetitions } from '@/lib/actions/parish-settings'
 import { Petition } from '@/lib/types'
 import { useAppContext } from '@/contexts/AppContextProvider'
@@ -20,7 +20,7 @@ interface LanguageTemplateStepProps {
   wizardData: {
     language: string
     templateId: string
-    templateData: Record<string, unknown>
+    templateContent: string
     generatedContent: string
   }
   updateWizardData: (updates: Record<string, unknown>) => void
@@ -53,7 +53,7 @@ export default function LanguageTemplateStep({
         // Ensure user has default contexts
         await ensureDefaultContexts()
         
-        const data = await getPetitionContexts()
+        const data = await getPetitionTemplates()
         setTemplates(data)
         
         // Initialize with user's preferred language if not set
@@ -84,29 +84,10 @@ export default function LanguageTemplateStep({
   const handleTemplateSelect = (templateId: string) => {
     const template = templates.find(t => t.id === templateId)
     if (template) {
-      const templateData = parseContextData(template.context)
-      if (templateData) {
-        // Legacy JSON format
-        updateWizardData({ 
-          templateId,
-          templateData
-        })
-      } else {
-        // Simple text format - create minimal template data structure
-        const simpleTemplateData = {
-          name: template.title,
-          description: template.description || '',
-          community_info: template.context || '',
-          sacraments_received: [],
-          deaths_this_week: [],
-          sick_members: [],
-          special_petitions: []
-        }
-        updateWizardData({ 
-          templateId,
-          templateData: simpleTemplateData
-        })
-      }
+      updateWizardData({ 
+        templateId,
+        templateContent: template.context // Store the actual template content
+      })
       setTemplateModalOpen(false)
       toast.success(`Template "${template.title}" selected`)
     }
@@ -159,20 +140,20 @@ export default function LanguageTemplateStep({
         }
       }
 
-      const newTemplate = await createPetitionContext({
+      const newTemplate = await createPetitionTemplate({
         title: newTemplateForm.title,
         description: newTemplateForm.description,
         context: typeof templateData === 'string' ? newTemplateForm.content : JSON.stringify(templateData)
       })
 
       // Refresh templates list
-      const updatedTemplates = await getPetitionContexts()
+      const updatedTemplates = await getPetitionTemplates()
       setTemplates(updatedTemplates)
 
       // Auto-select the new template
       updateWizardData({ 
         templateId: newTemplate.id,
-        templateData: templateData as unknown as Record<string, unknown>
+        templateContent: newTemplate.context // Store the actual template content
       })
 
       // Reset form and close dialogs
@@ -195,23 +176,26 @@ export default function LanguageTemplateStep({
   // Auto-save when data changes
   useEffect(() => {
     const saveData = async () => {
-      if (!wizardData.language || !wizardData.templateData) return
+      if (!wizardData.language || !petition?.id) return
       
       setSaving(true)
       try {
         await updatePetitionLanguage(petition.id, wizardData.language)
-        await updatePetitionContext(petition.id, JSON.stringify(wizardData.templateData))
+        // Save template content to petitions.template field if selected
+        if (wizardData.templateContent) {
+          await updatePetitionTemplate(petition.id, wizardData.templateContent)
+        }
       } catch (error) {
-        console.error('Failed to save language:', error)
+        console.error('Failed to save language/template:', error)
       } finally {
         setSaving(false)
       }
     }
 
-    if (wizardData.language && wizardData.templateId) {
+    if ((wizardData.language || wizardData.templateContent) && petition?.id) {
       saveData()
     }
-  }, [wizardData.language, wizardData.templateId, wizardData.templateData, petition.id])
+  }, [wizardData.language, wizardData.templateContent, petition?.id])
 
   return (
     <div className="space-y-6">

@@ -14,7 +14,7 @@ interface EditStepProps {
   wizardData: {
     language: string
     templateId: string
-    templateData: Record<string, unknown>
+    templateContent: string
     generatedContent: string
   }
   updateWizardData: (updates: Record<string, unknown>) => void
@@ -203,7 +203,7 @@ export default function EditStep({
               <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">Ready to Generate Petitions</h3>
               <p className="text-muted-foreground mb-6">
-                We&apos;ll create liturgical petitions in {wizardData.language} based on your template &quot;{(wizardData.templateData?.name as string) || 'Unknown'}&quot;.
+                We&apos;ll create liturgical petitions in {wizardData.language} based on your selected template.
               </p>
               <Button 
                 onClick={handleGenerate} 

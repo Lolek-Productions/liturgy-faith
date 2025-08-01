@@ -1,6 +1,6 @@
 import { PageContainer } from "@/components/page-container";
 import PetitionTemplateForm from "../petition-template-form";
-import { getPetitionContextById } from '@/lib/actions/petition-contexts';
+import { getPetitionTemplateById } from '@/lib/actions/petition-templates';
 import { getPetitionContextSettings } from '@/lib/actions/petition-settings';
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -15,7 +15,7 @@ export default async function EditPetitionTemplatePage({ params }: { params: Pro
     redirect("/login");
   }
 
-  const template = await getPetitionContextById(id);
+  const template = await getPetitionTemplateById(id);
   
   if (!template) {
     notFound();

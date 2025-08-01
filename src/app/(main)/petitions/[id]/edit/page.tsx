@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ArrowLeft, RefreshCw, Sparkles, Printer } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { getPetitionWithContext, updatePetitionDetails, regeneratePetitionContent } from '@/lib/actions/petitions'
-import { getPetitionContexts, type PetitionContextTemplate } from '@/lib/actions/petition-contexts'
+import { getPetitionWithContext, updatePetitionFullDetails, regeneratePetitionContent } from '@/lib/actions/petitions'
+import { getPetitionTemplates, type PetitionContextTemplate } from '@/lib/actions/petition-templates'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { toast } from 'sonner'
 
@@ -73,7 +73,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
     const loadTemplates = async () => {
       if (showRegenerateModal) {
         try {
-          const templatesData = await getPetitionContexts()
+          const templatesData = await getPetitionTemplates()
           setTemplates(templatesData)
         } catch (error) {
           console.error('Failed to load templates:', error)
@@ -97,7 +97,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
         text: petitionText.trim(),
       }
 
-      await updatePetitionDetails(id, petitionData)
+      await updatePetitionFullDetails(id, petitionData)
       toast.success('Petition updated successfully!')
       setError('')
     } catch {

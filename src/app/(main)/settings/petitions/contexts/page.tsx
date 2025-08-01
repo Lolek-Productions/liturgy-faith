@@ -12,16 +12,16 @@ import { Loading } from '@/components/loading'
 import { Plus, Edit, Trash2 } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { 
-  getPetitionContexts, 
-  createPetitionContext, 
-  updatePetitionContext, 
-  deletePetitionContext,
+  getPetitionTemplates, 
+  createPetitionTemplate, 
+  updatePetitionTemplate, 
+  deletePetitionTemplate,
   PetitionContextTemplate,
   CreateContextData,
   UpdateContextData,
   ensureDefaultContexts,
   cleanupInvalidContexts
-} from '@/lib/actions/petition-contexts'
+} from '@/lib/actions/petition-templates'
 
 export default function PetitionContextsPage() {
   const [contexts, setContexts] = useState<PetitionContextTemplate[]>([])
@@ -52,7 +52,7 @@ export default function PetitionContextsPage() {
     try {
       await cleanupInvalidContexts()
       await ensureDefaultContexts()
-      const data = await getPetitionContexts()
+      const data = await getPetitionTemplates()
       setContexts(data)
     } catch (error) {
       console.error('Failed to load contexts:', error)
@@ -63,7 +63,7 @@ export default function PetitionContextsPage() {
 
   const handleCreateContext = async () => {
     try {
-      await createPetitionContext(formData)
+      await createPetitionTemplate(formData)
       setDialogOpen(false)
       resetForm()
       loadContexts()
@@ -79,7 +79,7 @@ export default function PetitionContextsPage() {
         id: editingContext.id,
         ...formData
       }
-      await updatePetitionContext(updateData)
+      await updatePetitionTemplate(updateData)
       setDialogOpen(false)
       setEditingContext(null)
       resetForm()
@@ -92,7 +92,7 @@ export default function PetitionContextsPage() {
   const handleDeleteContext = async (contextId: string) => {
     if (!confirm('Are you sure you want to delete this context?')) return
     try {
-      await deletePetitionContext(contextId)
+      await deletePetitionTemplate(contextId)
       loadContexts()
     } catch (error) {
       console.error('Failed to delete context:', error)
@@ -173,14 +173,14 @@ export default function PetitionContextsPage() {
               />
               <FormField
                 id="context"
-                label="Default Petition Text"
+                label="Template Text"
                 inputType="textarea"
                 value={formData.context || ''}
                 onChange={(value) => setFormData({ 
                   ...formData, 
                   context: value
                 })}
-                placeholder="Enter the default petition text for this context..."
+                placeholder="Enter the template text for this context..."
                 rows={12}
                 className="font-mono text-sm"
               />
