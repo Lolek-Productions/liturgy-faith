@@ -101,13 +101,13 @@ export function AnnouncementsCalendar() {
     .filter(announcement => announcement.date) // Only include announcements with dates
     .map(announcement => ({
       id: announcement.id.toString(),
-      title: announcement.title || announcement.text.substring(0, 50) + '...',
+      title: announcement.title || (announcement.text ? announcement.text.substring(0, 50) + '...' : 'Untitled announcement'),
       date: announcement.date!,
       announcement: announcement
     }))
 
   const handleItemClick = (item: AnnouncementCalendarItem) => {
-    window.location.href = `/announcements/${item.announcement.id}`
+    window.location.href = `/announcements/${item.announcement.id}/edit`
   }
 
   const getItemColor = () => "bg-blue-100 text-blue-800 hover:bg-blue-200"
@@ -204,7 +204,7 @@ export function AnnouncementsCalendar() {
                         <h4 className="font-medium mb-1">{announcement.title}</h4>
                       )}
                       <p className="text-sm leading-relaxed whitespace-pre-wrap line-clamp-3">
-                        {announcement.text}
+                        {announcement.text || <span className="italic text-muted-foreground">No content</span>}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
                         <Button

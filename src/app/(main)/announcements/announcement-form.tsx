@@ -60,7 +60,7 @@ export function AnnouncementForm({ isOpen, onClose, onSuccess, announcement }: A
   useEffect(() => {
     if (announcement) {
       setFormData({
-        text: announcement.text,
+        text: announcement.text || '',
         liturgical_event_id: announcement.liturgical_event_id || 'none'
       })
     } else {
@@ -79,7 +79,7 @@ export function AnnouncementForm({ isOpen, onClose, onSuccess, announcement }: A
         setCurrentParish(parish)
         await Promise.all([
           loadLiturgicalEvents(parish.id),
-          loadTemplates(parish.id)
+          loadTemplates()
         ])
       }
     } catch (error) {
@@ -99,9 +99,9 @@ export function AnnouncementForm({ isOpen, onClose, onSuccess, announcement }: A
     }
   }
 
-  async function loadTemplates(parishId: string) {
+  async function loadTemplates() {
     try {
-      const result = await getAnnouncementTemplates(parishId)
+      const result = await getAnnouncementTemplates()
       setTemplates(result.templates || [])
     } catch (error) {
       console.error('Error loading templates:', error)

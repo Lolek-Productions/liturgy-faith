@@ -68,6 +68,7 @@ export default function AnnouncementsPage() {
     if (currentPage !== 1) {
       setCurrentPage(1)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm])
 
   const openDeleteDialog = (announcementId: number) => {
@@ -204,7 +205,7 @@ export default function AnnouncementsPage() {
           data={announcements}
           columns={columns}
           keyExtractor={(announcement) => announcement.id.toString()}
-          onRowClick={(announcement) => window.location.href = `/announcements/${announcement.id}`}
+          onRowClick={(announcement) => window.location.href = `/announcements/${announcement.id}/edit`}
           emptyState={{
             icon: <Megaphone className="h-12 w-12 mx-auto text-muted-foreground" />,
             title: searchTerm ? "No announcements found" : "No announcements yet",

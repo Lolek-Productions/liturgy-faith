@@ -38,9 +38,10 @@ export default function CreateAnnouncementPage() {
 
     try {
       const announcement = await createBasicAnnouncement({ title, date })
-      router.push(`/announcements/${announcement.id}/wizard`)
-    } catch {
-      setError('Failed to create announcement. Please try again.')
+      router.push(`/announcements/${announcement.id}/edit`)
+    } catch (error) {
+      console.error('Error creating announcement:', error)
+      setError(`Failed to create announcement: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }

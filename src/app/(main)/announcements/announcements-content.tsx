@@ -91,7 +91,7 @@ export function AnnouncementsContent() {
         setCurrentParish(parish)
         await Promise.all([
           loadAnnouncements(parish.id),
-          loadTemplates(parish.id),
+          loadTemplates(),
           loadLiturgicalEvents(parish.id)
         ])
       }
@@ -113,9 +113,9 @@ export function AnnouncementsContent() {
     }
   }
 
-  async function loadTemplates(parishId: string) {
+  async function loadTemplates() {
     try {
-      const result = await getAnnouncementTemplates(parishId)
+      const result = await getAnnouncementTemplates()
       setTemplates(result.templates || [])
     } catch (error) {
       console.error('Error loading templates:', error)
@@ -140,7 +140,7 @@ export function AnnouncementsContent() {
     try {
       await Promise.all([
         loadAnnouncements(currentParish.id),
-        loadTemplates(currentParish.id),
+        loadTemplates(),
         loadLiturgicalEvents(currentParish.id)
       ])
       toast.success('Data refreshed successfully')
@@ -190,7 +190,7 @@ export function AnnouncementsContent() {
 
   const handleTemplateFormSuccess = async () => {
     if (currentParish) {
-      await loadTemplates(currentParish.id)
+      await loadTemplates()
     }
   }
 

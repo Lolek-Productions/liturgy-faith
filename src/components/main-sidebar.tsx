@@ -247,6 +247,11 @@ export function MainSidebar() {
                     url: "/announcements/calendar",
                     icon: Calendar,
                   },
+                  {
+                    title: "Templates",
+                    url: "/announcements/templates",
+                    icon: FileText,
+                  },
                 ]}
                 defaultOpen={false}
               />

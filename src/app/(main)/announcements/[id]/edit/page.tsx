@@ -8,10 +8,18 @@ import { FormField } from '@/components/ui/form-field'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loading } from '@/components/loading'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, FileText, Plus } from 'lucide-react'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
-import { Announcement, getAnnouncement, updateAnnouncement } from '@/lib/actions/announcements'
+import { Announcement, getAnnouncement, updateAnnouncement, getAnnouncementTemplates, AnnouncementTemplate } from '@/lib/actions/announcements'
 import { toast } from 'sonner'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from '@/components/ui/dialog'
 
 export default function EditAnnouncementPage() {
   const params = useParams()
@@ -27,6 +35,10 @@ export default function EditAnnouncementPage() {
   const [date, setDate] = useState('')
   const [text, setText] = useState('')
   
+  const [templates, setTemplates] = useState<AnnouncementTemplate[]>([])
+  const [templatesLoading, setTemplatesLoading] = useState(false)
+  const [templatesDialogOpen, setTemplatesDialogOpen] = useState(false)
+  
   const announcementId = parseInt(params.id as string)
 
   useEffect(() => {
@@ -39,6 +51,7 @@ export default function EditAnnouncementPage() {
 
   useEffect(() => {
     loadAnnouncement()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announcementId])
 
   const loadAnnouncement = async () => {
@@ -77,22 +90,51 @@ export default function EditAnnouncementPage() {
       setSaving(true)
       
       await updateAnnouncement(announcementId, {
+        title: title.trim(),
         text: text.trim(),
-        liturgical_event_id: announcement?.liturgical_event_id || null
+        date: date
       })
 
       toast.success('Announcement updated successfully!')
-      router.push(`/announcements/${announcementId}`)
     } catch (error) {
       console.error('Failed to update announcement:', error)
-      toast.error('Failed to update announcement')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Failed to update announcement: ${errorMessage}`)
     } finally {
       setSaving(false)
     }
   }
 
-  const handleBack = () => {
-    router.push(`/announcements/${announcementId}`)
+  const handleCancel = () => {
+    router.push('/announcements')
+  }
+
+  const loadTemplates = async () => {
+    try {
+      setTemplatesLoading(true)
+      const result = await getAnnouncementTemplates()
+      setTemplates(result.templates)
+    } catch (error) {
+      console.error('Failed to load templates:', error)
+      toast.error('Failed to load templates')
+    } finally {
+      setTemplatesLoading(false)
+    }
+  }
+
+  const handleInsertTemplate = (template: AnnouncementTemplate) => {
+    const currentText = text
+    const newText = currentText ? `${currentText}\n\n${template.text}` : template.text
+    setText(newText)
+    setTemplatesDialogOpen(false)
+    toast.success('Template inserted successfully')
+  }
+
+  const openTemplatesDialog = () => {
+    if (templates.length === 0) {
+      loadTemplates()
+    }
+    setTemplatesDialogOpen(true)
   }
 
   if (loading) {
@@ -137,56 +179,96 @@ export default function EditAnnouncementPage() {
       maxWidth="4xl"
     >
       <div className="space-y-6">
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3">
-          <Button onClick={handleBack} variant="outline">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Details
-          </Button>
-        </div>
-
-        <form onSubmit={handleSave} className="space-y-6">
-          {/* Basic Information */}
+        <form onSubmit={handleSave}>
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>Edit Announcement</CardTitle>
               <CardDescription>
-                Update the title and date for this announcement
+                Update the announcement title, date, and content
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                id="title"
-                label="Title"
-                description="A descriptive name for this announcement"
-                value={title}
-                onChange={setTitle}
-                placeholder="Enter announcement title"
-              />
-              <FormField
-                id="date"
-                label="Date"
-                description="The date when this announcement will be published or used"
-                inputType="date"
-                value={date}
-                onChange={setDate}
-              />
-            </CardContent>
-          </Card>
+            <CardContent className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  id="title"
+                  label="Title"
+                  description="A descriptive name for this announcement"
+                  value={title}
+                  onChange={setTitle}
+                  placeholder="Enter announcement title"
+                />
+                <FormField
+                  id="date"
+                  label="Date"
+                  description="The date when this announcement will be published or used"
+                  inputType="date"
+                  value={date}
+                  onChange={setDate}
+                />
+              </div>
 
-          {/* Content */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Content</CardTitle>
-              <CardDescription>
-                Edit the announcement text and content
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              {/* Content */}
               <div className="space-y-2">
-                <label htmlFor="text" className="text-sm font-medium">
-                  Announcement Text *
-                </label>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="text" className="text-sm font-medium">
+                    Announcement Text *
+                  </label>
+                  <Dialog open={templatesDialogOpen} onOpenChange={setTemplatesDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={openTemplatesDialog}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Insert Template
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden">
+                      <DialogHeader>
+                        <DialogTitle>Insert Announcement Template</DialogTitle>
+                        <DialogDescription>
+                          Select a template to insert into your announcement
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex-1 overflow-y-auto">
+                        {templatesLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                          </div>
+                        ) : templates.length === 0 ? (
+                          <div className="text-center py-8">
+                            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                            <p className="text-muted-foreground mb-4">No templates available</p>
+                            <Button asChild variant="outline">
+                              <a href="/announcements/templates/create" target="_blank">
+                                <Plus className="h-4 w-4 mr-2" />
+                                Create Template
+                              </a>
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {templates.map((template) => (
+                              <div
+                                key={template.id}
+                                className="border rounded-lg p-4 hover:bg-muted cursor-pointer transition-colors"
+                                onClick={() => handleInsertTemplate(template)}
+                              >
+                                <h4 className="font-medium mb-2">{template.title}</h4>
+                                <p className="text-sm text-muted-foreground line-clamp-3">
+                                  {template.text}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
                 <Textarea
                   id="text"
                   placeholder="Enter your announcement content here..."
@@ -200,43 +282,10 @@ export default function EditAnnouncementPage() {
                   {text.length} characters
                 </p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Preview */}
-          {text && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Preview</CardTitle>
-                <CardDescription>
-                  This is how your announcement will appear
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-muted p-4 rounded-md">
-                  <div className="space-y-2">
-                    {title && (
-                      <h3 className="font-semibold text-lg">{title}</h3>
-                    )}
-                    {date && (
-                      <p className="text-sm text-muted-foreground">
-                        Date: {new Date(date).toLocaleDateString()}
-                      </p>
-                    )}
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed pt-2">
-                      {text}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Save Actions */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={handleBack}>
+              
+              {/* Save Actions */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancel
                 </Button>
                 <Button 

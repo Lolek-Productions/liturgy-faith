@@ -100,8 +100,7 @@ export function TemplateForm({ isOpen, onClose, onSuccess, template }: TemplateF
       } else {
         await createAnnouncementTemplate({
           title: formData.title,
-          text: formData.text,
-          parish_id: currentParish.id
+          text: formData.text
         })
         toast.success('Template created successfully!')
       }

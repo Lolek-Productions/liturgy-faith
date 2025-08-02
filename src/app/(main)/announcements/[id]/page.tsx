@@ -43,6 +43,7 @@ export default function AnnouncementDetailPage() {
 
   useEffect(() => {
     loadAnnouncement()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announcementId])
 
   const loadAnnouncement = async () => {
@@ -176,73 +177,58 @@ export default function AnnouncementDetailPage() {
 
         {/* Announcement Details */}
         <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <CardTitle className="flex items-center gap-2">
-                  <Megaphone className="h-5 w-5" />
-                  Announcement Details
-                </CardTitle>
-                {announcement.title && (
-                  <h2 className="text-2xl font-semibold text-foreground">
-                    {announcement.title}
-                  </h2>
-                )}
-              </div>
-              <Badge variant="secondary">
-                <Megaphone className="h-3 w-3 mr-1" />
-                Announcement
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Basic Information */}
-            <div className="grid gap-4 md:grid-cols-2">
+          <CardContent className="space-y-6 pt-6">
+            {/* Title */}
+            {announcement.title && (
               <div>
-                <h4 className="font-medium text-sm mb-1 text-muted-foreground">Date</h4>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    {announcement.date 
-                      ? new Date(announcement.date).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })
-                      : 'No date set'
-                    }
-                  </span>
-                </div>
+                <h1 className="text-3xl font-bold text-foreground mb-2">
+                  {announcement.title}
+                </h1>
               </div>
-              <div>
-                <h4 className="font-medium text-sm mb-1 text-muted-foreground">Created</h4>
-                <span className="text-sm">
-                  {new Date(announcement.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+            )}
+
+            {/* Metadata */}
+            <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground border-b pb-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>
+                  {announcement.date 
+                    ? new Date(announcement.date).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
+                    : 'No date set'
+                  }
                 </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Megaphone className="h-4 w-4" />
+                <span>Announcement</span>
+              </div>
+              <div>
+                <span>Created: {new Date(announcement.created_at).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}</span>
               </div>
             </div>
 
             {/* Content */}
-            <div>
-              <h4 className="font-medium text-sm mb-3 text-muted-foreground">Content</h4>
-              <div className="bg-muted p-4 rounded-md">
-                {announcement.text ? (
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {announcement.text}
-                  </div>
-                ) : (
-                  <div className="italic text-muted-foreground text-sm">
-                    No content available
-                  </div>
-                )}
-              </div>
+            <div className="prose prose-sm max-w-none">
+              {announcement.text ? (
+                <div className="whitespace-pre-wrap leading-relaxed">
+                  {announcement.text}
+                </div>
+              ) : (
+                <div className="italic text-muted-foreground">
+                  No content available
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -253,7 +239,7 @@ export default function AnnouncementDetailPage() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDelete}
         title="Delete Announcement"
-        itemName={announcement.title || announcement.text?.substring(0, 50) + '...'}
+        itemName={announcement.title || (announcement.text ? announcement.text.substring(0, 50) + '...' : 'this announcement')}
       />
     </PageContainer>
   )

@@ -2,13 +2,13 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { requireSelectedParish } from '@/lib/auth/parish'
 
 export interface Announcement {
   id: number
   title?: string
   text: string | null
   date?: string
-  liturgical_event_id: string | null
   parish_id: string
   created_at: string
 }
@@ -86,10 +86,16 @@ export async function createAnnouncement(data: {
       throw new Error('You do not have permission to create announcements for this parish')
     }
 
+    // Generate a unique bigint ID using timestamp + random component
+    const timestamp = Date.now()
+    const random = Math.floor(Math.random() * 1000)
+    const id = parseInt(`${timestamp}${random.toString().padStart(3, '0')}`)
+
     // Create the announcement
     const { data: announcement, error } = await supabase
       .from('announcements')
       .insert({
+        id: id,
         text: data.text.trim(),
         liturgical_event_id: data.liturgical_event_id || null,
         parish_id: data.parish_id
@@ -109,8 +115,9 @@ export async function createAnnouncement(data: {
 }
 
 export async function updateAnnouncement(announcementId: number, data: {
+  title?: string
   text: string
-  liturgical_event_id?: string | null
+  date?: string
 }) {
   const supabase = await createClient()
   
@@ -120,6 +127,8 @@ export async function updateAnnouncement(announcementId: number, data: {
   }
 
   try {
+    const selectedParishId = await requireSelectedParish()
+    
     // Get the announcement to check parish ownership
     const { data: existingAnnouncement, error: fetchError } = await supabase
       .from('announcements')
@@ -131,26 +140,27 @@ export async function updateAnnouncement(announcementId: number, data: {
       throw new Error('Announcement not found')
     }
 
-    // Check if user has permission to update announcements for this parish
-    const { data: userParish, error: userParishError } = await supabase
-      .from('parish_user')
-      .select('roles')
-      .eq('user_id', user.id)
-      .eq('parish_id', existingAnnouncement.parish_id)
-      .single()
-
-    if (userParishError || !userParish || 
-        (!userParish.roles.includes('admin') && !userParish.roles.includes('minister'))) {
+    // Check if the announcement belongs to the user's selected parish
+    if (existingAnnouncement.parish_id !== selectedParishId) {
       throw new Error('You do not have permission to update this announcement')
     }
 
     // Update the announcement
+    const updateData: any = {
+      text: data.text.trim()
+    }
+    
+    // Only update title and date if provided
+    if (data.title !== undefined) {
+      updateData.title = data.title.trim()
+    }
+    if (data.date !== undefined) {
+      updateData.date = data.date
+    }
+
     const { data: announcement, error } = await supabase
       .from('announcements')
-      .update({
-        text: data.text.trim(),
-        liturgical_event_id: data.liturgical_event_id || null
-      })
+      .update(updateData)
       .eq('id', announcementId)
       .select()
       .single()
@@ -215,91 +225,53 @@ export async function deleteAnnouncement(announcementId: number) {
   }
 }
 
-export async function getAnnouncementTemplates(parishId: string) {
+export async function getAnnouncementTemplates() {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
+  const selectedParishId = await requireSelectedParish()
+
+  const { data: templates, error } = await supabase
+    .from('announcement_templates')
+    .select('*')
+    .eq('parish_id', selectedParishId)
+    .order('title', { ascending: true })
+
+  if (error) {
+    throw new Error(`Failed to fetch announcement templates: ${error.message}`)
   }
 
-  try {
-    // Check if user has access to this parish
-    const { data: userParish, error: userParishError } = await supabase
-      .from('parish_user')
-      .select('roles')
-      .eq('user_id', user.id)
-      .eq('parish_id', parishId)
-      .single()
-
-    if (userParishError || !userParish) {
-      throw new Error('You do not have access to this parish')
-    }
-
-    // Get announcement templates for the parish
-    const { data: templates, error } = await supabase
-      .from('announcement_templates')
-      .select('*')
-      .eq('parish_id', parishId)
-      .order('title', { ascending: true })
-
-    if (error) {
-      throw new Error(`Failed to fetch announcement templates: ${error.message}`)
-    }
-
-    return { success: true, templates: templates || [] }
-  } catch (error) {
-    console.error('Error fetching announcement templates:', error)
-    throw error
-  }
+  return { success: true, templates: templates || [] }
 }
 
 export async function createAnnouncementTemplate(data: {
   title: string
   text: string
-  parish_id: string
 }) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
+  const selectedParishId = await requireSelectedParish()
+
+  // Generate a unique bigint ID using timestamp + random component
+  const timestamp = Date.now()
+  const random = Math.floor(Math.random() * 1000)
+  const id = parseInt(`${timestamp}${random.toString().padStart(3, '0')}`)
+
+  const { data: template, error } = await supabase
+    .from('announcement_templates')
+    .insert({
+      id: id,
+      title: data.title.trim(),
+      text: data.text.trim(),
+      parish_id: selectedParishId
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to create announcement template: ${error.message}`)
   }
 
-  try {
-    // Check if user has permission to create templates for this parish
-    const { data: userParish, error: userParishError } = await supabase
-      .from('parish_user')
-      .select('roles')
-      .eq('user_id', user.id)
-      .eq('parish_id', data.parish_id)
-      .single()
-
-    if (userParishError || !userParish || 
-        (!userParish.roles.includes('admin') && !userParish.roles.includes('minister'))) {
-      throw new Error('You do not have permission to create templates for this parish')
-    }
-
-    // Create the template
-    const { data: template, error } = await supabase
-      .from('announcement_templates')
-      .insert({
-        title: data.title.trim(),
-        text: data.text.trim(),
-        parish_id: data.parish_id
-      })
-      .select()
-      .single()
-
-    if (error) {
-      throw new Error(`Failed to create announcement template: ${error.message}`)
-    }
-
-    return { success: true, template }
-  } catch (error) {
-    console.error('Error creating announcement template:', error)
-    throw error
-  }
+  return template
 }
 
 export async function updateAnnouncementTemplate(templateId: number, data: {
@@ -308,105 +280,95 @@ export async function updateAnnouncementTemplate(templateId: number, data: {
 }) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
+  const selectedParishId = await requireSelectedParish()
+
+  // Get the template to check parish ownership
+  const { data: existingTemplate, error: fetchError } = await supabase
+    .from('announcement_templates')
+    .select('parish_id')
+    .eq('id', templateId)
+    .single()
+
+  if (fetchError || !existingTemplate) {
+    throw new Error('Template not found')
   }
 
-  try {
-    // Get the template to check parish ownership
-    const { data: existingTemplate, error: fetchError } = await supabase
-      .from('announcement_templates')
-      .select('parish_id')
-      .eq('id', templateId)
-      .single()
-
-    if (fetchError || !existingTemplate) {
-      throw new Error('Template not found')
-    }
-
-    // Check if user has permission to update templates for this parish
-    const { data: userParish, error: userParishError } = await supabase
-      .from('parish_user')
-      .select('roles')
-      .eq('user_id', user.id)
-      .eq('parish_id', existingTemplate.parish_id)
-      .single()
-
-    if (userParishError || !userParish || 
-        (!userParish.roles.includes('admin') && !userParish.roles.includes('minister'))) {
-      throw new Error('You do not have permission to update this template')
-    }
-
-    // Update the template
-    const { data: template, error } = await supabase
-      .from('announcement_templates')
-      .update({
-        title: data.title.trim(),
-        text: data.text.trim()
-      })
-      .eq('id', templateId)
-      .select()
-      .single()
-
-    if (error) {
-      throw new Error(`Failed to update announcement template: ${error.message}`)
-    }
-
-    return { success: true, template }
-  } catch (error) {
-    console.error('Error updating announcement template:', error)
-    throw error
+  // Check if the template belongs to the user's selected parish
+  if (existingTemplate.parish_id !== selectedParishId) {
+    throw new Error('You do not have permission to update this template')
   }
+
+  const { data: template, error } = await supabase
+    .from('announcement_templates')
+    .update({
+      title: data.title.trim(),
+      text: data.text.trim()
+    })
+    .eq('id', templateId)
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to update announcement template: ${error.message}`)
+  }
+
+  return template
 }
 
 export async function deleteAnnouncementTemplate(templateId: number) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
+  const selectedParishId = await requireSelectedParish()
+
+  // Get the template to check parish ownership
+  const { data: existingTemplate, error: fetchError } = await supabase
+    .from('announcement_templates')
+    .select('parish_id')
+    .eq('id', templateId)
+    .single()
+
+  if (fetchError || !existingTemplate) {
+    throw new Error('Template not found')
   }
 
-  try {
-    // Get the template to check parish ownership
-    const { data: existingTemplate, error: fetchError } = await supabase
-      .from('announcement_templates')
-      .select('parish_id')
-      .eq('id', templateId)
-      .single()
-
-    if (fetchError || !existingTemplate) {
-      throw new Error('Template not found')
-    }
-
-    // Check if user has permission to delete templates for this parish
-    const { data: userParish, error: userParishError } = await supabase
-      .from('parish_user')
-      .select('roles')
-      .eq('user_id', user.id)
-      .eq('parish_id', existingTemplate.parish_id)
-      .single()
-
-    if (userParishError || !userParish || !userParish.roles.includes('admin')) {
-      throw new Error('You do not have permission to delete this template')
-    }
-
-    // Delete the template
-    const { error } = await supabase
-      .from('announcement_templates')
-      .delete()
-      .eq('id', templateId)
-
-    if (error) {
-      throw new Error(`Failed to delete announcement template: ${error.message}`)
-    }
-
-    return { success: true }
-  } catch (error) {
-    console.error('Error deleting announcement template:', error)
-    throw error
+  // Check if the template belongs to the user's selected parish
+  if (existingTemplate.parish_id !== selectedParishId) {
+    throw new Error('You do not have permission to delete this template')
   }
+
+  const { error } = await supabase
+    .from('announcement_templates')
+    .delete()
+    .eq('id', templateId)
+
+  if (error) {
+    throw new Error(`Failed to delete announcement template: ${error.message}`)
+  }
+
+  return { success: true }
+}
+
+export async function getAnnouncementTemplate(templateId: number) {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+
+  const { data: template, error } = await supabase
+    .from('announcement_templates')
+    .select('*')
+    .eq('id', templateId)
+    .single()
+
+  if (error || !template) {
+    throw new Error('Template not found')
+  }
+
+  // Check if the template belongs to the user's selected parish
+  if (template.parish_id !== selectedParishId) {
+    throw new Error('You do not have access to this template')
+  }
+
+  return template
 }
 
 export async function searchAnnouncements(params: {
@@ -502,10 +464,16 @@ export async function duplicateAnnouncement(announcementId: number) {
       throw new Error('You do not have permission to duplicate this announcement')
     }
 
+    // Generate a unique bigint ID using timestamp + random component
+    const timestamp = Date.now()
+    const random = Math.floor(Math.random() * 1000)
+    const id = parseInt(`${timestamp}${random.toString().padStart(3, '0')}`)
+
     // Create duplicate
     const { data: duplicatedAnnouncement, error } = await supabase
       .from('announcements')
       .insert({
+        id: id,
         title: originalAnnouncement.title ? `${originalAnnouncement.title} (Copy)` : null,
         text: originalAnnouncement.text,
         date: originalAnnouncement.date,
@@ -571,45 +539,30 @@ export async function createBasicAnnouncement(data: {
 }) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login')
+  const selectedParishId = await requireSelectedParish()
+
+  // Generate a unique bigint ID using timestamp + random component
+  const timestamp = Date.now()
+  const random = Math.floor(Math.random() * 1000)
+  const id = parseInt(`${timestamp}${random.toString().padStart(3, '0')}`)
+
+  const { data: announcement, error } = await supabase
+    .from('announcements')
+    .insert({
+      id: id,
+      title: data.title.trim(),
+      text: null, // Will be filled in wizard
+      date: data.date,
+      parish_id: selectedParishId
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to create announcement: ${error.message}`)
   }
 
-  try {
-    // Get user's default parish
-    const { data: userParish, error: userParishError } = await supabase
-      .from('parish_user')
-      .select('parish_id, roles')
-      .eq('user_id', user.id)
-      .single()
-
-    if (userParishError || !userParish || 
-        (!userParish.roles.includes('admin') && !userParish.roles.includes('minister'))) {
-      throw new Error('You do not have permission to create announcements')
-    }
-
-    // Create basic announcement
-    const { data: announcement, error } = await supabase
-      .from('announcements')
-      .insert({
-        title: data.title.trim(),
-        text: null, // Will be filled in wizard
-        date: data.date,
-        parish_id: userParish.parish_id
-      })
-      .select()
-      .single()
-
-    if (error) {
-      throw new Error(`Failed to create announcement: ${error.message}`)
-    }
-
-    return announcement
-  } catch (error) {
-    console.error('Error creating basic announcement:', error)
-    throw error
-  }
+  return announcement
 }
 
 export async function getAnnouncementsByDateRange(startDate: string, endDate: string) {
