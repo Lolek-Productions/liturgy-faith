@@ -529,6 +529,48 @@ export async function regeneratePetitionContent(id: string, data: { title: strin
   return petition
 }
 
+export async function duplicatePetition(id: string): Promise<Petition> {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+
+  // First, get the original petition
+  const { data: originalPetition, error: fetchError } = await supabase
+    .from('petitions')
+    .select('*')
+    .eq('id', id)
+    .eq('parish_id', selectedParishId)
+    .single()
+
+  if (fetchError || !originalPetition) {
+    throw new Error('Failed to find original petition')
+  }
+
+  // Create duplicate with modified title
+  const { data: duplicatedPetition, error: duplicateError } = await supabase
+    .from('petitions')
+    .insert([
+      {
+        parish_id: selectedParishId,
+        title: `${originalPetition.title} - duplicate`,
+        date: originalPetition.date,
+        language: originalPetition.language,
+        text: originalPetition.text,
+        details: originalPetition.details,
+        template: originalPetition.template,
+      },
+    ])
+    .select()
+    .single()
+
+  if (duplicateError) {
+    console.error('Petition duplication error:', duplicateError)
+    throw new Error('Failed to duplicate petition')
+  }
+
+  return duplicatedPetition
+}
+
 export async function deletePetition(id: string) {
   const supabase = await createClient()
   

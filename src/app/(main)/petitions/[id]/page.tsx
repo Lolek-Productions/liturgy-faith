@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getPetitionWithContext } from '@/lib/actions/petitions'
+import { getPetitionWithContext, duplicatePetition } from '@/lib/actions/petitions'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,10 +9,12 @@ import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Edit, Calendar, Printer, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Edit, Calendar, Printer, Plus, Copy } from 'lucide-react'
 import { CopyButton } from '@/components/copy-button'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { Petition, PetitionContext } from '@/lib/types'
+import { toast } from 'sonner'
 
 interface PetitionDetailPageProps {
   params: Promise<{ id: string }>
@@ -23,12 +25,30 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
   const [context, setContext] = useState<PetitionContext | null>(null)
   const [petitionId, setPetitionId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [duplicating, setDuplicating] = useState(false)
   const { setBreadcrumbs } = useBreadcrumbs()
+  const router = useRouter()
 
   const handlePrint = () => {
     if (petitionId) {
       const printUrl = `/print/petitions/${petitionId}`
       window.open(printUrl, '_blank')
+    }
+  }
+
+  const handleDuplicate = async () => {
+    if (!petitionId) return
+    
+    setDuplicating(true)
+    try {
+      const duplicatedPetition = await duplicatePetition(petitionId)
+      toast.success('Petition duplicated successfully!')
+      router.push(`/petitions/${duplicatedPetition.id}/edit`)
+    } catch (error) {
+      console.error('Failed to duplicate petition:', error)
+      toast.error('Failed to duplicate petition')
+    } finally {
+      setDuplicating(false)
     }
   }
 
@@ -136,6 +156,15 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Petitions
                 </Link>
+              </Button>
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={handleDuplicate}
+                disabled={duplicating}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                {duplicating ? 'Duplicating...' : 'Duplicate Petitions'}
               </Button>
               <Button 
                 className="w-full" 

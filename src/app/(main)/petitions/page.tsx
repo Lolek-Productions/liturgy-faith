@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { searchPetitions, deletePetition } from '@/lib/actions/petitions'
+import { searchPetitions, deletePetition, duplicatePetition } from '@/lib/actions/petitions'
 import { Button } from '@/components/ui/button'
 import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
 import Link from 'next/link'
-import { FileText, Plus, Printer, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FileText, Plus, Printer, ChevronLeft, ChevronRight, Copy } from 'lucide-react'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { Petition } from '@/lib/types'
 import { toast } from 'sonner'
@@ -93,6 +93,17 @@ export default function PetitionsPage() {
     return petitions.find(p => p.id === petitionId)
   }
 
+  const handleDuplicate = async (petition: Petition) => {
+    try {
+      const duplicatedPetition = await duplicatePetition(petition.id)
+      toast.success('Petition duplicated successfully!')
+      router.push(`/petitions/${duplicatedPetition.id}/edit`)
+    } catch (error) {
+      console.error('Failed to duplicate petition:', error)
+      toast.error('Failed to duplicate petition')
+    }
+  }
+
   const columns: DataTableColumn<Petition>[] = [
     {
       key: "title",
@@ -132,6 +143,12 @@ export default function PetitionsPage() {
           variant="hybrid"
           onDelete={(row) => openDeleteDialog(row.id)}
           customActions={[
+            {
+              label: "Duplicate",
+              icon: <Copy className="h-4 w-4" />,
+              onClick: (row) => handleDuplicate(row),
+              variant: "ghost",
+            },
             {
               label: "Print",
               icon: <Printer className="h-4 w-4" />,
