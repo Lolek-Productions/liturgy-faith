@@ -214,11 +214,6 @@ export function MainSidebar() {
                     url: "/petitions/create",
                     icon: Sparkles,
                   },
-                  {
-                    title: "Settings",
-                    url: "/settings/petitions",
-                    icon: Settings,
-                  },
                 ]}
                 defaultOpen={false}
               />
@@ -259,11 +254,6 @@ export function MainSidebar() {
                     title: "Parish Settings",
                     url: "/settings/parish",
                     icon: Church,
-                  },
-                  {
-                    title: "Petitions",
-                    url: "/settings/petitions",
-                    icon: FileText,
                   },
                   {
                     title: "Readings",

@@ -143,20 +143,12 @@ export default function PetitionTemplateList({ templates }: PetitionTemplateList
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search templates..."
         actions={
-          <>
-            <Button asChild size="sm" variant="outline">
-              <Link href="/settings/petitions/default">
-                <FileText className="h-4 w-4 mr-2" />
-                Template Text
-              </Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/settings/petitions/create">
-                <Plus className="h-4 w-4 mr-2" />
-                New Template
-              </Link>
-            </Button>
-          </>
+          <Button asChild size="sm">
+            <Link href="/settings/petitions/create">
+              <Plus className="h-4 w-4 mr-2" />
+              New Template
+            </Link>
+          </Button>
         }
       />
 
