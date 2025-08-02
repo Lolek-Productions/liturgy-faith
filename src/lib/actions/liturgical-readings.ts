@@ -132,6 +132,27 @@ export async function updateLiturgicalReading(id: string, data: Partial<CreateLi
   return liturgicalReading
 }
 
+export async function getLiturgicalReadingsByDateRange(startDate: string, endDate: string): Promise<LiturgicalReading[]> {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+  await ensureJWTClaims()
+
+  const { data, error } = await supabase
+    .from('liturgical_readings')
+    .select('*')
+    .eq('parish_id', selectedParishId)
+    .gte('date', startDate)
+    .lte('date', endDate)
+    .order('date', { ascending: true })
+
+  if (error) {
+    throw new Error('Failed to fetch liturgical readings by date range')
+  }
+
+  return data || []
+}
+
 export async function deleteLiturgicalReading(id: string): Promise<void> {
   const supabase = await createClient()
   

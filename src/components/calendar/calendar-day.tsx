@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils'
 import { CalendarDayProps, CalendarItem } from "./types"
+import type { CalendarDay } from "./types"
 
 export function CalendarDay<T extends CalendarItem = CalendarItem>({
   day,

@@ -18,7 +18,8 @@
       "Bash(npm run dev:*)",
       "Bash(pkill:*)",
       "Bash(npm run lint:*)",
-      "mcp__lolek-mcp__get-example"
+      "mcp__lolek-mcp__get-example",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

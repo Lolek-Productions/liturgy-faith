@@ -6,28 +6,28 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageContainer } from '@/components/page-container'
 import { 
-  FileText,
+  Megaphone,
   Plus,
   List
 } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { getCurrentParish } from '@/lib/auth/parish'
 import { 
-  getPetitionsByDateRange
-} from '@/lib/actions/petitions'
-import type { Petition } from '@/lib/types'
+  getAnnouncementsByDateRange,
+  type Announcement
+} from '@/lib/actions/announcements'
 import { Parish } from '@/lib/types'
 import { toast } from 'sonner'
 import { Calendar, CalendarView, CalendarItem } from '@/components/calendar'
 
-// Extend Petition to match CalendarItem interface
-interface PetitionCalendarItem extends Petition, CalendarItem {
-  // Petition already has id, we just need to ensure date is mapped correctly
+// Transform announcement to match CalendarItem interface
+interface AnnouncementCalendarItem extends CalendarItem {
+  announcement: Announcement
 }
 
-export function PetitionsCalendar() {
+export function AnnouncementsCalendar() {
   const [, setCurrentParish] = useState<Parish | null>(null)
-  const [petitions, setPetitions] = useState<Petition[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -37,7 +37,7 @@ export function PetitionsCalendar() {
   useEffect(() => {
     setBreadcrumbs([
       { label: "Dashboard", href: "/dashboard" },
-      { label: "Petitions", href: "/petitions" },
+      { label: "Announcements", href: "/announcements" },
       { label: "Calendar" }
     ])
   }, [setBreadcrumbs])
@@ -53,7 +53,7 @@ export function PetitionsCalendar() {
       const parish = await getCurrentParish()
       if (parish) {
         setCurrentParish(parish)
-        await loadPetitions()
+        await loadAnnouncements()
       }
     } catch (error) {
       console.error('Error loading data:', error)
@@ -63,17 +63,17 @@ export function PetitionsCalendar() {
     }
   }
 
-  async function loadPetitions() {
+  async function loadAnnouncements() {
     try {
       const { startDate, endDate } = getDateRange()
-      const data = await getPetitionsByDateRange(
+      const data = await getAnnouncementsByDateRange(
         startDate.toISOString().split('T')[0],
         endDate.toISOString().split('T')[0]
       )
-      setPetitions(data)
+      setAnnouncements(data)
     } catch (error) {
-      console.error('Error loading petitions:', error)
-      toast.error('Failed to load petitions')
+      console.error('Error loading announcements:', error)
+      toast.error('Failed to load announcements')
     }
   }
 
@@ -96,32 +96,35 @@ export function PetitionsCalendar() {
     setCurrentDate(newDate)
   }
 
-  // Transform petitions to calendar items
-  const calendarItems: PetitionCalendarItem[] = petitions.map(petition => ({
-    ...petition,
-    title: petition.title,
-    date: petition.date
-  }))
+  // Transform announcements to calendar items
+  const calendarItems: AnnouncementCalendarItem[] = announcements
+    .filter(announcement => announcement.date) // Only include announcements with dates
+    .map(announcement => ({
+      id: announcement.id.toString(),
+      title: announcement.title || announcement.text.substring(0, 50) + '...',
+      date: announcement.date!,
+      announcement: announcement
+    }))
 
-  const handleItemClick = (item: PetitionCalendarItem) => {
-    window.location.href = `/petitions/${item.id}`
+  const handleItemClick = (item: AnnouncementCalendarItem) => {
+    window.location.href = `/announcements/${item.announcement.id}`
   }
 
-  const getItemColor = () => "bg-amber-100 text-amber-800 hover:bg-amber-200"
+  const getItemColor = () => "bg-blue-100 text-blue-800 hover:bg-blue-200"
 
   const headerActions = (
     <div className="flex items-center gap-3">
       <Button
         variant="outline"
-        onClick={() => window.location.href = '/petitions'}
+        onClick={() => window.location.href = '/announcements'}
       >
         <List className="h-4 w-4 mr-2" />
         List View
       </Button>
       
-      <Button onClick={() => window.location.href = '/petitions/create'}>
+      <Button onClick={() => window.location.href = '/announcements/create'}>
         <Plus className="h-4 w-4 mr-2" />
-        New Petition
+        New Announcement
       </Button>
     </div>
   )
@@ -129,8 +132,8 @@ export function PetitionsCalendar() {
   if (loading) {
     return (
       <PageContainer
-        title="Petitions Calendar"
-        description="View petitions in calendar format"
+        title="Announcements Calendar"
+        description="View announcements in calendar format"
         maxWidth="7xl"
       >
         <div className="space-y-6">Loading calendar...</div>
@@ -140,8 +143,8 @@ export function PetitionsCalendar() {
 
   return (
     <PageContainer
-      title="Petitions Calendar"
-      description="View petitions in calendar format"
+      title="Announcements Calendar"
+      description="View announcements in calendar format"
       maxWidth="7xl"
     >
       <div className="space-y-6">
@@ -149,7 +152,7 @@ export function PetitionsCalendar() {
           currentDate={currentDate}
           view={calendarView}
           items={calendarItems}
-          title="Petitions Calendar"
+          title="Announcements Calendar"
           onNavigate={navigatePeriod}
           onToday={() => setCurrentDate(new Date())}
           onDayClick={setSelectedDate}
@@ -163,8 +166,8 @@ export function PetitionsCalendar() {
           <CardContent className="p-4">
             <div className="flex items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-amber-100 rounded"></div>
-                <span>Petition</span>
+                <div className="w-4 h-4 bg-blue-100 rounded"></div>
+                <span>Announcement</span>
               </div>
             </div>
           </CardContent>
@@ -175,54 +178,59 @@ export function PetitionsCalendar() {
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>
-                Petitions for {selectedDate.toLocaleDateString()}
+                Announcements for {selectedDate.toLocaleDateString()}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Show petitions for selected date */}
+              {/* Show announcements for selected date */}
               <div className="space-y-2">
-                {petitions
-                  .filter(petition => 
-                    petition.date && 
-                    new Date(petition.date).toDateString() === selectedDate.toDateString()
+                {announcements
+                  .filter(announcement => 
+                    announcement.date && 
+                    new Date(announcement.date).toDateString() === selectedDate.toDateString()
                   )
-                  .map((petition) => (
-                    <div key={petition.id} className="p-3 border rounded-md">
+                  .map((announcement) => (
+                    <div key={announcement.id} className="p-3 border rounded-md">
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge className="text-xs bg-amber-100 text-amber-800">
-                          <FileText className="h-3 w-3 mr-1" />
-                          Petition
+                        <Badge className="text-xs bg-blue-100 text-blue-800">
+                          <Megaphone className="h-3 w-3 mr-1" />
+                          Announcement
                         </Badge>
-                        <span className="text-sm font-medium capitalize">
-                          {petition.language}
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(announcement.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                      <p className="font-medium">{petition.title}</p>
+                      {announcement.title && (
+                        <h4 className="font-medium mb-1">{announcement.title}</h4>
+                      )}
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap line-clamp-3">
+                        {announcement.text}
+                      </p>
                       <div className="flex items-center gap-2 mt-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.location.href = `/petitions/${petition.id}`}
+                          onClick={() => window.location.href = `/announcements/${announcement.id}`}
                         >
                           View
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.location.href = `/petitions/${petition.id}/edit`}
+                          onClick={() => window.location.href = `/announcements/${announcement.id}/edit`}
                         >
                           Edit
                         </Button>
                       </div>
                     </div>
                   ))}
-                {petitions.filter(petition => 
-                  petition.date && 
-                  new Date(petition.date).toDateString() === selectedDate.toDateString()
+                {announcements.filter(announcement => 
+                  announcement.date && 
+                  new Date(announcement.date).toDateString() === selectedDate.toDateString()
                 ).length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
-                    <FileText className="h-12 w-12 mx-auto mb-4" />
-                    <p>No petitions for this date</p>
+                    <Megaphone className="h-12 w-12 mx-auto mb-4" />
+                    <p>No announcements for this date</p>
                   </div>
                 )}
               </div>

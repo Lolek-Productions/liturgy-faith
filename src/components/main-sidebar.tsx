@@ -107,6 +107,11 @@ export function MainSidebar() {
                     url: "/liturgical-readings/create",
                     icon: Sparkles,
                   },
+                  {
+                    title: "Calendar View",
+                    url: "/liturgical-readings/calendar",
+                    icon: Calendar,
+                  },
                 ]}
                 defaultOpen={false}
               />
@@ -228,14 +233,19 @@ export function MainSidebar() {
                 icon={Megaphone}
                 items={[
                   {
-                    title: "View Announcements",
+                    title: "Our Announcements",
                     url: "/announcements",
                     icon: Megaphone,
                   },
                   {
                     title: "Create Announcement",
-                    url: "/announcements?create=true",
+                    url: "/announcements/create",
                     icon: Sparkles,
+                  },
+                  {
+                    title: "Calendar View",
+                    url: "/announcements/calendar",
+                    icon: Calendar,
                   },
                 ]}
                 defaultOpen={false}

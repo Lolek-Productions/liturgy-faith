@@ -6,28 +6,28 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageContainer } from '@/components/page-container'
 import { 
-  FileText,
+  BookOpen,
   Plus,
   List
 } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { getCurrentParish } from '@/lib/auth/parish'
 import { 
-  getPetitionsByDateRange
-} from '@/lib/actions/petitions'
-import type { Petition } from '@/lib/types'
+  getLiturgicalReadingsByDateRange
+} from '@/lib/actions/liturgical-readings'
+import type { LiturgicalReading } from '@/lib/types'
 import { Parish } from '@/lib/types'
 import { toast } from 'sonner'
 import { Calendar, CalendarView, CalendarItem } from '@/components/calendar'
 
-// Extend Petition to match CalendarItem interface
-interface PetitionCalendarItem extends Petition, CalendarItem {
-  // Petition already has id, we just need to ensure date is mapped correctly
+// Transform LiturgicalReading to match CalendarItem interface
+interface LiturgicalReadingCalendarItem extends CalendarItem {
+  reading: LiturgicalReading
 }
 
-export function PetitionsCalendar() {
+export function LiturgicalReadingsCalendar() {
   const [, setCurrentParish] = useState<Parish | null>(null)
-  const [petitions, setPetitions] = useState<Petition[]>([])
+  const [readings, setReadings] = useState<LiturgicalReading[]>([])
   const [loading, setLoading] = useState(true)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -37,7 +37,7 @@ export function PetitionsCalendar() {
   useEffect(() => {
     setBreadcrumbs([
       { label: "Dashboard", href: "/dashboard" },
-      { label: "Petitions", href: "/petitions" },
+      { label: "Liturgical Readings", href: "/liturgical-readings" },
       { label: "Calendar" }
     ])
   }, [setBreadcrumbs])
@@ -53,7 +53,7 @@ export function PetitionsCalendar() {
       const parish = await getCurrentParish()
       if (parish) {
         setCurrentParish(parish)
-        await loadPetitions()
+        await loadReadings()
       }
     } catch (error) {
       console.error('Error loading data:', error)
@@ -63,17 +63,17 @@ export function PetitionsCalendar() {
     }
   }
 
-  async function loadPetitions() {
+  async function loadReadings() {
     try {
       const { startDate, endDate } = getDateRange()
-      const data = await getPetitionsByDateRange(
+      const data = await getLiturgicalReadingsByDateRange(
         startDate.toISOString().split('T')[0],
         endDate.toISOString().split('T')[0]
       )
-      setPetitions(data)
+      setReadings(data)
     } catch (error) {
-      console.error('Error loading petitions:', error)
-      toast.error('Failed to load petitions')
+      console.error('Error loading liturgical readings:', error)
+      toast.error('Failed to load liturgical readings')
     }
   }
 
@@ -96,41 +96,53 @@ export function PetitionsCalendar() {
     setCurrentDate(newDate)
   }
 
-  // Transform petitions to calendar items
-  const calendarItems: PetitionCalendarItem[] = petitions.map(petition => ({
-    ...petition,
-    title: petition.title,
-    date: petition.date
-  }))
+  // Transform readings to calendar items
+  const calendarItems: LiturgicalReadingCalendarItem[] = readings
+    .filter(reading => reading.date) // Only include readings with dates
+    .map(reading => ({
+      id: reading.id,
+      title: reading.title,
+      date: reading.date!,
+      reading: reading
+    }))
 
-  const handleItemClick = (item: PetitionCalendarItem) => {
-    window.location.href = `/petitions/${item.id}`
+  const handleItemClick = (item: LiturgicalReadingCalendarItem) => {
+    window.location.href = `/liturgical-readings/${item.reading.id}`
   }
 
-  const getItemColor = () => "bg-amber-100 text-amber-800 hover:bg-amber-200"
+  const getItemColor = () => "bg-green-100 text-green-800 hover:bg-green-200"
 
   const headerActions = (
     <div className="flex items-center gap-3">
       <Button
         variant="outline"
-        onClick={() => window.location.href = '/petitions'}
+        onClick={() => window.location.href = '/liturgical-readings'}
       >
         <List className="h-4 w-4 mr-2" />
         List View
       </Button>
       
-      <Button onClick={() => window.location.href = '/petitions/create'}>
+      <Button onClick={() => window.location.href = '/liturgical-readings/create'}>
         <Plus className="h-4 w-4 mr-2" />
-        New Petition
+        New Liturgical Reading
       </Button>
     </div>
   )
 
+  const getReadingsCount = (reading: LiturgicalReading): number => {
+    let count = 0
+    if (reading.first_reading_id) count++
+    if (reading.psalm_id) count++
+    if (reading.second_reading_id) count++
+    if (reading.gospel_reading_id) count++
+    return count
+  }
+
   if (loading) {
     return (
       <PageContainer
-        title="Petitions Calendar"
-        description="View petitions in calendar format"
+        title="Liturgical Readings Calendar"
+        description="View liturgical readings in calendar format"
         maxWidth="7xl"
       >
         <div className="space-y-6">Loading calendar...</div>
@@ -140,8 +152,8 @@ export function PetitionsCalendar() {
 
   return (
     <PageContainer
-      title="Petitions Calendar"
-      description="View petitions in calendar format"
+      title="Liturgical Readings Calendar"
+      description="View liturgical readings in calendar format"
       maxWidth="7xl"
     >
       <div className="space-y-6">
@@ -149,7 +161,7 @@ export function PetitionsCalendar() {
           currentDate={currentDate}
           view={calendarView}
           items={calendarItems}
-          title="Petitions Calendar"
+          title="Liturgical Readings Calendar"
           onNavigate={navigatePeriod}
           onToday={() => setCurrentDate(new Date())}
           onDayClick={setSelectedDate}
@@ -163,8 +175,8 @@ export function PetitionsCalendar() {
           <CardContent className="p-4">
             <div className="flex items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-amber-100 rounded"></div>
-                <span>Petition</span>
+                <div className="w-4 h-4 bg-green-100 rounded"></div>
+                <span>Liturgical Reading</span>
               </div>
             </div>
           </CardContent>
@@ -175,54 +187,54 @@ export function PetitionsCalendar() {
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>
-                Petitions for {selectedDate.toLocaleDateString()}
+                Liturgical Readings for {selectedDate.toLocaleDateString()}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Show petitions for selected date */}
+              {/* Show readings for selected date */}
               <div className="space-y-2">
-                {petitions
-                  .filter(petition => 
-                    petition.date && 
-                    new Date(petition.date).toDateString() === selectedDate.toDateString()
+                {readings
+                  .filter(reading => 
+                    reading.date && 
+                    new Date(reading.date).toDateString() === selectedDate.toDateString()
                   )
-                  .map((petition) => (
-                    <div key={petition.id} className="p-3 border rounded-md">
+                  .map((reading) => (
+                    <div key={reading.id} className="p-3 border rounded-md">
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge className="text-xs bg-amber-100 text-amber-800">
-                          <FileText className="h-3 w-3 mr-1" />
-                          Petition
+                        <Badge className="text-xs bg-green-100 text-green-800">
+                          <BookOpen className="h-3 w-3 mr-1" />
+                          {getReadingsCount(reading)} reading{getReadingsCount(reading) !== 1 ? 's' : ''}
                         </Badge>
-                        <span className="text-sm font-medium capitalize">
-                          {petition.language}
-                        </span>
                       </div>
-                      <p className="font-medium">{petition.title}</p>
+                      <p className="font-medium">{reading.title}</p>
+                      {reading.description && (
+                        <p className="text-sm text-muted-foreground mt-1">{reading.description}</p>
+                      )}
                       <div className="flex items-center gap-2 mt-2">
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.location.href = `/petitions/${petition.id}`}
+                          onClick={() => window.location.href = `/liturgical-readings/${reading.id}`}
                         >
                           View
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.location.href = `/petitions/${petition.id}/edit`}
+                          onClick={() => window.location.href = `/liturgical-readings/${reading.id}/wizard`}
                         >
                           Edit
                         </Button>
                       </div>
                     </div>
                   ))}
-                {petitions.filter(petition => 
-                  petition.date && 
-                  new Date(petition.date).toDateString() === selectedDate.toDateString()
+                {readings.filter(reading => 
+                  reading.date && 
+                  new Date(reading.date).toDateString() === selectedDate.toDateString()
                 ).length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
-                    <FileText className="h-12 w-12 mx-auto mb-4" />
-                    <p>No petitions for this date</p>
+                    <BookOpen className="h-12 w-12 mx-auto mb-4" />
+                    <p>No liturgical readings for this date</p>
                   </div>
                 )}
               </div>

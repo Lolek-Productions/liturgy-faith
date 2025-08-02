@@ -4,7 +4,7 @@ This document provides comprehensive documentation of the database schema for th
 
 *Generated automatically - do not edit manually*
 
-**Generated on:** Thu Jul 31 09:57:45 CDT 2025
+**Generated on:** Sat Aug  2 11:42:48 CDT 2025
 **Method:** Supabase REST API
 
 ## Database Overview
@@ -45,10 +45,11 @@ The following tables are available in the database:
 | Column | Type | Nullable | Default |
 |--------|------|----------|---------|
 | `created_at` | timestamp with time zone | NO | now() |
+| `date` | date | YES | none |
 | `id` | bigint | YES | none |
-| `liturgical_event_id` | uuid | YES | none |
 | `parish_id` | uuid | NO | gen_random_uuid() |
 | `text` | text | YES | none |
+| `title` | text | YES | none |
 
 ---
 

@@ -12,7 +12,9 @@ import {
   Plus,
   List,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { getCurrentParish } from '@/lib/auth/parish'
@@ -24,6 +26,7 @@ import { Parish } from '@/lib/types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Calendar, CalendarView, CalendarItem } from '@/components/calendar'
+import type { CalendarDay } from '@/components/calendar/types'
 
 // Extend MassIntentionWithDetails to match CalendarItem interface
 interface MassIntentionCalendarItem extends MassIntentionWithDetails, CalendarItem {
@@ -145,7 +148,7 @@ export function MassIntentionsCalendar() {
         date: new Date(currentDateForLoop),
         isCurrentMonth: currentDateForLoop.getMonth() === currentDate.getMonth(),
         isToday: currentDateForLoop.toDateString() === new Date().toDateString(),
-        intentions: dayIntentions
+        items: [] // TODO: Fix transformation of dayIntentions to CalendarItem[]
       })
       
       currentDateForLoop.setDate(currentDateForLoop.getDate() + 1)
@@ -174,7 +177,7 @@ export function MassIntentionsCalendar() {
         date: dayDate,
         isCurrentMonth: true,
         isToday: dayDate.toDateString() === new Date().toDateString(),
-        intentions: dayIntentions
+        items: [] // TODO: Fix transformation of dayIntentions to CalendarItem[]
       })
     }
     
@@ -273,7 +276,7 @@ export function MassIntentionsCalendar() {
               {day.date.getDate()}
             </div>
             <div className="space-y-1">
-              {day.intentions.slice(0, 3).map((intention) => (
+              {day.items.slice(0, 3).map((intention) => (
                 <div
                   key={intention.id}
                   className={cn(
@@ -284,9 +287,9 @@ export function MassIntentionsCalendar() {
                   {formatTime(intention.start_time)} {intention.mass_offered_for}
                 </div>
               ))}
-              {day.intentions.length > 3 && (
+              {day.items.length > 3 && (
                 <div className="text-xs text-muted-foreground">
-                  +{day.intentions.length - 3} more
+                  +{day.items.length - 3} more
                 </div>
               )}
             </div>
@@ -310,7 +313,7 @@ export function MassIntentionsCalendar() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {day.intentions.map((intention) => (
+                {day.items.map((intention) => (
                   <div
                     key={intention.id}
                     className={cn(
@@ -325,7 +328,7 @@ export function MassIntentionsCalendar() {
                     )}
                   </div>
                 ))}
-                {day.intentions.length === 0 && (
+                {day.items.length === 0 && (
                   <div className="text-xs text-muted-foreground">No intentions</div>
                 )}
               </div>

@@ -5,7 +5,9 @@ import { redirect } from 'next/navigation'
 
 export interface Announcement {
   id: number
-  text: string
+  title?: string
+  text: string | null
+  date?: string
   liturgical_event_id: string | null
   parish_id: string
   created_at: string
@@ -403,6 +405,249 @@ export async function deleteAnnouncementTemplate(templateId: number) {
     return { success: true }
   } catch (error) {
     console.error('Error deleting announcement template:', error)
+    throw error
+  }
+}
+
+export async function searchAnnouncements(params: {
+  query?: string
+  page?: number
+  limit?: number
+}) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Get user's parishes
+    const { data: userParishes, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('parish_id')
+      .eq('user_id', user.id)
+
+    if (userParishError || !userParishes || userParishes.length === 0) {
+      throw new Error('You do not have access to any parishes')
+    }
+
+    const parishIds = userParishes.map(up => up.parish_id)
+
+    const page = params.page || 1
+    const limit = params.limit || 10
+    const offset = (page - 1) * limit
+
+    let query = supabase
+      .from('announcements')
+      .select('*', { count: 'exact' })
+      .in('parish_id', parishIds)
+      .order('created_at', { ascending: false })
+
+    if (params.query) {
+      query = query.ilike('text', `%${params.query}%`)
+    }
+
+    query = query.range(offset, offset + limit - 1)
+
+    const { data: announcements, error, count } = await query
+
+    if (error) {
+      throw new Error(`Failed to search announcements: ${error.message}`)
+    }
+
+    const totalPages = Math.ceil((count || 0) / limit)
+
+    return {
+      announcements: announcements || [],
+      total: count || 0,
+      totalPages,
+      currentPage: page
+    }
+  } catch (error) {
+    console.error('Error searching announcements:', error)
+    throw error
+  }
+}
+
+export async function duplicateAnnouncement(announcementId: number) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Get the original announcement
+    const { data: originalAnnouncement, error: fetchError } = await supabase
+      .from('announcements')
+      .select('*')
+      .eq('id', announcementId)
+      .single()
+
+    if (fetchError || !originalAnnouncement) {
+      throw new Error('Announcement not found')
+    }
+
+    // Check if user has permission to access this parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('roles')
+      .eq('user_id', user.id)
+      .eq('parish_id', originalAnnouncement.parish_id)
+      .single()
+
+    if (userParishError || !userParish) {
+      throw new Error('You do not have permission to duplicate this announcement')
+    }
+
+    // Create duplicate
+    const { data: duplicatedAnnouncement, error } = await supabase
+      .from('announcements')
+      .insert({
+        title: originalAnnouncement.title ? `${originalAnnouncement.title} (Copy)` : null,
+        text: originalAnnouncement.text,
+        date: originalAnnouncement.date,
+        liturgical_event_id: originalAnnouncement.liturgical_event_id,
+        parish_id: originalAnnouncement.parish_id
+      })
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Failed to duplicate announcement: ${error.message}`)
+    }
+
+    return duplicatedAnnouncement
+  } catch (error) {
+    console.error('Error duplicating announcement:', error)
+    throw error
+  }
+}
+
+export async function getAnnouncement(announcementId: number) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Get the announcement
+    const { data: announcement, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .eq('id', announcementId)
+      .single()
+
+    if (error || !announcement) {
+      throw new Error('Announcement not found')
+    }
+
+    // Check if user has access to this parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('roles')
+      .eq('user_id', user.id)
+      .eq('parish_id', announcement.parish_id)
+      .single()
+
+    if (userParishError || !userParish) {
+      throw new Error('You do not have access to this announcement')
+    }
+
+    return announcement
+  } catch (error) {
+    console.error('Error fetching announcement:', error)
+    throw error
+  }
+}
+
+export async function createBasicAnnouncement(data: {
+  title: string
+  date: string
+}) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Get user's default parish
+    const { data: userParish, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('parish_id, roles')
+      .eq('user_id', user.id)
+      .single()
+
+    if (userParishError || !userParish || 
+        (!userParish.roles.includes('admin') && !userParish.roles.includes('minister'))) {
+      throw new Error('You do not have permission to create announcements')
+    }
+
+    // Create basic announcement
+    const { data: announcement, error } = await supabase
+      .from('announcements')
+      .insert({
+        title: data.title.trim(),
+        text: null, // Will be filled in wizard
+        date: data.date,
+        parish_id: userParish.parish_id
+      })
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Failed to create announcement: ${error.message}`)
+    }
+
+    return announcement
+  } catch (error) {
+    console.error('Error creating basic announcement:', error)
+    throw error
+  }
+}
+
+export async function getAnnouncementsByDateRange(startDate: string, endDate: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  try {
+    // Get user's parishes
+    const { data: userParishes, error: userParishError } = await supabase
+      .from('parish_user')
+      .select('parish_id')
+      .eq('user_id', user.id)
+
+    if (userParishError || !userParishes || userParishes.length === 0) {
+      throw new Error('You do not have access to any parishes')
+    }
+
+    const parishIds = userParishes.map(up => up.parish_id)
+
+    const { data: announcements, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .in('parish_id', parishIds)
+      .gte('date', startDate)
+      .lte('date', endDate)
+      .order('date', { ascending: true })
+
+    if (error) {
+      throw new Error(`Failed to fetch announcements by date range: ${error.message}`)
+    }
+
+    return announcements || []
+  } catch (error) {
+    console.error('Error fetching announcements by date range:', error)
     throw error
   }
 }
