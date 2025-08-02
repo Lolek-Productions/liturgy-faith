@@ -298,9 +298,13 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
 }
 
 export async function generatePetitionContent(data: CreatePetitionData): Promise<string> {
-  // Get the petition template content if templateId is provided
+  // Get the petition template content - prioritize direct template over templateId
   let templateContent = ''
-  if (data.templateId) {
+  if (data.template) {
+    // Use direct template content if provided
+    templateContent = data.template
+  } else if (data.templateId) {
+    // Fall back to fetching template by ID
     try {
       const template = await getPetitionTemplate(data.templateId)
       if (template && template.context) {
@@ -324,31 +328,36 @@ export async function generatePetitionContent(data: CreatePetitionData): Promise
   console.log('[DEBUG] Final prompt being sent to AI:', prompt)
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1000,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      })
-    })
-
-    if (!response.ok) {
-      console.warn('Claude API Error:', response.status, response.statusText, '- Using fallback template')
-      // Fall through to fallback template instead of throwing
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.warn('ANTHROPIC_API_KEY not configured - Using fallback template')
+      // Fall through to fallback template
     } else {
-      const result = await response.json()
-      return result.content[0].text
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 1000,
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
+        })
+      })
+
+      if (!response.ok) {
+        console.warn('Claude API Error:', response.status, response.statusText, '- Using fallback template')
+        // Fall through to fallback template instead of throwing
+      } else {
+        const result = await response.json()
+        return result.content[0].text
+      }
     }
   } catch (error) {
     console.warn('Error generating petitions:', error instanceof Error ? error.message : 'Unknown error', '- Using fallback template')
@@ -467,7 +476,7 @@ export async function updatePetitionFullDetails(id: string, data: { title: strin
   return petition
 }
 
-export async function regeneratePetitionContent(id: string, data: { title: string; date: string; language: string; templateId?: string; details?: string }) {
+export async function regeneratePetitionContent(id: string, data: { title: string; date: string; language: string; template?: string; details?: string }) {
   const supabase = await createClient()
   
   const selectedParishId = await requireSelectedParish()
@@ -478,10 +487,16 @@ export async function regeneratePetitionContent(id: string, data: { title: strin
     date: data.date,
     language: data.language,
     details: data.details || '',
-    templateId: data.templateId
+    template: data.template
   }
 
-  const generatedContent = await generatePetitionContent(petitionData)
+  let generatedContent: string
+  try {
+    generatedContent = await generatePetitionContent(petitionData)
+  } catch (error) {
+    console.error('Content generation error:', error)
+    throw new Error(`Failed to generate petition content: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
 
   // Update the petition with new content
   const { data: petition, error: petitionError } = await supabase
@@ -491,6 +506,7 @@ export async function regeneratePetitionContent(id: string, data: { title: strin
       date: data.date,
       language: data.language,
       text: generatedContent,
+      details: data.details || '',
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -500,7 +516,7 @@ export async function regeneratePetitionContent(id: string, data: { title: strin
 
   if (petitionError) {
     console.error('Petition regeneration error:', petitionError)
-    throw new Error('Failed to regenerate petition')
+    throw new Error(`Failed to regenerate petition: ${petitionError.message || petitionError.code || 'Database error'}`)
   }
 
   return petition

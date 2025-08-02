@@ -30,6 +30,7 @@ export interface CreatePetitionData {
   language: string
   details: string
   templateId?: string // Optional petition template ID to copy from
+  template?: string // Optional template content directly
 }
 
 export interface PetitionSettings {

@@ -11,7 +11,6 @@ import { ArrowLeft, RefreshCw, Sparkles, Printer } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getPetitionWithContext, updatePetitionFullDetails, regeneratePetitionContent } from '@/lib/actions/petitions'
-import { getPetitionTemplates, type PetitionContextTemplate } from '@/lib/actions/petition-templates'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { toast } from 'sonner'
 
@@ -29,8 +28,6 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   const [loadingData, setLoadingData] = useState(true)
   const [error, setError] = useState('')
   const [showRegenerateModal, setShowRegenerateModal] = useState(false)
-  const [templates, setTemplates] = useState<PetitionContextTemplate[]>([])
-  const [selectedTemplateId, setSelectedTemplateId] = useState('none')
   const [details, setDetails] = useState('')
   const [regenerating, setRegenerating] = useState(false)
   const router = useRouter()
@@ -69,21 +66,6 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
     loadPetition()
   }, [params, setBreadcrumbs])
 
-  // Load templates when modal opens
-  useEffect(() => {
-    const loadTemplates = async () => {
-      if (showRegenerateModal) {
-        try {
-          const templatesData = await getPetitionTemplates()
-          setTemplates(templatesData)
-        } catch (error) {
-          console.error('Failed to load templates:', error)
-          toast.error('Failed to load petition templates')
-        }
-      }
-    }
-    loadTemplates()
-  }, [showRegenerateModal])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -110,10 +92,6 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   }
 
   const handleRegenerate = async () => {
-    if (selectedTemplateId === 'none' && !details.trim()) {
-      toast.error('Please select a template or provide details')
-      return
-    }
 
     setRegenerating(true)
     try {
@@ -121,7 +99,6 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
         title,
         date,
         language,
-        templateId: selectedTemplateId === 'none' ? undefined : selectedTemplateId,
         details: details.trim()
       }
 
@@ -129,12 +106,12 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
       const updatedPetition = await regeneratePetitionContent(id, regenerationData)
       setPetitionText(updatedPetition.text || updatedPetition.generated_content || '')
       setShowRegenerateModal(false)
-      setSelectedTemplateId('none')
       setDetails('')
       toast.success('Petition content regenerated successfully!')
     } catch (error) {
       console.error('Failed to regenerate petition:', error)
-      toast.error('Failed to regenerate petition content')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Failed to regenerate petition content: ${errorMessage}`)
     } finally {
       setRegenerating(false)
     }
@@ -226,22 +203,6 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
                       <DialogTitle>Regenerate Petition Content</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                      <FormField
-                        id="templateSelect"
-                        label="Select Petition Template (Optional)"
-                        description="Choose a pre-defined petition template"
-                        inputType="select"
-                        value={selectedTemplateId}
-                        onChange={setSelectedTemplateId}
-                        options={[
-                          { value: 'none', label: 'No template - use details only' },
-                          ...templates.map(template => ({
-                            value: template.id,
-                            label: template.title
-                          }))
-                        ]}
-                      />
-                      
                       <FormField
                         id="details"
                         label="Details (Optional)"
