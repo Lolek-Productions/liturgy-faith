@@ -78,14 +78,17 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
         date,
         language,
         text: petitionText.trim(),
+        details: details.trim(),
       }
 
       await updatePetitionFullDetails(id, petitionData)
       toast.success('Petition updated successfully!')
       setError('')
-    } catch {
-      setError('Failed to update petition. Please try again.')
-      toast.error('Failed to update petition')
+    } catch (error) {
+      console.error('Failed to update petition:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      setError(`Failed to update petition: ${errorMessage}`)
+      toast.error(`Failed to update petition: ${errorMessage}`)
     } finally {
       setLoading(false)
     }

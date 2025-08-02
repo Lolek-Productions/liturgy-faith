@@ -449,20 +449,27 @@ export async function updatePetitionDetails(petitionId: string, details: string)
   }
 }
 
-export async function updatePetitionFullDetails(id: string, data: { title: string; date: string; language: string; text: string }) {
+export async function updatePetitionFullDetails(id: string, data: { title: string; date: string; language: string; text: string; details?: string }) {
   const supabase = await createClient()
   
   const selectedParishId = await requireSelectedParish()
 
+  const updateData: any = {
+    title: data.title,
+    date: data.date,
+    language: data.language,
+    text: data.text,
+    updated_at: new Date().toISOString(),
+  }
+  
+  // Only update details if provided
+  if (data.details !== undefined) {
+    updateData.details = data.details
+  }
+
   const { data: petition, error: petitionError } = await supabase
     .from('petitions')
-    .update({
-      title: data.title,
-      date: data.date,
-      language: data.language,
-      text: data.text,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq('id', id)
     .eq('parish_id', selectedParishId)
     .select()
@@ -470,7 +477,7 @@ export async function updatePetitionFullDetails(id: string, data: { title: strin
 
   if (petitionError) {
     console.error('Petition update error:', petitionError)
-    throw new Error('Failed to update petition')
+    throw new Error(`Failed to update petition: ${petitionError.message || petitionError.code || 'Database error'}`)
   }
 
   return petition

@@ -38,10 +38,15 @@ Language: {{LANGUAGE}}
 INSTRUCTIONS:
 - Use the Template Content as the base structure if provided
 - MUST incorporate the Community Details provided above into specific petitions
-- Include petitions for deaths, sick members, sacraments, and special requests mentioned in the details
 - Generate in {{LANGUAGE}} language
 - Each petition should end with "let us pray to the Lord" (or {{LANGUAGE}} equivalent)
 - Separate each petition with a blank line
+
+REQUIRED ORDER OF PETITIONS:
+1. First: Petition for the Church (bishops, clergy, Church universal)
+2. Second: Petition for the world (government leaders, peace, justice)
+3. Third and later: Petitions for the deceased, sick members, sacraments, and special requests mentioned in the community details
+4. Final: Petition for the local community and silent intentions
 
 CRITICAL FORMATTING RULES:
 - DO NOT include any title or heading
