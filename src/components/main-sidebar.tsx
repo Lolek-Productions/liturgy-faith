@@ -214,6 +214,11 @@ export function MainSidebar() {
                     url: "/petitions/create",
                     icon: Sparkles,
                   },
+                  {
+                    title: "Calendar View",
+                    url: "/petitions/calendar",
+                    icon: Calendar,
+                  },
                 ]}
                 defaultOpen={false}
               />

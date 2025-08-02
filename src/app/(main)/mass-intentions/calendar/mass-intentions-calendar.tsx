@@ -4,12 +4,9 @@ import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PageContainer } from '@/components/page-container'
 import { 
-  ChevronLeft,
-  ChevronRight,
   Clock,
   Heart,
   Plus,
@@ -26,14 +23,12 @@ import {
 import { Parish } from '@/lib/types'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Calendar, CalendarView, CalendarItem } from '@/components/calendar'
 
-type CalendarView = 'month' | 'week' | 'day'
-
-interface CalendarDay {
-  date: Date
-  isCurrentMonth: boolean
-  isToday: boolean
-  intentions: MassIntentionWithDetails[]
+// Extend MassIntentionWithDetails to match CalendarItem interface
+interface MassIntentionCalendarItem extends MassIntentionWithDetails, CalendarItem {
+  date: string // event_date mapped to date
+  title: string // mass_offered_for mapped to title
 }
 
 export function MassIntentionsCalendar() {

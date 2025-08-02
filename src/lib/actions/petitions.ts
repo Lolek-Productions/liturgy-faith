@@ -571,6 +571,26 @@ export async function duplicatePetition(id: string): Promise<Petition> {
   return duplicatedPetition
 }
 
+export async function getPetitionsByDateRange(startDate: string, endDate: string): Promise<Petition[]> {
+  const supabase = await createClient()
+  
+  const selectedParishId = await requireSelectedParish()
+
+  const { data, error } = await supabase
+    .from('petitions')
+    .select('*')
+    .eq('parish_id', selectedParishId)
+    .gte('date', startDate)
+    .lte('date', endDate)
+    .order('date', { ascending: true })
+
+  if (error) {
+    throw new Error('Failed to fetch petitions by date range')
+  }
+
+  return data || []
+}
+
 export async function deletePetition(id: string) {
   const supabase = await createClient()
   

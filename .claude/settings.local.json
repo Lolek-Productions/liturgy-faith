@@ -17,7 +17,8 @@
       "Bash(grep:*)",
       "Bash(npm run dev:*)",
       "Bash(pkill:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "mcp__lolek-mcp__get-example"
     ],
     "deny": []
   }
