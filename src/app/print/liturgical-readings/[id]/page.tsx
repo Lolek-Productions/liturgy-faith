@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Printer, ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import type { LiturgicalReading } from '@/lib/types'
 import type { IndividualReading } from '@/lib/actions/readings'
 import { getLiturgicalReading } from '@/lib/actions/liturgical-readings'
@@ -108,9 +110,12 @@ export default function PrintLiturgicalReadingPage({ params }: PrintLiturgicalRe
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="text-center text-gray-600">
-          Loading liturgical readings for printing...
+      <div className="hide-on-print">
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <span className="text-gray-600">Loading liturgical readings for printing...</span>
+          </div>
         </div>
       </div>
     )
@@ -123,9 +128,10 @@ export default function PrintLiturgicalReadingPage({ params }: PrintLiturgicalRe
           {error || 'Liturgical reading not found'}
         </div>
         <div className="print-actions hide-on-print">
-          <button className="print-button secondary" onClick={handleClose}>
-            ← Back
-          </button>
+          <Button variant="outline" onClick={handleClose}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
         </div>
       </div>
     )
@@ -156,9 +162,10 @@ export default function PrintLiturgicalReadingPage({ params }: PrintLiturgicalRe
     <div>
       {/* Print Actions - Hidden on Print */}
       <div className="print-actions hide-on-print">
-        <button className="print-button" onClick={handlePrint}>
-          🖨️ Print
-        </button>
+        <Button onClick={handlePrint}>
+          <Printer className="h-4 w-4 mr-2" />
+          Print
+        </Button>
       </div>
 
       {/* Print Content */}

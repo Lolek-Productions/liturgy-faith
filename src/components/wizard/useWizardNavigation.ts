@@ -1,24 +1,27 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 interface UseWizardNavigationProps {
   totalSteps: number
   initialStep?: number
   onStepChange?: (step: number) => void
+  enableUrlSync?: boolean
 }
 
 export function useWizardNavigation({ 
   totalSteps, 
   initialStep = 1,
-  onStepChange 
+  onStepChange,
+  enableUrlSync = true
 }: UseWizardNavigationProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState(initialStep)
 
   const updateStepInUrl = (step: number) => {
+    if (!enableUrlSync) return
+    
     const url = new URL(window.location.href)
     const currentStepParam = url.searchParams.get('step')
     
@@ -29,9 +32,12 @@ export function useWizardNavigation({
     }
   }
 
-  // Initialize step from URL params
+  // Initialize step from URL params on mount
   useEffect(() => {
-    const stepParam = searchParams.get('step')
+    if (!enableUrlSync) return
+    
+    const params = new URLSearchParams(window.location.search)
+    const stepParam = params.get('step')
     if (stepParam) {
       const stepNumber = parseInt(stepParam, 10)
       if (stepNumber >= 1 && stepNumber <= totalSteps && stepNumber !== currentStep) {
@@ -42,7 +48,7 @@ export function useWizardNavigation({
       // Only set URL if we're on initial step and there's no step param
       updateStepInUrl(initialStep)
     }
-  }, [searchParams, totalSteps, initialStep]) // Removed currentStep to prevent loops
+  }, []) // Only run on mount
 
   const goToStep = (step: number) => {
     if (step >= 1 && step <= totalSteps) {

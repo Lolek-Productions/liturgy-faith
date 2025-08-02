@@ -44,7 +44,7 @@ export default function CreateLiturgicalReadingsPage() {
       
       toast.success('Reading collection created successfully!')
       // Redirect to edit page (wizard) and jump to step 2 since step 1 is complete
-      router.push(`/liturgical-readings/${liturgicalReading.id}/edit?step=2`)
+      router.push(`/liturgical-readings/${liturgicalReading.id}/wizard?step=2`)
     } catch (error) {
       console.error('Failed to create liturgical reading:', error)
       // More detailed error logging

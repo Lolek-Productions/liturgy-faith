@@ -14,7 +14,10 @@
       "mcp__lolek-mcp__get-tools",
       "Bash(mv:*)",
       "Bash(git add:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm run dev:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run lint)"
     ],
     "deny": []
   }

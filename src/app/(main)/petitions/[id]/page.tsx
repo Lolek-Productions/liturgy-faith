@@ -10,8 +10,9 @@ import { Loading } from '@/components/loading'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { useRouter } from 'next/navigation'
-import { Edit, Calendar, Printer, Plus, Copy } from 'lucide-react'
+import { Edit, Calendar, Plus, Copy } from 'lucide-react'
 import { CopyButton } from '@/components/copy-button'
+import { PrintButton } from '@/components/print-button'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { Petition, PetitionContext } from '@/lib/types'
 import { toast } from 'sonner'
@@ -29,12 +30,6 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
   const { setBreadcrumbs } = useBreadcrumbs()
   const router = useRouter()
 
-  const handlePrint = () => {
-    if (petitionId) {
-      const printUrl = `/print/petitions/${petitionId}`
-      window.open(printUrl, '_blank')
-    }
-  }
 
   const handleDuplicate = async () => {
     if (!petitionId) return
@@ -166,14 +161,11 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
                 <Copy className="h-4 w-4 mr-2" />
                 {duplicating ? 'Duplicating...' : 'Duplicate Petitions'}
               </Button>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={handlePrint}
-              >
-                <Printer className="h-4 w-4 mr-2" />
-                Print Petitions
-              </Button>
+              <PrintButton 
+                itemId={petitionId || ''}
+                itemType="petitions"
+                fullWidth
+              />
               <CopyButton 
                 content={petition.text || petition.generated_content || ''} 
                 className="w-full"

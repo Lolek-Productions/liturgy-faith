@@ -115,7 +115,7 @@ export default function LiturgicalReadingsPage() {
                     </div>
                   </div>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link href={`/liturgical-readings/${reading.id}/edit`}>
+                    <Link href={`/liturgical-readings/${reading.id}/wizard`}>
                       <Edit className="h-4 w-4" />
                     </Link>
                   </Button>

@@ -19,7 +19,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { getIndividualReadings } from '@/lib/actions/readings'
 import { getLiturgicalReading, updateLiturgicalReading } from '@/lib/actions/liturgical-readings'
 import type { IndividualReading } from '@/lib/actions/readings'
-import { WizardNavigation, WizardContainer } from '@/components/liturgical-readings-wizard'
+import { Wizard, type WizardStep as UnifiedWizardStep } from '@/components/wizard'
 import { ReadingPickerModal } from '@/components/reading-picker-modal'
 import { toast } from 'sonner'
 
@@ -39,20 +39,12 @@ interface WizardData {
   sung_petitions?: boolean
 }
 
-interface WizardStep {
-  id: number
-  title: string
-  description: string
-}
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
 function EditLiturgicalReadingWizard({ params }: PageProps) {
-  const searchParams = useSearchParams()
-  const initialStep = parseInt(searchParams.get('step') || '1') - 1 // Convert to 0-based index
-  const [currentStep, setCurrentStep] = useState(Math.max(0, Math.min(5, initialStep)))
   const [wizardData, setWizardData] = useState<WizardData>({
     id: '',
     title: '',
@@ -73,7 +65,7 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
   const { setBreadcrumbs } = useBreadcrumbs()
   const router = useRouter()
 
-  const wizardSteps: WizardStep[] = [
+  const wizardSteps: UnifiedWizardStep[] = [
     { id: 1, title: "Basic Info", description: "Name, description, and date" },
     { id: 2, title: "First Reading", description: "Select first reading and lector" },
     { id: 3, title: "Psalm", description: "Select responsorial psalm and lector" },
@@ -158,12 +150,6 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
     }
   }, [])
 
-  // Update URL when wizard is first loaded with initial step
-  useEffect(() => {
-    if (!loading) {
-      updateStepInURL(currentStep)
-    }
-  }, [loading, currentStep])
 
   // Auto-save function
   const autoSave = useCallback(async (data: WizardData) => {
@@ -277,54 +263,13 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
     }
   }
 
-  const canProceedFromStep = (step: number): boolean => {
-    switch (step) {
-      case 0: // Basic Info
-        return wizardData.title.trim().length > 0
-      case 1: // First Reading
-      case 2: // Psalm
-      case 3: // Second Reading
-      case 4: // Gospel
-        return true // These steps are optional
-      case 5: // Review
-        return true
-      default:
-        return false
-    }
+  const handleComplete = () => {
+    router.push(`/liturgical-readings/${readingId}`)
   }
 
-  const updateStepInURL = (step: number) => {
-    const url = new URL(window.location.href)
-    url.searchParams.set('step', (step + 1).toString()) // Convert back to 1-based for URL
-    window.history.replaceState({}, '', url.toString())
-  }
-
-  const handleNext = () => {
-    if (currentStep < wizardSteps.length - 1 && canProceedFromStep(currentStep)) {
-      const nextStep = currentStep + 1
-      setCurrentStep(nextStep)
-      updateStepInURL(nextStep)
-    }
-  }
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      const prevStep = currentStep - 1
-      setCurrentStep(prevStep)
-      updateStepInURL(prevStep)
-    }
-  }
-
-  const handleStepChange = (step: number) => {
-    if (step <= currentStep || canProceedFromStep(currentStep)) {
-      setCurrentStep(step)
-      updateStepInURL(step)
-    }
-  }
-
-  const renderStepContent = () => {
+  const renderStepContent = (currentStep: number) => {
     switch (currentStep) {
-      case 0: // Basic Info
+      case 1: // Basic Info
         return (
           <Card>
             <CardHeader>
@@ -386,7 +331,7 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
           </Card>
         )
 
-      case 1: // First Reading
+      case 2: // First Reading
         return (
           <Card>
             <CardHeader>
@@ -404,7 +349,6 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
                     size="sm"
                     onClick={() => {
                       updateWizardData({ first_reading_id: undefined })
-                      handleNext()
                     }}
                     className="text-muted-foreground hover:text-foreground border-dashed"
                   >
@@ -468,7 +412,7 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
           </Card>
         )
 
-      case 2: // Psalm
+      case 3: // Psalm
         return (
           <Card>
             <CardHeader>
@@ -486,7 +430,6 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
                     size="sm"
                     onClick={() => {
                       updateWizardData({ psalm_id: undefined })
-                      handleNext()
                     }}
                     className="text-muted-foreground hover:text-foreground border-dashed"
                   >
@@ -550,7 +493,7 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
           </Card>
         )
 
-      case 3: // Second Reading
+      case 4: // Second Reading
         return (
           <Card>
             <CardHeader>
@@ -568,7 +511,6 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
                     size="sm"
                     onClick={() => {
                       updateWizardData({ second_reading_id: undefined })
-                      handleNext()
                     }}
                     className="text-muted-foreground hover:text-foreground border-dashed"
                   >
@@ -632,7 +574,7 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
           </Card>
         )
 
-      case 4: // Gospel
+      case 5: // Gospel
         return (
           <Card>
             <CardHeader>
@@ -650,7 +592,6 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
                     size="sm"
                     onClick={() => {
                       updateWizardData({ gospel_reading_id: undefined })
-                      handleNext()
                     }}
                     className="text-muted-foreground hover:text-foreground border-dashed"
                   >
@@ -714,7 +655,7 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
           </Card>
         )
 
-      case 5: // Review
+      case 6: // Review
         return (
           <div className="space-y-6">
             <Card>
@@ -860,41 +801,22 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
     }
   }
 
-  if (loading) {
-    return (
-      <PageContainer
-        title="Loading..."
-        description="Loading liturgical readings wizard"
-        maxWidth="4xl"
-      >
-        <div>Loading...</div>
-      </PageContainer>
-    )
-  }
-
   return (
-    <PageContainer
-      title="Liturgical Readings Wizard"
-      description="Create your liturgical reading collection step by step"
-      maxWidth="4xl"
-    >
-      <WizardContainer
-        navigation={
-          <WizardNavigation
-            steps={wizardSteps}
-            currentStep={currentStep}
-            onStepChange={handleStepChange}
-            canProceed={canProceedFromStep(currentStep)}
-            canGoBack={currentStep > 0}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            nextLabel={currentStep === wizardSteps.length - 1 ? "Complete" : "Next Step"}
-            title={wizardData.title || "Untitled Reading Collection"}
-          />
-        }
-      >
-        {renderStepContent()}
-      </WizardContainer>
+    <>
+      <Wizard
+        title="Liturgical Readings Wizard"
+        description="Create your liturgical reading collection step by step"
+        steps={wizardSteps}
+        maxWidth="4xl"
+        loading={loading}
+        loadingMessage="Loading liturgical readings wizard..."
+        onComplete={handleComplete}
+        completeButtonText="Complete & View"
+        showStepPreview={true}
+        allowPreviousNavigation={true}
+        disableNext={(currentStep) => currentStep === 1 && !wizardData.title.trim()}
+        renderStepContent={renderStepContent}
+      />
 
       {/* Reading Selection Modals */}
       <ReadingPickerModal
@@ -936,7 +858,7 @@ function EditLiturgicalReadingWizard({ params }: PageProps) {
         title="Select Gospel Reading"
         readingType="gospel"
       />
-    </PageContainer>
+    </>
   )
 }
 

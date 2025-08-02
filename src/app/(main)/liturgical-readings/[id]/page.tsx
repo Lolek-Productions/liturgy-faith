@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button"
 import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
 import Link from "next/link"
-import { Edit, Printer, Calendar, User } from "lucide-react"
+import { Edit, Calendar } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { useRouter } from 'next/navigation'
 import type { LiturgicalReading } from '@/lib/types'
 import type { IndividualReading } from '@/lib/actions/readings'
 import { getLiturgicalReading } from '@/lib/actions/liturgical-readings'
 import { getIndividualReadings } from '@/lib/actions/readings'
+import { PrintButton } from '@/components/print-button'
 
 
 interface PageProps {
@@ -64,13 +65,6 @@ export default function LiturgicalReadingDetailPage({ params }: PageProps) {
     loadReading()
   }, [params, setBreadcrumbs, router])
 
-  const handlePrint = () => {
-    if (!liturgicalReading) return
-    
-    const printUrl = `/print/liturgical-readings/${liturgicalReading.id}`
-    
-    window.open(printUrl, '_blank')
-  }
   
   const getReadingById = (readingId?: string): IndividualReading | null => {
     if (!readingId) return null
@@ -111,25 +105,6 @@ export default function LiturgicalReadingDetailPage({ params }: PageProps) {
     return formattedHtml || text // Fallback to original text
   }
 
-  const getReadingTypeLabel = (type: string) => {
-    switch (type) {
-      case 'first': return 'First Reading'
-      case 'psalm': return 'Responsorial Psalm'
-      case 'second': return 'Second Reading'
-      case 'gospel': return 'Gospel'
-      default: return type
-    }
-  }
-
-  const getReadingTypeColor = (type: string) => {
-    switch (type) {
-      case 'first': return 'bg-blue-100 text-blue-800'
-      case 'psalm': return 'bg-purple-100 text-purple-800'
-      case 'second': return 'bg-green-100 text-green-800'
-      case 'gospel': return 'bg-yellow-100 text-yellow-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
 
   if (loading) {
     return (
@@ -188,12 +163,12 @@ export default function LiturgicalReadingDetailPage({ params }: PageProps) {
           </div>
         </div>
         <div className="flex gap-3">
-          <Button onClick={handlePrint} variant="outline">
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
+          <PrintButton 
+            itemId={readingId}
+            itemType="liturgical-readings"
+          />
           <Button asChild>
-            <Link href={`/liturgical-readings/${readingId}/edit`}>
+            <Link href={`/liturgical-readings/${readingId}/wizard`}>
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Link>

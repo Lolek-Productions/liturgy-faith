@@ -5,15 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { getPetition } from '@/lib/actions/petitions'
 import { Petition } from '@/lib/types'
-import {
-  WizardContainer,
-  WizardSteps,
-  WizardNavigation,
-  WizardStepContent,
-  WizardLoadingState,
-  useWizardNavigation,
-  type WizardStep
-} from '@/components/wizard'
+import { Wizard, type WizardStep } from '@/components/wizard'
 
 // Import wizard steps
 import LanguageTemplateStep from './LanguageTemplateStep'
@@ -38,17 +30,6 @@ export default function PetitionWizardPage() {
   
   // Get the ID directly from params
   const petitionId = params.id as string
-
-  // Use wizard navigation hook
-  const {
-    currentStep,
-    goToStep,
-    nextStep,
-    previousStep
-  } = useWizardNavigation({
-    totalSteps: STEPS.length,
-    initialStep: 1
-  })
 
   // Wizard state
   const [wizardData, setWizardData] = useState({
@@ -127,12 +108,14 @@ export default function PetitionWizardPage() {
     router.push(`/petitions/${petition?.id}`)
   }
 
-  const renderStepContent = () => {
+  const renderStepContent = (currentStep: number) => {
+    if (!petition) return null
+
     switch (currentStep) {
       case 1:
         return (
           <LanguageTemplateStep
-            petition={petition!}
+            petition={petition}
             wizardData={wizardData}
             updateWizardData={updateWizardData}
           />
@@ -140,7 +123,7 @@ export default function PetitionWizardPage() {
       case 2:
         return (
           <DetailsEditStep
-            petition={petition!}
+            petition={petition}
             wizardData={wizardData}
             updateWizardData={updateWizardData}
           />
@@ -148,7 +131,7 @@ export default function PetitionWizardPage() {
       case 3:
         return (
           <EditStep
-            petition={petition!}
+            petition={petition}
             wizardData={wizardData}
             updateWizardData={updateWizardData}
           />
@@ -156,7 +139,7 @@ export default function PetitionWizardPage() {
       case 4:
         return (
           <PrintStep
-            petition={petition!}
+            petition={petition}
             wizardData={wizardData}
           />
         )
@@ -166,44 +149,19 @@ export default function PetitionWizardPage() {
   }
 
   return (
-    <WizardContainer
+    <Wizard
       title={petition ? `Petition Wizard: ${petition.title}` : "Petition Wizard"}
       description="Follow the steps below to configure and generate your petitions"
+      steps={STEPS}
       maxWidth="4xl"
-    >
-      <WizardLoadingState
-        title="Petition Wizard"
-        description="Configure and generate your petitions"
-        loading={loading}
-        error={error || (!petition ? 'Petition not found' : null)}
-        loadingMessage="Loading petition wizard..."
-        onRetry={() => window.location.reload()}
-      />
-
-      {!loading && !error && petition && (
-        <>
-          <WizardSteps
-            steps={STEPS}
-            currentStep={currentStep}
-            onStepClick={goToStep}
-            allowPreviousNavigation={true}
-          />
-
-          <WizardNavigation
-            steps={STEPS}
-            currentStep={currentStep}
-            onNext={nextStep}
-            onPrevious={previousStep}
-            onComplete={handleComplete}
-            completeButtonText="Complete & View Petition"
-            showStepPreview={true}
-          />
-
-          <WizardStepContent>
-            {renderStepContent()}
-          </WizardStepContent>
-        </>
-      )}
-    </WizardContainer>
+      loading={loading}
+      error={error || (!petition ? 'Petition not found' : null)}
+      loadingMessage="Loading petition wizard..."
+      onComplete={handleComplete}
+      completeButtonText="Complete & View Petition"
+      showStepPreview={true}
+      allowPreviousNavigation={true}
+      renderStepContent={renderStepContent}
+    />
   )
 }
