@@ -18,14 +18,12 @@ export default function PrintLiturgicalReadingPage({ params }: PrintLiturgicalRe
   const [readings, setReadings] = useState<IndividualReading[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [readingId, setReadingId] = useState<string | null>(null)
   
   const router = useRouter()
 
   useEffect(() => {
     const loadData = async () => {
       const { id } = await params
-      setReadingId(id)
       
       if (!id) {
         setError('No liturgical reading ID provided')

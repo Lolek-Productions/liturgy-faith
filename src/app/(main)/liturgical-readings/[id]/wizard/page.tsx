@@ -14,8 +14,7 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { Save, Printer, BookOpen, Plus, Clock, CheckCircle, AlertCircle } from "lucide-react"
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
-import { PageContainer } from '@/components/page-container'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { getIndividualReadings } from '@/lib/actions/readings'
 import { getLiturgicalReading, updateLiturgicalReading } from '@/lib/actions/liturgical-readings'
 import type { IndividualReading } from '@/lib/actions/readings'

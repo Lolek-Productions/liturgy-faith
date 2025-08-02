@@ -62,7 +62,7 @@ export default function LiturgicalReadingsPage() {
     }
 
     loadReadings()
-  }, [])
+  }, [router])
 
 
   return (

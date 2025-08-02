@@ -15,14 +15,12 @@ export default function PrintPetitionPage({ params }: PrintPetitionPageProps) {
   const [petition, setPetition] = useState<Petition | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [petitionId, setPetitionId] = useState<string | null>(null)
   
   const router = useRouter()
 
   useEffect(() => {
     const loadData = async () => {
       const { petitionId: id } = await params
-      setPetitionId(id)
       
       if (!id) {
         setError('No petition ID provided')

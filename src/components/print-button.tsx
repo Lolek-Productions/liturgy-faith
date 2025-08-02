@@ -2,9 +2,9 @@
 
 import { Button } from '@/components/ui/button'
 import { Printer } from 'lucide-react'
-import { ButtonProps } from '@/components/ui/button'
+import { ComponentProps } from 'react'
 
-interface PrintButtonProps extends Omit<ButtonProps, 'onClick'> {
+interface PrintButtonProps extends Omit<ComponentProps<typeof Button>, 'onClick'> {
   /** The ID of the item to print */
   itemId: string
   /** The type of item being printed (e.g., 'petitions', 'liturgical-readings') */
