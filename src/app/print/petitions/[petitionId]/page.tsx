@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Printer, ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import type { Petition } from '@/lib/types'
 import { getPetition } from '@/lib/actions/petitions'
 
@@ -75,9 +77,10 @@ export default function PrintPetitionPage({ params }: PrintPetitionPageProps) {
           {error || 'Petition not found'}
         </div>
         <div className="print-actions hide-on-print">
-          <button className="print-button secondary" onClick={handleClose}>
-            ← Back
-          </button>
+          <Button variant="outline" onClick={handleClose}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
         </div>
       </div>
     )
@@ -106,9 +109,10 @@ export default function PrintPetitionPage({ params }: PrintPetitionPageProps) {
       
       {/* Print Actions - Hidden on Print */}
       <div className="print-actions hide-on-print">
-        <button className="print-button" onClick={handlePrint}>
-          🖨️ Print
-        </button>
+        <Button onClick={handlePrint}>
+          <Printer className="h-4 w-4 mr-2" />
+          Print
+        </Button>
       </div>
 
 
@@ -116,9 +120,9 @@ export default function PrintPetitionPage({ params }: PrintPetitionPageProps) {
       <div className="petitions-print-content font-sans">
         {/* Header - Right Aligned Red Text */}
         <div className="text-right text-xl text-red-500 font-semibold">
-          {petition.language === 'spanish' ? 'PETICIONES' :
-           petition.language === 'french' ? 'PRIÈRE UNIVERSELLE' :
-           petition.language === 'latin' ? 'ORATIO UNIVERSALIS' :
+          {petition.language.toLowerCase() === 'spanish' ? 'PETICIONES' :
+           petition.language.toLowerCase() === 'french' ? 'PRIÈRE UNIVERSELLE' :
+           petition.language.toLowerCase() === 'latin' ? 'ORATIO UNIVERSALIS' :
            'PETITIONS'}
         </div>
         <div className="text-right text-xl text-red-500 font-semibold italic">
@@ -153,9 +157,9 @@ export default function PrintPetitionPage({ params }: PrintPetitionPageProps) {
                     {petitionText}
                   </div>
                   <div className="font-semibold text-red-500 italic ml-8">
-                    {petition.language === 'spanish' ? 'Te rogamos, óyenos.' : 
-                     petition.language === 'french' ? 'Nous te prions, écoute-nous.' :
-                     petition.language === 'latin' ? 'Te rogamus, audi nos.' :
+                    {petition.language.toLowerCase() === 'spanish' ? 'Te rogamos, óyenos.' : 
+                     petition.language.toLowerCase() === 'french' ? 'Nous te prions, écoute-nous.' :
+                     petition.language.toLowerCase() === 'latin' ? 'Te rogamus, audi nos.' :
                      'Lord, hear our prayer.'}
                   </div>
                 </div>

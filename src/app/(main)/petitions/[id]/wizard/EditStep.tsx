@@ -76,14 +76,14 @@ export default function EditStep({
 
   const handleGenerate = async () => {
     setGenerating(true)
+    const loadingToast = toast.loading('Generating petitions...')
     try {
-      toast.loading('Generating petitions...')
       const petitionData = {
         title: petition.title,
         date: petition.date,
         language: wizardData.language,
         details: petition.details || '',
-        templateId: wizardData.templateId
+        template: wizardData.templateContent
       }
       console.log('[DEBUG EditStep] Generating petition with data:', petitionData)
       const generatedContent = await generatePetitionContent(petitionData)
@@ -94,10 +94,10 @@ export default function EditStep({
       updateWizardData({ generatedContent })
       setContent(generatedContent)
       setHasGenerated(true)
-      toast.success('Petitions generated and saved successfully')
+      toast.success('Petitions generated and saved successfully', { id: loadingToast })
     } catch (error) {
       console.error('Failed to generate petitions:', error)
-      toast.error('Failed to generate petitions')
+      toast.error('Failed to generate petitions', { id: loadingToast })
     } finally {
       setGenerating(false)
     }

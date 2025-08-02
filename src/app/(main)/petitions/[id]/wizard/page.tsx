@@ -39,7 +39,7 @@ export default function PetitionWizardPage() {
 
   // Wizard state
   const [wizardData, setWizardData] = useState({
-    language: 'english',
+    language: 'English',
     templateId: '',
     templateContent: '', // Stores the actual template text
     generatedContent: '',

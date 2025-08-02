@@ -89,16 +89,9 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
   return (
     <PageContainer 
       title="Petition Details"
-      description={`Petition for ${new Date(petition.date).toLocaleDateString()}`}
+      description={`Petition for ${new Date(petition.date).toLocaleDateString()} (${petition.language.charAt(0).toUpperCase() + petition.language.slice(1)})`}
       maxWidth="4xl"
     >
-      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
-          <div className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            {new Date(petition.date).toLocaleDateString()}
-          </div>
-          <Badge variant="secondary">{petition.language}</Badge>
-        </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">

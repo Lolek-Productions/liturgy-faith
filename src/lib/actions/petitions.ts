@@ -20,7 +20,7 @@ export async function createBasicPetition(data: { title: string; date: string })
         parish_id: selectedParishId,
         title: data.title,
         date: data.date,
-        language: 'english', // Default, will be set in wizard
+        language: 'English', // Default, will be set in wizard
         text: null, // Will be generated in wizard
         details: null, // Will be set in wizard
         template: null, // Will be set in wizard
@@ -329,43 +329,43 @@ export async function generatePetitionContent(data: CreatePetitionData): Promise
 
   try {
     if (!process.env.ANTHROPIC_API_KEY) {
-      console.warn('ANTHROPIC_API_KEY not configured - Using fallback template')
-      // Fall through to fallback template
-    } else {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 1000,
-          messages: [
-            {
-              role: 'user',
-              content: prompt
-            }
-          ]
-        })
-      })
-
-      if (!response.ok) {
-        console.warn('Claude API Error:', response.status, response.statusText, '- Using fallback template')
-        // Fall through to fallback template instead of throwing
-      } else {
-        const result = await response.json()
-        return result.content[0].text
-      }
+      throw new Error('ANTHROPIC_API_KEY not configured. Please set up your API key.')
     }
-  } catch (error) {
-    console.warn('Error generating petitions:', error instanceof Error ? error.message : 'Unknown error', '- Using fallback template')
-    // Fall through to fallback template instead of throwing
-  }
+    
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1000,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      })
+    })
 
-  // Fallback template when API fails
-  return `For all bishops, the successors of the Apostles, may the Holy Spirit protect and guide them, let us pray to the Lord.\n\nFor government leaders, may God give them wisdom to work for justice and to protect the lives of the innocent, let us pray to the Lord.\n\nFor those who do not know Christ, may the Holy Spirit bring them to recognize his love and goodness, let us pray to the Lord.\n\nFor this community gathered here, may Christ grant us strength to proclaim him boldly, let us pray to the Lord.\n\nFor the intentions that we hold in the silence of our hearts (PAUSE 2-3 seconds), and for those written in our book of intentions, let us pray to the Lord.`
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Claude API Error: ${response.status} ${response.statusText} - ${errorText}`)
+    }
+    
+    const result = await response.json()
+    if (!result.content || !result.content[0] || !result.content[0].text) {
+      throw new Error('Invalid response format from Claude API')
+    }
+    
+    return result.content[0].text
+  } catch (error) {
+    console.error('Error generating petitions:', error)
+    throw error // Throw the error instead of falling back silently
+  }
 }
 
 export async function updatePetitionLanguage(petitionId: string, language: string) {

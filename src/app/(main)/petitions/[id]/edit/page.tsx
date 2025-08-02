@@ -22,7 +22,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   const [id, setId] = useState<string>('')
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
-  const [language, setLanguage] = useState('english')
+  const [language, setLanguage] = useState('English')
   const [petitionText, setPetitionText] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
@@ -294,10 +294,10 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
               value={language}
               onChange={setLanguage}
               options={[
-                { value: 'english', label: 'English' },
-                { value: 'spanish', label: 'Spanish' },
-                { value: 'french', label: 'French' },
-                { value: 'latin', label: 'Latin' }
+                { value: 'English', label: 'English' },
+                { value: 'Spanish', label: 'Spanish' },
+                { value: 'French', label: 'French' },
+                { value: 'Latin', label: 'Latin' }
               ]}
             />
 

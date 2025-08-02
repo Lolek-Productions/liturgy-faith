@@ -162,17 +162,11 @@ export async function ensureDefaultContexts(): Promise<void> {
   await ensureJWTClaims()
   const supabase = await createClient()
 
-  // First clean up any invalid contexts
-  await cleanupInvalidContexts()
-
-  // Check if parish already has valid contexts
+  // Check if parish already has any contexts (simple count check)
   const { data: existingContexts } = await supabase
     .from('petition_templates')
     .select('id')
-    .not('title', 'is', null)
-    .not('title', 'eq', '')
-    .not('context', 'is', null)
-    .not('context', 'eq', '')
+    .eq('parish_id', selectedParishId)
     .limit(1)
 
   if (existingContexts && existingContexts.length > 0) {

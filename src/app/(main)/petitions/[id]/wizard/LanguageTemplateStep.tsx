@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { getPetitionTemplates, PetitionContextTemplate, ensureDefaultContexts, cleanupInvalidContexts, createPetitionTemplate } from '@/lib/actions/petition-templates'
+import { getPetitionTemplates, PetitionContextTemplate, createPetitionTemplate } from '@/lib/actions/petition-templates'
 import { parseContextData } from '@/lib/petition-context-utils'
 import { updatePetitionLanguage, updatePetitionTemplate } from '@/lib/actions/petitions'
 import { getDefaultPetitions } from '@/lib/actions/parish-settings'
@@ -48,22 +48,18 @@ export default function LanguageTemplateStep({
   useEffect(() => {
     const loadTemplates = async () => {
       try {
-        // Clean up invalid contexts first
-        await cleanupInvalidContexts()
-        // Ensure user has default contexts
-        await ensureDefaultContexts()
-        
+        // Just fetch the templates - no cleanup needed
         const data = await getPetitionTemplates()
         setTemplates(data)
         
         // Initialize with user's preferred language if not set
         if (!wizardData.language && userSettings?.language) {
           const mappedLanguage = {
-            'en': 'english',
-            'es': 'spanish',
-            'fr': 'french',
-            'la': 'latin'
-          }[userSettings.language] || 'english'
+            'en': 'English',
+            'es': 'Spanish', 
+            'fr': 'French',
+            'la': 'Latin'
+          }[userSettings.language] || 'English'
           
           updateWizardData({ language: mappedLanguage })
         }
@@ -217,10 +213,10 @@ export default function LanguageTemplateStep({
             value={wizardData.language}
             onChange={handleLanguageChange}
             options={[
-              { value: 'english', label: 'English' },
-              { value: 'spanish', label: 'Spanish' },
-              { value: 'french', label: 'French' },
-              { value: 'latin', label: 'Latin' }
+              { value: 'English', label: 'English' },
+              { value: 'Spanish', label: 'Spanish' },
+              { value: 'French', label: 'French' },
+              { value: 'Latin', label: 'Latin' }
             ]}
           />
 
