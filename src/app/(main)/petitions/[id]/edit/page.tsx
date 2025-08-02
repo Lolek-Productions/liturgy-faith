@@ -7,10 +7,10 @@ import { FormField } from '@/components/ui/form-field'
 import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { ArrowLeft, RefreshCw, Sparkles, Printer } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Sparkles, Printer, Edit3 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { getPetitionWithContext, updatePetitionFullDetails, regeneratePetitionContent } from '@/lib/actions/petitions'
+import { getPetitionWithContext, updatePetitionFullDetails, regeneratePetitionContent, updatePetitionTemplate, updatePetitionDetails } from '@/lib/actions/petitions'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { toast } from 'sonner'
 
@@ -30,6 +30,12 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   const [showRegenerateModal, setShowRegenerateModal] = useState(false)
   const [details, setDetails] = useState('')
   const [regenerating, setRegenerating] = useState(false)
+  const [showTemplateModal, setShowTemplateModal] = useState(false)
+  const [template, setTemplate] = useState('')
+  const [savingTemplate, setSavingTemplate] = useState(false)
+  const [savingDetails, setSavingDetails] = useState(false)
+  const [showRegenerateConfirmModal, setShowRegenerateConfirmModal] = useState(false)
+  const [showDetailsRegenerateConfirmModal, setShowDetailsRegenerateConfirmModal] = useState(false)
   const router = useRouter()
   const { setBreadcrumbs } = useBreadcrumbs()
 
@@ -47,6 +53,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
           setLanguage(petition.language)
           setPetitionText(petition.text || petition.generated_content || '')
           setDetails(petition.details || '') // Load existing details
+          setTemplate(petition.template || '') // Load existing template
           
           // Set breadcrumbs with petition title
           setBreadcrumbs([
@@ -120,10 +127,116 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
     }
   }
 
+  const handleDirectRegenerate = async () => {
+    setRegenerating(true)
+    try {
+      const regenerationData = {
+        title,
+        date,
+        language,
+        details: details.trim()
+      }
+
+      console.log('[DEBUG EditPage] Direct regenerating petition with data:', regenerationData)
+      const updatedPetition = await regeneratePetitionContent(id, regenerationData)
+      setPetitionText(updatedPetition.text || updatedPetition.generated_content || '')
+      toast.success('Petition content regenerated successfully!')
+    } catch (error) {
+      console.error('Failed to regenerate petition:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Failed to regenerate petition content: ${errorMessage}`)
+    } finally {
+      setRegenerating(false)
+    }
+  }
+
+  const handleSaveDetails = async () => {
+    setSavingDetails(true)
+    try {
+      await updatePetitionDetails(id, details.trim())
+      toast.success('Details saved successfully!')
+      setShowRegenerateModal(false)
+      // Show regenerate confirmation modal
+      setShowDetailsRegenerateConfirmModal(true)
+    } catch (error) {
+      console.error('Failed to save details:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Failed to save details: ${errorMessage}`)
+    } finally {
+      setSavingDetails(false)
+    }
+  }
+
   const handlePrint = () => {
     if (id) {
       const printUrl = `/print/petitions/${id}`
       window.open(printUrl, '_blank')
+    }
+  }
+
+  const handleSaveTemplate = async () => {
+    setSavingTemplate(true)
+    try {
+      await updatePetitionTemplate(id, template.trim())
+      toast.success('Template saved successfully!')
+      setShowTemplateModal(false)
+      // Show regenerate confirmation modal
+      setShowRegenerateConfirmModal(true)
+    } catch (error) {
+      console.error('Failed to save template:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Failed to save template: ${errorMessage}`)
+    } finally {
+      setSavingTemplate(false)
+    }
+  }
+
+  const handleRegenerateWithTemplate = async () => {
+    setRegenerating(true)
+    setShowRegenerateConfirmModal(false)
+    try {
+      const regenerationData = {
+        title,
+        date,
+        language,
+        details: details.trim(),
+        template: template.trim()
+      }
+
+      console.log('[DEBUG EditPage] Regenerating petition with template:', regenerationData)
+      const updatedPetition = await regeneratePetitionContent(id, regenerationData)
+      setPetitionText(updatedPetition.text || updatedPetition.generated_content || '')
+      toast.success('Petition content regenerated with new template!')
+    } catch (error) {
+      console.error('Failed to regenerate petition with template:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Failed to regenerate petition: ${errorMessage}`)
+    } finally {
+      setRegenerating(false)
+    }
+  }
+
+  const handleRegenerateWithDetails = async () => {
+    setRegenerating(true)
+    setShowDetailsRegenerateConfirmModal(false)
+    try {
+      const regenerationData = {
+        title,
+        date,
+        language,
+        details: details.trim()
+      }
+
+      console.log('[DEBUG EditPage] Regenerating petition with saved details:', regenerationData)
+      const updatedPetition = await regeneratePetitionContent(id, regenerationData)
+      setPetitionText(updatedPetition.text || updatedPetition.generated_content || '')
+      toast.success('Petition content regenerated with saved details!')
+    } catch (error) {
+      console.error('Failed to regenerate petition with details:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      toast.error(`Failed to regenerate petition: ${errorMessage}`)
+    } finally {
+      setRegenerating(false)
     }
   }
 
@@ -194,13 +307,70 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
                   <label className="text-sm font-medium">Petition Content</label>
                   <p className="text-xs text-muted-foreground">Edit the petition content directly</p>
                 </div>
-                <Dialog open={showRegenerateModal} onOpenChange={setShowRegenerateModal}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Regenerate
-                    </Button>
-                  </DialogTrigger>
+                <div className="flex gap-2">
+                  <Dialog open={showTemplateModal} onOpenChange={setShowTemplateModal}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Edit Template
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden">
+                      <DialogHeader>
+                        <DialogTitle>Edit Petition Template</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Edit the template content that will be used for generating petitions. This template will be saved with this petition.
+                          </p>
+                        </div>
+                        <FormField
+                          id="template"
+                          label="Template Content"
+                          description="Enter the petition template content"
+                          inputType="textarea"
+                          value={template}
+                          onChange={setTemplate}
+                          placeholder="Enter petition template content..."
+                          rows={12}
+                        />
+
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowTemplateModal(false)}
+                            disabled={savingTemplate}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleSaveTemplate}
+                            disabled={savingTemplate}
+                          >
+                            {savingTemplate ? (
+                              <>
+                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <Edit3 className="h-4 w-4 mr-2" />
+                                Save Template
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog open={showRegenerateModal} onOpenChange={setShowRegenerateModal}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Edit Details
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle>Regenerate Petition Content</DialogTitle>
@@ -221,23 +391,23 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
                         <Button
                           variant="outline"
                           onClick={() => setShowRegenerateModal(false)}
-                          disabled={regenerating}
+                          disabled={savingDetails}
                         >
                           Cancel
                         </Button>
                         <Button
-                          onClick={handleRegenerate}
-                          disabled={regenerating}
+                          onClick={handleSaveDetails}
+                          disabled={savingDetails}
                         >
-                          {regenerating ? (
+                          {savingDetails ? (
                             <>
                               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                              Generating...
+                              Saving...
                             </>
                           ) : (
                             <>
-                              <Sparkles className="h-4 w-4 mr-2" />
-                              Regenerate
+                              <Edit3 className="h-4 w-4 mr-2" />
+                              Save Details
                             </>
                           )}
                         </Button>
@@ -245,6 +415,25 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
                     </div>
                   </DialogContent>
                 </Dialog>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleDirectRegenerate}
+                    disabled={regenerating}
+                  >
+                    {regenerating ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Regenerate
+                      </>
+                    )}
+                  </Button>
+              </div>
               </div>
               
               <textarea
@@ -273,6 +462,84 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
           </form>
         </CardContent>
       </Card>
+
+      {/* Regenerate Confirmation Modal */}
+      <Dialog open={showRegenerateConfirmModal} onOpenChange={setShowRegenerateConfirmModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Regenerate Petition Content?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Would you like to regenerate the petition content using the new template you just saved?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowRegenerateConfirmModal(false)}
+                disabled={regenerating}
+              >
+                No, Keep Current Content
+              </Button>
+              <Button
+                onClick={handleRegenerateWithTemplate}
+                disabled={regenerating}
+              >
+                {regenerating ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Yes, Regenerate
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Details Regenerate Confirmation Modal */}
+      <Dialog open={showDetailsRegenerateConfirmModal} onOpenChange={setShowDetailsRegenerateConfirmModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Regenerate Petition Content?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Would you like to regenerate the petition content using the details you just saved?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowDetailsRegenerateConfirmModal(false)}
+                disabled={regenerating}
+              >
+                No, Keep Current Content
+              </Button>
+              <Button
+                onClick={handleRegenerateWithDetails}
+                disabled={regenerating}
+              >
+                {regenerating ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Yes, Regenerate
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PageContainer>
   )
 }

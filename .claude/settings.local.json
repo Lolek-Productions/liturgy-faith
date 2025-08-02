@@ -13,7 +13,8 @@
       "mcp__lolek-mcp__get-introduction",
       "mcp__lolek-mcp__get-tools",
       "Bash(mv:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

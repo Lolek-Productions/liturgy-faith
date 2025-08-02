@@ -1,6 +1,6 @@
 // Default petition context constants
 
-export const DEFAULT_PETITION_CONTEXT_SUNDAY_ENGLISH = `For our Holy Father, Pope Francis, our Bishop, and all the clergy.
+export const DEFAULT_PETITION_CONTEXT_SUNDAY_ENGLISH = `For our Holy Father, Pope Leo, our Bishop, and all the clergy.
 For our nation's leaders and all who serve in public office.
 For peace in our world and protection of the innocent.
 For the unemployed and those struggling with financial hardship.
@@ -9,7 +9,7 @@ For our young people and all who guide them.
 For our deceased parishioners and all who have gone before us.
 For our parish community and all our special intentions.`
 
-export const DEFAULT_PETITION_CONTEXT_SUNDAY_SPANISH = `Por nuestro Santo Padre, el Papa Francisco, nuestro Obispo, y todo el clero.
+export const DEFAULT_PETITION_CONTEXT_SUNDAY_SPANISH = `Por nuestro Santo Padre, el Papa Leo, nuestro Obispo, y todo el clero.
 Roguemos al Señor.
 Por los líderes de nuestra nación y todos los que sirven en cargos públicos.
 Roguemos al Señor.
@@ -26,7 +26,7 @@ Roguemos al Señor.
 Por nuestra comunidad parroquial y todas nuestras intenciones especiales.
 Roguemos al Señor.`
 
-export const DEFAULT_PETITION_CONTEXT_DAILY = `For our Holy Father, Pope Francis, our Bishop, and all the clergy.
+export const DEFAULT_PETITION_CONTEXT_DAILY = `For our Holy Father, Pope Leo, our Bishop, and all the clergy.
 For peace in our world and an end to all violence and hatred.
 For the sick, the suffering, and those who care for them.
 For our deceased brothers and sisters, especially those who have recently died.

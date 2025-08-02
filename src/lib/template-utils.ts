@@ -37,7 +37,8 @@ Language: {{LANGUAGE}}
 
 INSTRUCTIONS:
 - Use the Template Content as the base structure if provided
-- MUST incorporate the Community Details provided above into specific petitions
+- Incorporate the Community Details thoughtfully into petitions WITHOUT making assumptions about individuals' personal circumstances
+- When mentioning specific people by name, pray for their general wellbeing or stated intentions only
 - Generate in {{LANGUAGE}} language
 - Each petition should end with "let us pray to the Lord" (or {{LANGUAGE}} equivalent)
 - Separate each petition with a blank line
