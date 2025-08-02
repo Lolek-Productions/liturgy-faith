@@ -113,7 +113,7 @@ export default function PrintPetitionPage({ params }: PrintPetitionPageProps) {
 
 
       {/* Petitions Content */}
-      <div className="petitions-print-content">
+      <div className="petitions-print-content font-sans">
         {/* Header - Right Aligned Red Text */}
         <div className="text-right text-xl text-red-500 font-semibold">
           {petition.language === 'spanish' ? 'PETICIONES' :

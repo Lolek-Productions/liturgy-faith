@@ -15,15 +15,12 @@ import { useBreadcrumbs } from '@/components/breadcrumb-context'
 const TEMPLATE_VARIABLES = [
   { name: '{{TITLE}}', description: 'The title of the petition set' },
   { name: '{{LANGUAGE}}', description: 'The language for the petitions (English, Spanish, French, Latin)' },
-  { name: '{{COMMUNITY_CONTEXT}}', description: 'The community information provided by the user' },
+  { name: '{{DETAILS}}', description: 'The community details provided by the user' },
+  { name: '{{TEMPLATE_CONTENT}}', description: 'The selected petition template content' },
 ]
 
 export default function DefinitionsPage() {
   const [promptTemplate, setPromptTemplate] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
   const { setBreadcrumbs } = useBreadcrumbs()
 
   useEffect(() => {
@@ -34,54 +31,9 @@ export default function DefinitionsPage() {
   }, [setBreadcrumbs])
 
   useEffect(() => {
-    // Load saved template from server
-    const loadTemplate = async () => {
-      try {
-        const template = await getPromptTemplate()
-        setPromptTemplate(template)
-      } catch (err) {
-        console.error('Failed to load template:', err)
-        setPromptTemplate(getDefaultPromptTemplate())
-      } finally {
-        setInitialLoading(false)
-      }
-    }
-    loadTemplate()
-  }, [])
-
-  const handleSave = async () => {
-    setLoading(true)
-    setError('')
-    setSuccess(false)
-
-    try {
-      await savePromptTemplate(promptTemplate)
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
-    } catch {
-      setError('Failed to save template. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleReset = () => {
+    // Load the default template for display only
     setPromptTemplate(getDefaultPromptTemplate())
-    setSuccess(false)
-    setError('')
-  }
-
-  if (initialLoading) {
-    return (
-      <PageContainer 
-        title="Petition Definitions"
-        description="Customize the AI prompt template used to generate liturgical petitions."
-        maxWidth="4xl"
-      >
-        <Loading />
-      </PageContainer>
-    )
-  }
+  }, [])
 
   return (
     <PageContainer 
@@ -99,7 +51,7 @@ export default function DefinitionsPage() {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          <strong>Template Variables:</strong> Use the following placeholders in your template:
+          <strong>Template Variables:</strong> The following placeholders are used in the prompt template:
           <ul className="mt-2 space-y-1">
             {TEMPLATE_VARIABLES.map((variable) => (
               <li key={variable.name} className="text-sm">
@@ -112,43 +64,24 @@ export default function DefinitionsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Prompt Template</CardTitle>
+          <CardTitle>Current Prompt Template</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            This is the default prompt template used to generate liturgical petitions. Custom templates are not currently supported.
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <FormField
             id="promptTemplate"
-            label="AI Prompt Template"
+            label="AI Prompt Template (Read Only)"
             inputType="textarea"
             value={promptTemplate}
-            onChange={setPromptTemplate}
+            onChange={() => {}} // Read only
             rows={25}
-            placeholder="Enter your prompt template here..."
+            placeholder="Loading template..."
             className="font-mono text-sm"
             resize={true}
+            disabled={true}
           />
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {success && (
-            <Alert>
-              <AlertDescription>Template saved successfully!</AlertDescription>
-            </Alert>
-          )}
-
-          <div className="flex gap-2">
-            <Button onClick={handleSave} disabled={loading}>
-              <Save className="w-4 h-4 mr-2" />
-              {loading ? 'Saving...' : 'Save Template'}
-            </Button>
-            <Button onClick={handleReset} variant="outline">
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset to Default
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </PageContainer>

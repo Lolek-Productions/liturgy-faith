@@ -31,7 +31,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   const [showRegenerateModal, setShowRegenerateModal] = useState(false)
   const [templates, setTemplates] = useState<PetitionContextTemplate[]>([])
   const [selectedTemplateId, setSelectedTemplateId] = useState('none')
-  const [communityInfo, setCommunityInfo] = useState('')
+  const [details, setDetails] = useState('')
   const [regenerating, setRegenerating] = useState(false)
   const router = useRouter()
   const { setBreadcrumbs } = useBreadcrumbs()
@@ -49,6 +49,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
           setDate(petition.date)
           setLanguage(petition.language)
           setPetitionText(petition.text || petition.generated_content || '')
+          setDetails(petition.details || '') // Load existing details
           
           // Set breadcrumbs with petition title
           setBreadcrumbs([
@@ -109,8 +110,8 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
   }
 
   const handleRegenerate = async () => {
-    if (selectedTemplateId === 'none' && !communityInfo.trim()) {
-      toast.error('Please select a template or provide community information')
+    if (selectedTemplateId === 'none' && !details.trim()) {
+      toast.error('Please select a template or provide details')
       return
     }
 
@@ -121,14 +122,15 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
         date,
         language,
         templateId: selectedTemplateId === 'none' ? undefined : selectedTemplateId,
-        community_info: communityInfo.trim()
+        details: details.trim()
       }
 
+      console.log('[DEBUG EditPage] Regenerating petition with data:', regenerationData)
       const updatedPetition = await regeneratePetitionContent(id, regenerationData)
       setPetitionText(updatedPetition.text || updatedPetition.generated_content || '')
       setShowRegenerateModal(false)
       setSelectedTemplateId('none')
-      setCommunityInfo('')
+      setDetails('')
       toast.success('Petition content regenerated successfully!')
     } catch (error) {
       console.error('Failed to regenerate petition:', error)
@@ -232,7 +234,7 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
                         value={selectedTemplateId}
                         onChange={setSelectedTemplateId}
                         options={[
-                          { value: 'none', label: 'No template - use community info only' },
+                          { value: 'none', label: 'No template - use details only' },
                           ...templates.map(template => ({
                             value: template.id,
                             label: template.title
@@ -241,13 +243,13 @@ export default function EditPetitionPage({ params }: EditPetitionPageProps) {
                       />
                       
                       <FormField
-                        id="communityInfo"
-                        label="Community Information (Optional)"
+                        id="details"
+                        label="Details (Optional)"
                         description="Additional context about your community this week"
                         inputType="textarea"
-                        value={communityInfo}
-                        onChange={setCommunityInfo}
-                        placeholder="Enter community information..."
+                        value={details}
+                        onChange={setDetails}
+                        placeholder="Enter details..."
                         rows={4}
                       />
 

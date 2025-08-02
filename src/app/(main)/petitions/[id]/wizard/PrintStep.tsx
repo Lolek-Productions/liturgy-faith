@@ -3,7 +3,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Printer, Eye, Check } from 'lucide-react'
+import { ArrowLeft, Printer, Eye } from 'lucide-react'
 import { Petition } from '@/lib/types'
 
 interface PrintStepProps {
@@ -31,31 +31,6 @@ export default function PrintStep({
 
   return (
     <div className="space-y-6">
-      {/* Completion Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-600">
-            <Check className="h-6 w-6" />
-            Petitions Complete!
-          </CardTitle>
-          <p className="text-muted-foreground">
-            Your petitions have been successfully created and are ready for use.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <h3 className="font-medium text-green-800 mb-2">
-              {petition.title}
-            </h3>
-            <div className="flex gap-4 text-sm text-green-700">
-              <span>Date: {new Date(petition.date).toLocaleDateString()}</span>
-              <span>Language: {wizardData.language}</span>
-              <span>Template: {wizardData.templateId ? 'Selected' : 'None'}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Print Options */}
       <Card>
         <CardHeader>

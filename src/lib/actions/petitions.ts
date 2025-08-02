@@ -49,12 +49,12 @@ export async function createPetition(data: CreatePetitionData) {
     const template = await getPetitionTemplate(data.templateId)
     if (template) {
       templateReference = template.context // Store template content, not title
-      // Store community info as simple text in the details field
-      detailsData = data.community_info
+      // Store details as simple text in the details field
+      detailsData = data.details
     }
   } else {
-    // Store community info as simple text for custom petition
-    detailsData = data.community_info
+    // Store details as simple text for custom petition
+    detailsData = data.details
   }
 
   const generatedContent = await generatePetitionContent(data)
@@ -178,12 +178,12 @@ export async function getPetition(id: string): Promise<Petition | null> {
   return data
 }
 
-export async function getSavedContexts(): Promise<Array<{id: string, name: string, community_info: string}>> {
+export async function getSavedContexts(): Promise<Array<{id: string, name: string, details: string}>> {
   const supabase = await createClient()
   
   const selectedParishId = await requireSelectedParish()
 
-  // Get petitions that have details with community_info
+  // Get petitions that have details
   const { data, error } = await supabase
     .from('petitions')
     .select('id, title, date, details')
@@ -201,11 +201,11 @@ export async function getSavedContexts(): Promise<Array<{id: string, name: strin
       return {
         id: petition.id,
         name: `${petition.title} - ${new Date(petition.date).toLocaleDateString()}`,
-        community_info: petition.details
+        details: petition.details
       }
     }
     return null
-  }).filter(Boolean) as Array<{id: string, name: string, community_info: string}>
+  }).filter(Boolean) as Array<{id: string, name: string, details: string}>
 }
 
 export async function getPetitionWithContext(id: string): Promise<{ petition: Petition; context: PetitionContext } | null> {
@@ -231,7 +231,7 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
       id: petition.id,
       petition_id: petition.id,
       parish_id: petition.parish_id,
-      community_info: petition.details, // Details is now simple text
+      details: petition.details, // Details is now simple text
       created_at: petition.created_at,
       updated_at: petition.updated_at
     }
@@ -243,7 +243,7 @@ export async function getPetitionWithContext(id: string): Promise<{ petition: Pe
       id: petition.id,
       petition_id: petition.id,
       parish_id: petition.parish_id,
-      community_info: '',
+      details: '',
       created_at: petition.created_at,
       updated_at: petition.updated_at
     }
@@ -271,8 +271,8 @@ export async function updatePetition(id: string, data: CreatePetitionData) {
     throw new Error('Failed to fetch existing petition')
   }
 
-  // Update the details with new community info (now simple text)
-  const updatedDetails = data.community_info
+  // Update the details with new info (now simple text)
+  const updatedDetails = data.details
 
   const { data: petition, error: petitionError } = await supabase
     .from('petitions')
@@ -318,6 +318,10 @@ export async function generatePetitionContent(data: CreatePetitionData): Promise
   const variables = getTemplateVariables(data, templateContent)
   const prompt = replaceTemplateVariables(template, variables)
   
+  // Debug logging to see what's being sent to AI
+  console.log('[DEBUG] Petition generation data:', data)
+  console.log('[DEBUG] Template variables:', variables)
+  console.log('[DEBUG] Final prompt being sent to AI:', prompt)
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -352,7 +356,7 @@ export async function generatePetitionContent(data: CreatePetitionData): Promise
   }
 
   // Fallback template when API fails
-  return `${data.title}\n\nFor all bishops, the successors of the Apostles, may the Holy Spirit protect and guide them, let us pray to the Lord.\n\nFor government leaders, may God give them wisdom to work for justice and to protect the lives of the innocent, let us pray to the Lord.\n\nFor those who do not know Christ, may the Holy Spirit bring them to recognize his love and goodness, let us pray to the Lord.\n\nFor this community gathered here, may Christ grant us strength to proclaim him boldly, let us pray to the Lord.\n\nFor the intentions that we hold in the silence of our hearts (PAUSE 2-3 seconds), and for those written in our book of intentions, let us pray to the Lord.`
+  return `For all bishops, the successors of the Apostles, may the Holy Spirit protect and guide them, let us pray to the Lord.\n\nFor government leaders, may God give them wisdom to work for justice and to protect the lives of the innocent, let us pray to the Lord.\n\nFor those who do not know Christ, may the Holy Spirit bring them to recognize his love and goodness, let us pray to the Lord.\n\nFor this community gathered here, may Christ grant us strength to proclaim him boldly, let us pray to the Lord.\n\nFor the intentions that we hold in the silence of our hearts (PAUSE 2-3 seconds), and for those written in our book of intentions, let us pray to the Lord.`
 }
 
 export async function updatePetitionLanguage(petitionId: string, language: string) {
@@ -463,7 +467,7 @@ export async function updatePetitionFullDetails(id: string, data: { title: strin
   return petition
 }
 
-export async function regeneratePetitionContent(id: string, data: { title: string; date: string; language: string; templateId?: string; community_info?: string }) {
+export async function regeneratePetitionContent(id: string, data: { title: string; date: string; language: string; templateId?: string; details?: string }) {
   const supabase = await createClient()
   
   const selectedParishId = await requireSelectedParish()
@@ -473,7 +477,7 @@ export async function regeneratePetitionContent(id: string, data: { title: strin
     title: data.title,
     date: data.date,
     language: data.language,
-    community_info: data.community_info || '',
+    details: data.details || '',
     templateId: data.templateId
   }
 

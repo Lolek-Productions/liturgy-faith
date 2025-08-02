@@ -33,6 +33,9 @@ export default function PetitionWizardPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  
+  // Get the ID directly from params
+  const petitionId = params.id as string
 
   // Wizard state
   const [wizardData, setWizardData] = useState({
@@ -80,30 +83,32 @@ export default function PetitionWizardPage() {
     
     const loadPetition = async () => {
       try {
+        if (!petitionId) {
+          if (mounted) {
+            setError('No petition ID provided')
+            setLoading(false)
+          }
+          return
+        }
+        
         if (mounted) {
           setLoading(true)
           setError('')
         }
         
-        const resolvedParams = await params
-        const id = resolvedParams.id
+        const petitionData = await getPetition(petitionId)
         
-        if (typeof id === 'string' && mounted) {
-          const petitionData = await getPetition(id)
-          if (petitionData && mounted) {
-            setPetition(petitionData)
-            // Initialize wizard data from existing petition
-            setWizardData(prev => ({
-              ...prev,
-              language: petitionData.language || 'english',
-              templateContent: petitionData.template || '', // Initialize from existing template
-              generatedContent: petitionData.text || '', // Use text field, not generated_content
-            }))
-          } else if (mounted) {
-            setError('Petition not found')
-          }
+        if (petitionData && mounted) {
+          setPetition(petitionData)
+          // Initialize wizard data from existing petition
+          setWizardData(prev => ({
+            ...prev,
+            language: petitionData.language || 'english',
+            templateContent: petitionData.template || '', // Initialize from existing template
+            generatedContent: petitionData.text || '', // Use text field, not generated_content
+          }))
         } else if (mounted) {
-          setError('Invalid petition ID')
+          setError('Petition not found')
         }
       } catch (err) {
         console.error('Failed to load petition:', err)
@@ -117,15 +122,13 @@ export default function PetitionWizardPage() {
       }
     }
 
-    // Only load if we don't already have a petition loaded
-    if (!petition && loading) {
-      loadPetition()
-    }
+    // Load petition data on mount
+    loadPetition()
 
     return () => {
       mounted = false
     }
-  }, []) // Empty dependency array - only run once on mount
+  }, [petitionId]) // Re-run when petitionId changes
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -195,7 +198,7 @@ export default function PetitionWizardPage() {
   }
 
   const renderStepContent = () => {
-    if (!petition) {
+    if (!petition || loading) {
       return (
         <Card>
           <CardContent className="p-8 text-center">

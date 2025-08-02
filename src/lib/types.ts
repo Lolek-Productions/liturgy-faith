@@ -5,7 +5,7 @@ export interface Petition {
   date: string
   language: string
   text?: string // Main petition text content
-  details?: string // JSON string containing additional details like community_info
+  details?: string // Additional details for the petition
   template?: string // Reference to template used
   created_at: string
   updated_at: string
@@ -19,7 +19,7 @@ export interface PetitionContext {
   id: string
   petition_id: string
   parish_id: string
-  community_info: string
+  details: string
   created_at: string
   updated_at: string
 }
@@ -28,7 +28,7 @@ export interface CreatePetitionData {
   title: string
   date: string
   language: string
-  community_info: string
+  details: string
   templateId?: string // Optional petition template ID to copy from
 }
 

@@ -128,11 +128,11 @@ export default function LanguageTemplateStep({
       try {
         templateData = JSON.parse(newTemplateForm.content)
       } catch {
-        // If not JSON, create a default structure with the text as community_info
+        // If not JSON, create a default structure with the text as details
         templateData = {
           name: newTemplateForm.title,
           description: newTemplateForm.description,
-          community_info: newTemplateForm.content,
+          details: newTemplateForm.content,
           sacraments_received: [],
           deaths_this_week: [],
           sick_members: [],
@@ -328,9 +328,9 @@ export default function LanguageTemplateStep({
                             </p>
                           )
                         ) : (
-                          templateData?.community_info && (
+                          templateData?.details && (
                             <p className="text-sm text-gray-600 mt-2">
-                              {templateData.community_info}
+                              {templateData.details}
                             </p>
                           )
                         )}

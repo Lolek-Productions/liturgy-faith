@@ -40,49 +40,15 @@ export default function EditStep({
     setHasChanges(content !== wizardData.generatedContent)
   }, [content, wizardData.generatedContent])
 
-  // Auto-generate when component mounts if no content exists
+  // Load existing content if it exists
   useEffect(() => {
-    let hasRun = false
-    
-    const autoGenerate = async () => {
-      // Only auto-generate if:
-      // 1. No content has been generated yet
-      // 2. Not currently generating
-      // 3. Haven't already run this effect
-      // 4. Petition data is loaded
-      if (!hasGenerated && !generating && !hasRun && petition.id && (!wizardData.generatedContent || wizardData.generatedContent.trim() === '')) {
-        hasRun = true
-        console.log('Auto-generating petition content on step 3 load')
-        setGenerating(true)
-        try {
-          toast.loading('Auto-generating petitions...')
-          const generatedContent = await generatePetitionContent({
-            title: petition.title,
-            date: petition.date,
-            language: wizardData.language,
-            community_info: petition.details || '',
-            templateId: wizardData.templateId
-          })
-          
-          // Save generated content to database
-          await updatePetitionContent(petition.id, generatedContent)
-          
-          updateWizardData({ generatedContent })
-          setContent(generatedContent)
-          setHasGenerated(true)
-          toast.success('Petitions auto-generated successfully')
-        } catch (error) {
-          console.error('Failed to auto-generate petitions:', error)
-          toast.error('Failed to auto-generate petitions')
-        } finally {
-          setGenerating(false)
-        }
-      }
+    if (petition.text || petition.generated_content) {
+      const existingContent = petition.text || petition.generated_content || ''
+      setContent(existingContent)
+      updateWizardData({ generatedContent: existingContent })
+      setHasGenerated(!!existingContent)
     }
-
-    // Only run once when petition is loaded and we have no content
-    autoGenerate()
-  }, [petition.id]) // Only depend on petition.id to run once when petition loads
+  }, [petition.id, petition.text, petition.generated_content])
 
   // Auto-save with debouncing
   useEffect(() => {
@@ -112,13 +78,15 @@ export default function EditStep({
     setGenerating(true)
     try {
       toast.loading('Generating petitions...')
-      const generatedContent = await generatePetitionContent({
+      const petitionData = {
         title: petition.title,
         date: petition.date,
         language: wizardData.language,
-        community_info: petition.details || '',
+        details: petition.details || '',
         templateId: wizardData.templateId
-      })
+      }
+      console.log('[DEBUG EditStep] Generating petition with data:', petitionData)
+      const generatedContent = await generatePetitionContent(petitionData)
       
       // Save generated content to database
       await updatePetitionContent(petition.id, generatedContent)

@@ -10,7 +10,7 @@ export default function PrintLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="print-container" style={{ fontFamily: inter.className }}>
+    <div className={`print-container ${inter.className}`}>
       {children}
     </div>
   )

@@ -9,7 +9,7 @@ import { PageContainer } from '@/components/page-container'
 import { Loading } from '@/components/loading'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Edit, Calendar, Printer } from 'lucide-react'
+import { Edit, Calendar, Printer, Plus } from 'lucide-react'
 import { CopyButton } from '@/components/copy-button'
 import { useBreadcrumbs } from '@/components/breadcrumb-context'
 import { Petition, PetitionContext } from '@/lib/types'
@@ -129,23 +129,15 @@ export default function PetitionDetailPage({ params }: PetitionDetailPageProps) 
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Context Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <h4 className="font-medium mb-2">Community Information</h4>
-                <div className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {context.community_info}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
               <CardTitle className="text-lg">Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <Button className="w-full" asChild>
+                <Link href="/petitions/create">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Petitions
+                </Link>
+              </Button>
               <Button className="w-full" variant="outline" asChild>
                 <Link href={`/petitions/${petitionId}/edit`}>
                   <Edit className="h-4 w-4 mr-2" />

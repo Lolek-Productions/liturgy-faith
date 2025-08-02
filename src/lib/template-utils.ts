@@ -3,7 +3,7 @@ import { CreatePetitionData } from '@/lib/types'
 export interface TemplateVariables {
   TITLE: string
   LANGUAGE: string
-  COMMUNITY_CONTEXT: string
+  DETAILS: string
   TEMPLATE_CONTENT: string
 }
 
@@ -23,44 +23,33 @@ export function getTemplateVariables(data: CreatePetitionData, templateContent?:
   return {
     TITLE: data.title,
     LANGUAGE: data.language,
-    COMMUNITY_CONTEXT: data.community_info,
+    DETAILS: data.details,
     TEMPLATE_CONTENT: templateContent || '',
   }
 }
 
 export function getDefaultPromptTemplate(): string {
-  return `Create liturgical petitions in {{LANGUAGE}} for a Catholic Mass using the selected template and community information:
+  return `Generate Catholic liturgical petitions in {{LANGUAGE}} for Mass.
 
-Title: {{TITLE}}
-Language: {{LANGUAGE}}
 Template Content: {{TEMPLATE_CONTENT}}
-Community Information: {{COMMUNITY_CONTEXT}}
+Community Details: {{DETAILS}}
+Language: {{LANGUAGE}}
 
-Instructions:
-1. Use the template content as the base structure for the petitions
-2. Incorporate the community information to personalize the petitions
-3. Generate in {{LANGUAGE}} language
-4. Follow traditional Catholic liturgical petition format
-5. Each petition should end with "let us pray to the Lord" (or equivalent in {{LANGUAGE}})
-6. Include specific petitions based on community information (deaths, sick members, sacraments, special requests)
-7. Maintain reverent and appropriate liturgical tone
+INSTRUCTIONS:
+- Use the Template Content as the base structure if provided
+- MUST incorporate the Community Details provided above into specific petitions
+- Include petitions for deaths, sick members, sacraments, and special requests mentioned in the details
+- Generate in {{LANGUAGE}} language
+- Each petition should end with "let us pray to the Lord" (or {{LANGUAGE}} equivalent)
+- Separate each petition with a blank line
 
-If no template content is provided, use this standard format:
-{{TITLE}}
+CRITICAL FORMATTING RULES:
+- DO NOT include any title or heading
+- DO NOT include any explanatory text or notes
+- DO NOT add commentary before or after the petitions
+- Return ONLY the petition text itself
 
-For all bishops, the successors of the Apostles, may the Holy Spirit protect and guide them, let us pray to the Lord.
-
-For government leaders, may God give them wisdom to work for justice and to protect the lives of the innocent, let us pray to the Lord.
-
-For those who do not know Christ, may the Holy Spirit bring them to recognize his love and goodness, let us pray to the Lord.
-
-For this community gathered here, may Christ grant us strength to proclaim him boldly, let us pray to the Lord.
-
-[Insert specific petitions based on community information]
-
-For the intentions that we hold in the silence of our hearts (PAUSE 2-3 seconds), and for those written in our book of intentions, let us pray to the Lord.
-
-Generate the complete set of petitions now:`
+Generate the petitions incorporating the community details now:`
 }
 
 export function getUserPromptTemplate(): string {
@@ -71,3 +60,4 @@ export function getUserPromptTemplate(): string {
   }
   return getDefaultPromptTemplate()
 }
+

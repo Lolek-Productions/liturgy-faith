@@ -44,14 +44,10 @@ export default function DetailsEditStep({
     const saveData = async () => {
       // Don't save if the value hasn't actually changed
       if (petitionDetails === lastSavedValue.current) {
-        console.log('Skipping save - value unchanged:', petitionDetails)
         return
       }
-
-      console.log('Saving petition details:', petitionDetails)
       
       if (!petition?.id) {
-        console.log('Skipping save - no petition ID')
         return
       }
       
@@ -60,7 +56,6 @@ export default function DetailsEditStep({
         // Store details as simple text
         await updatePetitionDetails(petition.id, petitionDetails)
         lastSavedValue.current = petitionDetails
-        console.log('Successfully saved petition details')
         // Don't update wizard data here as it causes reinitialization loops
       } catch (error) {
         console.error('Failed to save petition details:', error)
@@ -71,7 +66,6 @@ export default function DetailsEditStep({
 
     // Save even if empty, but still check if value changed
     if (petitionDetails !== lastSavedValue.current) {
-      console.log('Scheduling save for:', petitionDetails)
       const debounceTimer = setTimeout(saveData, 1000)
       return () => clearTimeout(debounceTimer)
     }
